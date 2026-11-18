@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 7 — Reinforcement Learning · CS 5700</title>
+<meta name="description" content="CS 5700 Module 7: model-free reinforcement learning, Monte Carlo and temporal-difference prediction, SARSA, Q-learning, exploration, function approximation, DQN, policy gradients and PPO.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 7 lecture slides: Reinforcement Learning">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 7 of 15</p>
+  <h1>Reinforcement Learning</h1>
+  <p class="subtitle">
+    The same Bellman equation, except nobody tells you the transition table.
+    You have to act to find out.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<defs><marker id="mk-ta7" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker><marker id="mk-ta7t" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker></defs>
+<g class="v-in" style="--d:0.20s"><rect class="dg-box-a" x="20" y="30" width="150" height="60" rx="6"/><text class="dg-sm-b" x="95" y="66" text-anchor="middle">Agent</text></g>
+<g class="v-in" style="--d:0.40s"><rect class="dg-box-m" x="210" y="30" width="150" height="60" rx="6"/><text class="dg-sm-b" x="285" y="66" text-anchor="middle">World</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.70s" d="M170 50 H206" marker-end="url(#mk-ta7)"/>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:0.90s" d="M210 74 H174" marker-end="url(#mk-ta7t)"/>
+<g class="v-in" style="--d:1.00s"><text class="dg-xs" x="190" y="112" text-anchor="middle">action · reward</text></g>
+<g class="v-in" style="--d:1.30s"><rect class="dg-box" x="110" y="140" width="52" height="40" rx="3"/><text class="dg-xs dg-mono" x="136" y="166" text-anchor="middle">0.2</text></g>
+<g class="v-in" style="--d:1.38s"><rect class="dg-box" x="166" y="140" width="52" height="40" rx="3"/><text class="dg-xs dg-mono" x="192" y="166" text-anchor="middle">0.5</text></g>
+<g class="v-in" style="--d:1.46s"><rect class="dg-box" x="222" y="140" width="52" height="40" rx="3"/><text class="dg-xs dg-mono" x="248" y="166" text-anchor="middle">0.1</text></g>
+<g class="v-in" style="--d:1.54s"><rect class="dg-box" x="110" y="184" width="52" height="40" rx="3"/><text class="dg-xs dg-mono" x="136" y="210" text-anchor="middle">0.7</text></g>
+<g class="v-in" style="--d:1.62s"><rect class="dg-box" x="166" y="184" width="52" height="40" rx="3"/><text class="dg-xs dg-mono" x="192" y="210" text-anchor="middle">0.3</text></g>
+<g class="v-in" style="--d:1.70s"><rect class="dg-box-t" x="222" y="184" width="52" height="40" rx="3"/><text class="dg-xs dg-mono" x="248" y="210" text-anchor="middle">0.9</text></g>
+<g class="v-in" style="--d:1.78s"><rect class="dg-box" x="110" y="228" width="52" height="40" rx="3"/><text class="dg-xs dg-mono" x="136" y="254" text-anchor="middle">0.4</text></g>
+<g class="v-in" style="--d:1.86s"><rect class="dg-box-t" x="166" y="228" width="52" height="40" rx="3"/><text class="dg-xs dg-mono" x="192" y="254" text-anchor="middle">0.8</text></g>
+<g class="v-in" style="--d:1.94s"><rect class="dg-box" x="222" y="228" width="52" height="40" rx="3"/><text class="dg-xs dg-mono" x="248" y="254" text-anchor="middle">0.6</text></g>
+<g class="v-in" style="--d:2.20s"><text class="dg-xs" x="100" y="167" text-anchor="end">s₁</text><text class="dg-xs" x="100" y="211" text-anchor="end">s₂</text><text class="dg-xs" x="100" y="255" text-anchor="end">s₃</text></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-xs dg-teal dg-mono" x="190" y="310" text-anchor="middle">Q(s, a) ← Q + α[r + γ max Q′ − Q]</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>Distinguish model-based from model-free methods and say what each assumes.</li>
+      <li>Apply the TD(0), SARSA, and Q-learning updates to a table of values.</li>
+      <li>Explain the bias–variance difference between Monte Carlo and TD.</li>
+      <li>Choose an exploration strategy and justify it.</li>
+      <li>Describe DQN's two stabilising tricks and why they were necessary.</li>
+      <li>Derive the policy-gradient idea at a high level and explain PPO's clipping.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        The midterm asks for <strong>one numeric update</strong> of each rule. If you can do
+        the arithmetic on a 2×2 grid, you know the algorithm.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>Learning values from experience</h2>
+  <p>Monte Carlo, TD and Q-learning: the model is gone.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>What actually changed from module 6</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+      <figure class="fig" style="margin-bottom:14px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 214" role="img" aria-labelledby="n7at n7ad">
+          <title id="n7at">The reinforcement learning loop</title>
+          <desc id="n7ad">The agent sends an action to the environment. The environment, whose transition model and reward function are hidden, returns one next state and one reward. The loop repeats every step.</desc>
+          <defs><marker id="n7aa" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#16181d"/></marker></defs>
+          <g class="v-in" style="--d:0.00s"><rect class="dg-box-a" x="10" y="62" width="160" height="92" rx="3"/><text class="dg-txt-b" x="90" y="94" text-anchor="middle">agent</text><text class="dg-txt-s" x="90" y="114" text-anchor="middle">chooses an action</text><text class="dg-txt-s" x="90" y="134" text-anchor="middle">from its policy</text></g>
+          <g class="v-in" style="--d:0.12s"><path class="dg-line" d="M90 60 V 26 H 462 V 58" marker-end="url(#n7aa)"/><text class="dg-txt-b" x="276" y="18" text-anchor="middle">action aₜ</text></g>
+          <g class="v-in" style="--d:0.24s"><rect class="dg-box-m" x="382" y="62" width="160" height="92" rx="3"/><text class="dg-txt-b" x="462" y="94" text-anchor="middle">environment</text><text class="dg-txt-s" x="462" y="114" text-anchor="middle">T and R are</text><text class="dg-txt-s" x="462" y="134" text-anchor="middle">hidden</text></g>
+          <g class="v-in" style="--d:0.36s"><path class="dg-line" d="M462 156 V 188 H 90 V 160" marker-end="url(#n7aa)"/><text class="dg-txt-b" x="276" y="210" text-anchor="middle">next state sₜ₊₁ and reward rₜ₊₁</text></g>
+          <g class="v-in" style="--d:0.48s"><text class="dg-txt-s" x="276" y="102" text-anchor="middle">one sample</text><text class="dg-txt-s" x="276" y="122" text-anchor="middle">per step</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 7.1.</strong> In an MDP we were given <var>T</var> and <var>R</var>, and value iteration read them. In reinforcement learning the agent has neither: it picks an action and observes one outcome and one reward.
+        </figcaption>
+      </figure>
+        <p>
+          That single change — no model — forces a different algorithmic strategy:
+          <strong>estimate values from samples instead of computing them from
+          equations.</strong>
+        </p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Two ways to handle the missing model</h3>
+        <ol>
+          <li><strong>Learn the model</strong>, then plan inside it. Sample-efficient, but errors in the model compound.</li>
+          <li><strong>Learn the value directly</strong>, without ever writing <var>T</var> down. Simpler, but needs more interaction.</li>
+        </ol>
+        <p style="margin-top:10px">
+          This module is mostly the second. The first returns in the capstone projects,
+          where data is expensive and simulation is cheap.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>Monte Carlo: wait for the end, then average</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Run a full episode. At the end you know the actual return
+          <var>G<sub>t</sub></var> from every state you visited. Average those returns over
+          many episodes.
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          V(s) ← V(s) + α [ G<sub>t</sub> − V(s) ]
+        </div>
+        <p style="margin-top:12px">
+          The bracketed term is the <strong>error</strong> between what you predicted and
+          what actually happened. The update moves the estimate toward the observation.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Properties</h3>
+          <ul>
+            <li>Unbiased: the return is the real thing, not an estimate of it.</li>
+            <li>High variance: one unlucky episode moves the average a lot.</li>
+            <li>Requires terminating episodes, or a finite horizon.</li>
+            <li>Cannot learn mid-episode — no update until the end.</li>
+          </ul>
+        </div>
+        <p style="margin-top:14px; font-size:17px; color:var(--muted)">
+          That last property is fatal in continuing tasks, which is most of the world.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 118" role="img" aria-labelledby="f7at f7ad">
+<title id="f7at">Monte Carlo waits for the end of the episode</title>
+<desc id="f7ad">An episode drawn as a chain of states s0 to s4 and the end, with rewards r1 to r5 between them. Curved arrows run back from the end to every earlier state: Monte Carlo updates each state toward the actual return, but only after the episode ends.</desc>
+<defs><marker id="mk-qf7a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#8b8f98"/></marker><marker id="mk-af7a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9e1b32"/></marker><marker id="mk-tf7a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker></defs>
+<g class="v-in" style="--d:0.10s"><circle class="dg-box" cx="60" cy="40" r="22"/><text class="dg-xs" x="60" y="45" text-anchor="middle">s₀</text></g>
+<g class="v-in" style="--d:0.15s"><path class="dg-line-q" d="M84 40 H182" marker-end="url(#mk-qf7a)"/><text class="dg-xs" x="135" y="30" text-anchor="middle">r₁</text></g>
+<g class="v-in" style="--d:0.22s"><circle class="dg-box" cx="210" cy="40" r="22"/><text class="dg-xs" x="210" y="45" text-anchor="middle">s₁</text></g>
+<g class="v-in" style="--d:0.27s"><path class="dg-line-q" d="M234 40 H332" marker-end="url(#mk-qf7a)"/><text class="dg-xs" x="285" y="30" text-anchor="middle">r₂</text></g>
+<g class="v-in" style="--d:0.34s"><circle class="dg-box" cx="360" cy="40" r="22"/><text class="dg-xs" x="360" y="45" text-anchor="middle">s₂</text></g>
+<g class="v-in" style="--d:0.39s"><path class="dg-line-q" d="M384 40 H482" marker-end="url(#mk-qf7a)"/><text class="dg-xs" x="435" y="30" text-anchor="middle">r₃</text></g>
+<g class="v-in" style="--d:0.46s"><circle class="dg-box" cx="510" cy="40" r="22"/><text class="dg-xs" x="510" y="45" text-anchor="middle">s₃</text></g>
+<g class="v-in" style="--d:0.51s"><path class="dg-line-q" d="M534 40 H632" marker-end="url(#mk-qf7a)"/><text class="dg-xs" x="585" y="30" text-anchor="middle">r₄</text></g>
+<g class="v-in" style="--d:0.58s"><circle class="dg-box" cx="660" cy="40" r="22"/><text class="dg-xs" x="660" y="45" text-anchor="middle">s₄</text></g>
+<g class="v-in" style="--d:0.63s"><path class="dg-line-q" d="M684 40 H782" marker-end="url(#mk-qf7a)"/><text class="dg-xs" x="735" y="30" text-anchor="middle">r₅</text></g>
+<g class="v-in" style="--d:0.70s"><circle class="dg-box-a" cx="810" cy="40" r="22"/><text class="dg-xs" x="810" y="45" text-anchor="middle">end</text></g>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.20s" d="M804 64 Q735 84 666 64" marker-end="url(#mk-af7a)"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.50s" d="M804 64 Q660 87 516 64" marker-end="url(#mk-af7a)"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.80s" d="M804 64 Q585 90 366 64" marker-end="url(#mk-af7a)"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:2.10s" d="M804 64 Q510 93 216 64" marker-end="url(#mk-af7a)"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:2.40s" d="M804 64 Q435 96 66 64" marker-end="url(#mk-af7a)"/>
+<g class="v-in" style="--d:2.80s"><text class="dg-xs dg-txt-bad" x="500" y="114" text-anchor="middle">nothing is updated until the end; then the real return Gₜ goes back to every state</text></g>
+</svg>
+<figcaption><strong>Figure 7.2.</strong> Unbiased, but nothing is learned until the episode finishes.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>TD(0): bootstrap off your own estimate</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Instead of waiting for the true return, use the reward you just received plus
+          your current estimate of the next state:
+        </p>
+        <div class="eq">
+          V(s) ← V(s) + α [ r + γV(s′) − V(s) ]
+        </div>
+        <p style="margin-top:14px">
+          The target <var>r</var> + <var>γV</var>(<var>s′</var>) is a
+          <strong>bootstrapped</strong> estimate: it uses a guess to update a guess. That
+          sounds circular, and it is — but the contraction property from module 6 is what
+          makes it converge.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Bias and variance</h3>
+          <table class="tbl--reveal tbl tbl--compact" style="margin-top:6px">
+      <caption class="visually-hidden">Bias and variance</caption>
+            <thead><tr><td></td><th scope="col">Bias</th><th scope="col">Variance</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Monte Carlo</th><td>None</td><td>High</td></tr>
+              <tr><th scope="row">TD(0)</th><td>Some</td><td>Low</td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:10px">
+            Lower variance means a larger learning rate is stable, which is why TD usually
+            learns faster per episode even though each update is biased.
+          </p>
+        </div>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 150" role="img" aria-labelledby="f7bt f7bd">
+<title id="f7bt">TD(0) updates after one step</title>
+<desc id="f7bd">An episode drawn as a chain of states s0 to s4 and the end, with rewards r1 to r5 between them. One curved arrow runs back from s2 to s1: TD(0) updates V of s1 as soon as it sees r2 and s2, using r2 plus gamma times V of s2 as the target.</desc>
+<defs><marker id="mk-qf7b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#8b8f98"/></marker><marker id="mk-af7b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9e1b32"/></marker><marker id="mk-tf7b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker></defs>
+<g class="v-in" style="--d:0.10s"><circle class="dg-box" cx="60" cy="40" r="22"/><text class="dg-xs" x="60" y="45" text-anchor="middle">s₀</text></g>
+<g class="v-in" style="--d:0.15s"><path class="dg-line-q" d="M84 40 H182" marker-end="url(#mk-qf7b)"/><text class="dg-xs" x="135" y="30" text-anchor="middle">r₁</text></g>
+<g class="v-in" style="--d:0.22s"><circle class="dg-box-t" cx="210" cy="40" r="22"/><text class="dg-xs" x="210" y="45" text-anchor="middle">s₁</text></g>
+<g class="v-in" style="--d:0.27s"><path class="dg-line-q" d="M234 40 H332" marker-end="url(#mk-qf7b)"/><text class="dg-xs" x="285" y="30" text-anchor="middle">r₂</text></g>
+<g class="v-in" style="--d:0.34s"><circle class="dg-box-t" cx="360" cy="40" r="22"/><text class="dg-xs" x="360" y="45" text-anchor="middle">s₂</text></g>
+<g class="v-in" style="--d:0.39s"><path class="dg-line-q" d="M384 40 H482" marker-end="url(#mk-qf7b)"/><text class="dg-xs" x="435" y="30" text-anchor="middle">r₃</text></g>
+<g class="v-in" style="--d:0.46s"><circle class="dg-box" cx="510" cy="40" r="22"/><text class="dg-xs" x="510" y="45" text-anchor="middle">s₃</text></g>
+<g class="v-in" style="--d:0.51s"><path class="dg-line-q" d="M534 40 H632" marker-end="url(#mk-qf7b)"/><text class="dg-xs" x="585" y="30" text-anchor="middle">r₄</text></g>
+<g class="v-in" style="--d:0.58s"><circle class="dg-box" cx="660" cy="40" r="22"/><text class="dg-xs" x="660" y="45" text-anchor="middle">s₄</text></g>
+<g class="v-in" style="--d:0.63s"><path class="dg-line-q" d="M684 40 H782" marker-end="url(#mk-qf7b)"/><text class="dg-xs" x="735" y="30" text-anchor="middle">r₅</text></g>
+<g class="v-in" style="--d:0.70s"><circle class="dg-box" cx="810" cy="40" r="22"/><text class="dg-xs" x="810" y="45" text-anchor="middle">end</text></g>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:1.20s" d="M356 64 Q285.0 96 214 64" marker-end="url(#mk-tf7b)"/>
+<g class="v-in" style="--d:1.60s"><text class="dg-xs dg-teal" x="285" y="112" text-anchor="middle">target: r₂ + γV(s₂)</text></g>
+<g class="v-in" style="--d:2.20s"><text class="dg-xs" x="285" y="134" text-anchor="middle">update V(s₁) now</text></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-xs" x="720" y="112" text-anchor="middle">the rest of the episode is not needed</text></g>
+</svg>
+<figcaption><strong>Figure 7.3.</strong> A guess updates a guess: biased, low variance, online.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s7">
+  <h2>SARSA and Q-learning: two targets, one letter apart</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <h3>SARSA — on-policy</h3>
+        <div class="eq eq--tight" style="text-align:left">
+          Q(s,a) ← Q(s,a) + α[ r + γQ(s′,a′) − Q(s,a) ]
+        </div>
+        <p style="margin-top:10px">
+          Uses the action <var>a′</var> the agent <em>actually took</em> next, including
+          exploratory ones. It learns the value of the policy it is following, so it is
+          cautious when the policy is exploratory.
+        </p>
+        <h3 style="margin-top:16px">Q-learning — off-policy</h3>
+        <div class="eq eq--tight" style="text-align:left">
+          Q(s,a) ← Q(s,a) + α[ r + γ·max<sub>a′</sub>Q(s′,a′) − Q(s,a) ]
+        </div>
+        <p style="margin-top:10px">
+          Uses the best possible next action, regardless of what it did. It learns the
+          optimal policy while behaving exploratorily.
+        </p>
+        <p style="margin-top:8px">
+          At a terminal <var>s′</var> there is nothing to bootstrap from, so the target is
+          just <var>r</var>.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>The difference in behaviour</h3>
+          <p>
+            Next to a cliff, SARSA learns the safe path because its exploration sometimes
+            walks off the edge and the value reflects that. Q-learning learns the optimal
+            path along the edge, because <code>max</code> ignores the exploratory mistakes
+            — and it may fall in during training.
+          </p>
+          <p style="margin-top:8px">
+            Neither is "better". Q-learning is better if you will deploy the greedy policy;
+            SARSA is better if exploration continues during operation.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            Off-policy learning is what lets you reuse old data — the property deep RL
+            depends on.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s8">
+  <h2>Worked Q-learning update</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div class="worked">
+        <span class="worked-label">One step</span>
+        <p>
+          A 2×2 grid. From <strong>(0,0)</strong> the agent moves right to
+          <strong>(0,1)</strong> and receives <strong>r = 1</strong>. Let
+          <var>α</var> = 0.5, <var>γ</var> = 0.9.
+        </p>
+        <p>
+          Current estimates: Q((0,0), right) = 0.2. From (0,1) the best action has
+          Q = 4.0.
+        </p>
+        <p class="eq">
+          target = 1 + 0.9 × 4.0 = 4.6<br>
+          Q ← 0.2 + 0.5 × (4.6 − 0.2) = 2.4
+        </p>
+      </div>
+      <div>
+        <figure class="fig">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 146" role="img" aria-labelledby="n7bt n7bd">
+          <title id="n7bt">One Q-learning update on a number line</title>
+          <desc id="n7bd">On a number line from 0 to 5, the old estimate is 0.2 and the target is 4.6, an error of 4.4. With alpha 0.5 the estimate moves half way, by 2.2, to the new value 2.4.</desc>
+          <defs><marker id="n7ba" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#16181d"/></marker></defs>
+          <path class="dg-line" d="M30 110 H 530"/>
+          <path class="dg-line" d="M30 105 V 115"/><text class="dg-txt-s" x="30" y="136" text-anchor="middle">0</text>
+          <path class="dg-line" d="M130 105 V 115"/><text class="dg-txt-s" x="130" y="136" text-anchor="middle">1</text>
+          <path class="dg-line" d="M230 105 V 115"/><text class="dg-txt-s" x="230" y="136" text-anchor="middle">2</text>
+          <path class="dg-line" d="M330 105 V 115"/><text class="dg-txt-s" x="330" y="136" text-anchor="middle">3</text>
+          <path class="dg-line" d="M430 105 V 115"/><text class="dg-txt-s" x="430" y="136" text-anchor="middle">4</text>
+          <path class="dg-line" d="M530 105 V 115"/><text class="dg-txt-s" x="530" y="136" text-anchor="middle">5</text>
+          <g class="v-in" style="--d:0.00s"><circle class="dg-box-m" cx="50.0" cy="110" r="8"/><text class="dg-txt-b" x="50" y="88" dx="-12">old 0.2</text></g>
+          <g class="v-in" style="--d:0.12s"><circle class="dg-box-t" cx="489.99999999999994" cy="110" r="8"/><text class="dg-txt-b" x="490" y="88" text-anchor="middle">target 4.6</text></g>
+          <g class="v-in" style="--d:0.24s"><path class="dg-dash" d="M50.0 34 H 489.99999999999994"/><path class="dg-line" d="M50.0 28 V 40 M489.99999999999994 28 V 40"/><text class="dg-txt" x="270" y="22" text-anchor="middle">error = 4.6 − 0.2 = 4.4</text></g>
+          <g class="v-in" style="--d:0.36s"><path class="dg-line" d="M50.0 62 H 266.0" marker-end="url(#n7ba)"/><text class="dg-lbl" x="160" y="56" text-anchor="middle">α × 4.4 = 2.2</text></g>
+          <g class="v-in" style="--d:0.48s"><circle class="dg-box-a" cx="270.0" cy="110" r="8"/><text class="dg-txt-b" x="270" y="88" text-anchor="middle">new 2.4</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 7.4.</strong> Read the arithmetic, not just the answer. The error is 4.4, and with α = 0.5 half of it is corrected in one update. After many visits, Q converges to the true expected value.
+        </figcaption>
+      </figure>
+        <div class="panel panel--accent" style="margin-top:12px">
+          <h3>The most common exam error</h3>
+          <p>
+            Using <var>γ</var> on the reward as well as the value, or forgetting to
+            subtract the old estimate. The update is
+            <strong>old + α(target − old)</strong>, and the subtraction is not optional.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s9">
+  <h2>Exploration and approximation</h2>
+  <p>What it costs to look around, and what breaks at scale.</p>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s10">
+  <h2>Exploration: the part with no free lunch</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          If the agent always takes the greedy action, it never discovers anything better.
+          If it always explores, it never uses what it learned. Every method here is a
+          different answer to that trade.
+        </p>
+        <ul>
+          <li><strong>ε-greedy</strong> — random action with probability ε. Simple, and the default baseline.</li>
+          <li><strong>Decaying ε</strong> — explore early, exploit later. Needs a schedule, which is a hyperparameter in disguise.</li>
+          <li><strong>Optimistic initialization</strong> — start values high so every action looks worth trying once.</li>
+          <li><strong>UCB</strong> — choose by value plus an uncertainty bonus.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="eq">
+          UCB: a = argmax<sub>a</sub> [ Q(a) + c√(ln N / n<sub>a</sub>) ]
+        </div>
+        <figure class="fig" style="margin-top:2px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 150" role="img" aria-labelledby="n7ct n7cd">
+          <title id="n7ct">The UCB exploration bonus shrinks as an action is tried</title>
+          <desc id="n7cd">Two curves of the bonus c times the square root of ln N over n a, against n a from 1 to 30. Both fall steeply at first and flatten. The curve for N equal to 100,000 sits only about 30 percent above the curve for N equal to 1,000.</desc>
+          
+          <path class="dg-line-q" d="M50 122 H 380"/><path class="dg-line-q" d="M50 93.4286 H 380"/><path class="dg-line-q" d="M50 64.8571 H 380"/><path class="dg-line-q" d="M50 36.2857 H 380"/><path class="dg-line" d="M50 22 V 122 H 380"/><text class="dg-txt-s" x="50" y="142" text-anchor="middle">1</text><text class="dg-txt-s" x="152.414" y="142" text-anchor="middle">10</text><text class="dg-txt-s" x="266.207" y="142" text-anchor="middle">20</text><text class="dg-txt-s" x="380" y="142" text-anchor="middle">30</text><text class="dg-txt-s" x="42" y="127" text-anchor="end">0</text><text class="dg-txt-s" x="42" y="98.4286" text-anchor="end">1</text><text class="dg-txt-s" x="42" y="69.8571" text-anchor="end">2</text><text class="dg-txt-s" x="42" y="41.2857" text-anchor="end">3</text><text class="dg-txt-s" x="50" y="10">bonus</text>
+          <path class="dg-plot-t draw" d="M50.0 46.9 L53.4 56.1 L58.0 64.4 L61.4 68.9 L67.1 74.5 L72.8 78.6 L84.1 84.5 L95.5 88.4 L106.9 91.3 L129.7 95.5 L152.4 98.3 L186.6 101.2 L220.7 103.2 L266.2 105.2 L323.1 107.0 L380.0 108.3" pathLength="1" style="--d:0.20s"/>
+          <path class="dg-plot-a draw" d="M50.0 25.1 L53.4 37.0 L58.0 47.6 L61.4 53.4 L67.1 60.7 L72.8 66.0 L84.1 73.5 L95.5 78.6 L106.9 82.4 L129.7 87.7 L152.4 91.3 L186.6 95.1 L220.7 97.8 L266.2 100.3 L323.1 102.6 L380.0 104.3" pathLength="1" style="--d:0.60s"/>
+          <g class="v-in" style="--d:1.30s"><text class="dg-lbl" x="408" y="58">N = 100,000 steps</text></g>
+          <g class="v-in" style="--d:1.00s"><text class="dg-txt-s" x="408" y="86">N = 1,000 steps</text></g>
+          <text class="dg-txt-s" x="408" y="144">times tried, nₐ</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 7.5.</strong> Rarely tried actions get a large bonus, so they are eventually tried. 100 times more steps raises it only about 30%: logarithmic growth makes regret bounds possible.
+        </figcaption>
+      </figure>
+        <div class="panel panel--key" style="margin-top:12px">
+          <h3>Why this is not just a trick</h3>
+          <p>
+            Exploration is an <em>information</em> problem, not a reward problem. The
+            value of trying an action includes what you learn by trying it — and that
+            value is invisible to a greedy rule.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s11">
+  <h2>Function approximation, and the deadly triad</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A table needs one entry per state. For images, robot poses, or text, that is
+          impossible. Replace the table with a parameterized function
+          <var>V</var><sub>θ</sub>(<var>s</var>) and update θ instead.
+        </p>
+        <p>
+          This works, but it breaks the convergence guarantee. The combination of three
+          ingredients can diverge:
+        </p>
+        <figure class="fig">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 212" role="img" aria-labelledby="n7dt n7dd">
+          <title id="n7dt">The deadly triad</title>
+          <desc id="n7dd">Three overlapping circles labelled function approximation, bootstrapping and off-policy training. The region where all three overlap is marked can diverge.</desc>
+          
+          <g class="v-in" style="--d:0.00s"><circle class="dg-band-t" cx="220" cy="72" r="68"/><circle class="dg-line-q" cx="220" cy="72" r="68"/></g>
+          <g class="v-in" style="--d:0.20s"><circle class="dg-band-a" cx="332" cy="72" r="68"/><circle class="dg-line-q" cx="332" cy="72" r="68"/></g>
+          <g class="v-in" style="--d:0.40s"><circle class="dg-band-t" cx="276" cy="142" r="68"/><circle class="dg-line-q" cx="276" cy="142" r="68"/></g>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt-b" x="184" y="50" text-anchor="middle">function</text><text class="dg-txt-b" x="184" y="70" text-anchor="middle">approximation</text></g>
+          <g class="v-in" style="--d:0.30s"><text class="dg-txt-b" x="372" y="56" text-anchor="middle">bootstrapping</text><text class="dg-txt-s" x="372" y="76" text-anchor="middle">(TD targets)</text></g>
+          <g class="v-in" style="--d:0.50s"><text class="dg-txt-b" x="276" y="180" text-anchor="middle">off-policy</text><text class="dg-txt-b" x="276" y="200" text-anchor="middle">training</text></g>
+          <g class="v-in" style="--d:0.80s"><text class="dg-lbl" x="276" y="100" text-anchor="middle">can</text><text class="dg-lbl" x="276" y="118" text-anchor="middle">diverge</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 7.6.</strong> The three ingredients. Each one alone is safe; the trouble is where all three overlap.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Why the three together are unstable</h3>
+          <p>
+            Bootstrapping makes the target depend on the parameters you are updating, so
+            the update is not a fixed-point iteration on a fixed function. Off-policy
+            sampling changes the distribution the update is computed over. Approximation
+            lets one update change values at many states at once, including ones you did
+            not visit.
+          </p>
+          <p style="margin-top:8px">
+            Remove any one and convergence results exist. Keep all three — as every deep RL
+            system does — and you rely on engineering rather than theory.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s12">
+  <h2>DQN: two tricks that made deep RL work</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Q-learning with a neural network on raw pixels diverged, because consecutive
+          samples are correlated and the target moves with every update.
+        </p>
+        <div class="panel panel--key">
+          <h3>Experience replay</h3>
+          <p>
+            Store transitions in a buffer and sample random minibatches. This breaks the
+            temporal correlation and lets one transition be reused many times.
+          </p>
+        </div>
+        <div class="panel panel--key" style="margin-top:12px">
+          <h3>Target network</h3>
+          <p>
+            Compute the bootstrap target with a frozen copy of the network, updated every
+            few thousand steps. This stops the target from chasing the parameters.
+          </p>
+        </div>
+      </div>
+      <div>
+        <div class="eq eq--tight" style="text-align:left">
+          L(θ) = E<sub>(s,a,r,s′)~D</sub> [ ( r + γ max<sub>a′</sub> Q(s′,a′; θ<sup>−</sup>) − Q(s,a; θ) )² ]
+        </div>
+        <p style="margin-top:12px">
+          θ<sup>−</sup> are the frozen target parameters, and <var>D</var> is the replay
+          buffer. Everything else is ordinary supervised regression.
+        </p>
+        <div class="panel panel--accent" style="margin-top:12px">
+          <h3>Maximization bias</h3>
+          <p>
+            The <code>max</code> over noisy estimates is systematically optimistic.
+            <strong>Double DQN</strong> fixes it by using the online network to choose the
+            action and the target network to evaluate it.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s13">
+  <h2>Policies, rewards and honest evaluation</h2>
+  <p>Policy gradients, PPO, reward design and reporting.</p>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s14">
+  <h2>Policy gradients: optimize the policy directly</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Value-based methods learn values and derive a policy. Policy-gradient methods
+          parameterize the policy π<sub>θ</sub>(a|s) and ascend the expected return
+          directly.
+        </p>
+        <div class="eq">
+          ∇J(θ) = E[ ∇ log π<sub>θ</sub>(a|s) · G ]
+        </div>
+        <p style="margin-top:14px">
+          The intuition: raise the probability of actions that led to high return, lower
+          it for actions that did not. The log-derivative is just the direction in which
+          to move the parameters to make that action more likely.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Variance is the problem</h3>
+          <p>
+            Raw return <var>G</var> varies enormously between episodes, so the gradient
+            estimate is noisy. Two fixes:
+          </p>
+          <ul>
+            <li><strong>Baseline</strong> — subtract V(s); this does not bias the gradient and cuts variance sharply.</li>
+            <li><strong>Actor–critic</strong> — use a learned critic for the baseline, so the update uses an advantage instead of a raw return.</li>
+          </ul>
+        </div>
+        <div class="eq eq--tight" style="margin-top:10px; text-align:left">
+          advantage: A(s,a) = Q(s,a) − V(s)
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s15">
+  <h2>PPO: keep the new policy close to the old one</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A large policy update can destroy a good policy and never recover. Trust-region
+          methods bound how far one update may move; PPO does it with a clipped
+          objective, which is cheaper.
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          L = E[ min( r<sub>t</sub>(θ)A<sub>t</sub>, clip(r<sub>t</sub>(θ), 1−ε, 1+ε)A<sub>t</sub> ) ]
+        </div>
+        <p style="margin-top:12px">
+          where r<sub>t</sub>(θ) is the probability ratio between the new and old policy.
+          Once the ratio leaves the clip range, the gradient stops — the update is
+          <em>penalized</em> for moving too far.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Why it became the default</h3>
+          <ul>
+            <li>It works across continuous and discrete actions with the same code.</li>
+            <li>It is robust to hyperparameters, which matters more than peak performance.</li>
+            <li>It is simple enough to implement correctly in an afternoon.</li>
+          </ul>
+        </div>
+        <figure class="fig" style="margin-top:6px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 150" role="img" aria-labelledby="n7et n7ed">
+          <title id="n7et">The PPO clipped objective for one sample</title>
+          <desc id="n7ed">Two small plots of the objective against the probability ratio r. With a positive advantage the objective rises with r and goes flat after 1 plus epsilon. With a negative advantage it is flat below 1 minus epsilon and falls as r grows.</desc>
+          
+          <path class="dg-line" d="M14 28 V 118 H 234"/>
+          <text class="dg-txt-s" x="124" y="138" text-anchor="middle">1</text><text class="dg-txt-s" x="87.3333" y="138" text-anchor="middle">1−ε</text><text class="dg-txt-s" x="160.667" y="138" text-anchor="middle">1+ε</text>
+          <path class="dg-line-q" d="M87.33333333333334 28 V 118 M160.66666666666666 28 V 118"/>
+          <text class="dg-txt-b" x="14" y="14">A &gt; 0: gain stops at 1+ε</text>
+          <path class="dg-line" d="M302 28 V 118 H 522"/>
+          <text class="dg-txt-s" x="412" y="138" text-anchor="middle">1</text><text class="dg-txt-s" x="375.333" y="138" text-anchor="middle">1−ε</text><text class="dg-txt-s" x="448.667" y="138" text-anchor="middle">1+ε</text>
+          <path class="dg-line-q" d="M375.33333333333337 28 V 118 M448.66666666666663 28 V 118"/>
+          <text class="dg-txt-b" x="302" y="14">A &lt; 0: loss stops at 1−ε</text>
+          <path class="dg-plot-a draw" d="M14.0 99.2 L160.7 54.2 L234.0 54.2" pathLength="1" style="--d:0.20s"/>
+          <path class="dg-plot-t draw" d="M302.0 54.2 L375.3 54.2 L522.0 99.2" pathLength="1" style="--d:0.70s"/>
+          <text class="dg-txt-s" x="552" y="146" text-anchor="end">ratio r</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 7.7.</strong> Outside the clip range the objective goes flat and the gradient stops. PPO also drives RLHF in module 13, with a learned reward.
+        </figcaption>
+      </figure>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s16">
+  <h2>Reward design is where RL projects fail</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          An optimizer maximizes exactly what you wrote, including the parts you did not
+          think about. Three failure patterns:
+        </p>
+        <ul>
+          <li><strong>Reward hacking</strong> — the agent exploits a loophole: a boat racing game that spins in circles collecting points instead of finishing.</li>
+          <li><strong>Sparse reward</strong> — nothing to learn from until success, which may never come.</li>
+          <li><strong>Proxy mismatch</strong> — you reward clicks but wanted satisfaction.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Practical mitigations</h3>
+          <ul>
+            <li>Shape rewards with potential functions, which preserve the optimal policy if done correctly.</li>
+            <li>Test the reward on a hand-written policy before training anything.</li>
+            <li>Inspect rollouts, not just the learning curve.</li>
+            <li>Keep a held-out evaluation that the reward does not see.</li>
+          </ul>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            <strong>Look at what the agent actually does.</strong> A rising reward curve is
+            not evidence of the behaviour you wanted — it is evidence of the behaviour you
+            specified.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s17">
+  <h2>How to evaluate an RL result honestly</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          RL results are among the least reproducible in machine learning. A single
+          learning curve is close to meaningless.
+        </p>
+        <ul>
+          <li>Report <strong>at least five seeds</strong>, with mean and spread.</li>
+          <li>Report the <strong>evaluation protocol</strong>: how many episodes, which policy, what exploration.</li>
+          <li>Report <strong>environment steps</strong>, not wall-clock time.</li>
+          <li>Report the <strong>baseline</strong>: random, and a tuned simple method.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>The seed question</h3>
+          <p>
+            Two runs of the same algorithm with different seeds can differ by more than
+            two different algorithms do. If a paper's improvement is smaller than its
+            seed variance, the improvement is not established.
+          </p>
+        </div>
+        <figure class="fig" style="margin-top:10px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 214" role="img" aria-labelledby="n7ft n7fd">
+          <title id="n7ft">Learning curves with seed spread for two algorithms</title>
+          <desc id="n7fd">Mean return against environment steps for algorithm A and algorithm B, each with a shaded band showing the spread over five seeds. B's mean ends a little higher, but the two bands overlap almost everywhere.</desc>
+          
+          <path class="dg-line" d="M50 22 V 158 H 520"/><text class="dg-txt-s" x="50" y="178" text-anchor="middle">0</text><text class="dg-txt-s" x="285" y="178" text-anchor="middle">0.5</text><text class="dg-txt-s" x="520" y="178" text-anchor="middle">1.0</text><text class="dg-txt-s" x="520" y="200" text-anchor="end">environment steps (millions)</text><text class="dg-txt-s" x="50" y="10">mean return</text>
+          <g class="v-in" style="--d:0.10s"><path class="dg-band-t" d="M50.0 151.5 L97.0 126.0 L144.0 107.1 L191.0 92.9 L238.0 82.1 L285.0 73.8 L332.0 67.4 L379.0 62.3 L426.0 58.1 L473.0 54.6 L520.0 51.7 L520.0 97.4 L473.0 97.1 L426.0 97.3 L379.0 98.2 L332.0 100.0 L285.0 103.2 L238.0 108.2 L191.0 115.7 L144.0 126.6 L97.0 142.3 L50.0 158.0 Z"/></g>
+          <g class="v-in" style="--d:0.30s"><path class="dg-band-a" d="M50.0 150.9 L97.0 122.6 L144.0 100.7 L191.0 83.8 L238.0 70.6 L285.0 60.1 L332.0 51.8 L379.0 45.1 L426.0 39.6 L473.0 35.0 L520.0 31.1 L520.0 80.6 L473.0 80.9 L426.0 82.0 L379.0 84.0 L332.0 87.2 L285.0 91.9 L238.0 98.8 L191.0 108.5 L144.0 122.0 L97.0 140.3 L50.0 158.0 Z"/></g>
+          <path class="dg-plot-t draw" d="M50.0 158.0 L97.0 134.2 L144.0 116.9 L191.0 104.3 L238.0 95.2 L285.0 88.5 L332.0 83.7 L379.0 80.2 L426.0 77.7 L473.0 75.8 L520.0 74.5" pathLength="1" style="--d:0.40s"/>
+          <path class="dg-plot-a draw" d="M50.0 158.0 L97.0 131.4 L144.0 111.3 L191.0 96.2 L238.0 84.7 L285.0 76.0 L332.0 69.5 L379.0 64.5 L426.0 60.8 L473.0 58.0 L520.0 55.8" pathLength="1" style="--d:0.70s"/>
+          <g class="v-in" style="--d:1.50s"><text class="dg-lbl" x="528" y="52">B</text><text class="dg-txt-b" x="528" y="90.4">A</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 7.8.</strong> Mean and spread over five seeds. B ends higher, but the bands overlap, so the gain is not established. Module 11 and your capstone use the same standard.
+        </figcaption>
+      </figure>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s18">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>All three rules differ only in their target.</strong><p>Monte Carlo uses the return, TD uses one reward plus a guess, SARSA and Q-learning differ by <code>max</code>.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Bootstrapping trades bias for variance.</strong><p>That trade is why TD learns faster per episode than Monte Carlo.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Exploration is an information problem.</strong><p>UCB makes the value of information explicit.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>Deep RL works by engineering, not by theorem.</strong><p>Replay and target networks exist because the deadly triad cannot be proven stable.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>You get the reward you wrote.</strong><p>Inspect behaviour, use multiple seeds, and keep an evaluation the optimizer cannot see.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 16 -->
+<section class="slide" id="s19">
+  <h2>This week's work, and the exam</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA §22.1–22.7.</li>
+          <li>Sutton and Barto chapters 3, 6, and 13 (policy gradients).</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Lab 3: tabular Q-learning on a small grid; report ten seeds, as the lab sheet asks.</li>
+          <li>Work through the midterm briefing deck (module 8) before the exam.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — Lab 3.</li>
+          <li><span class="due">Friday, March 5</span> — midterm, 8:30–10:30 a.m. CT, in the class slot.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next week:</strong> no lecture. The midterm covers modules 1–7, and the
+        <a href="../week08/index.html">midterm briefing deck (module 8)</a> has the scope, the sample
+        questions, and the room or proctoring arrangements for each section.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 17 ─────────────────────────────── Python learning resources -->
+<section class="slide" id="s20">
+  <h2>Python help for Lab 3</h2>
+  <div class="slide-main">
+    <p style="margin-bottom:14px">Lab 3 is about experiments as much as algorithms: seeds, configs and honest plots.</p>
+    <ul class="resources">
+      <li><a href="https://numpy.org/doc/stable/reference/random/generator.html">NumPy random Generator</a><span class="src">numpy.org</span><p>default_rng(seed) gives each run its own reproducible random stream.</p></li>
+      <li><a href="https://docs.python.org/3/library/json.html">json</a><span class="src">docs.python.org</span><p>Read your hyperparameters from config.json instead of hard-coding them.</p></li>
+      <li><a href="https://docs.python.org/3/library/dataclasses.html">dataclasses</a><span class="src">docs.python.org</span><p>Keep α, γ, ε and the decay schedule together in one small config class.</p></li>
+      <li><a href="https://matplotlib.org/stable/tutorials/pyplot.html">Matplotlib pyplot tutorial</a><span class="src">matplotlib.org</span><p>Plot mean return across seeds; a single-seed curve is not a result.</p></li>
+      <li><a href="https://numpy.org/doc/stable/user/basics.broadcasting.html">NumPy broadcasting</a><span class="src">numpy.org</span><p>Average many runs at once by stacking them into one array.</p></li>
+      <li><a href="https://jakevdp.github.io/PythonDataScienceHandbook/">Python Data Science Handbook (free online book)</a><span class="src">jakevdp.github.io</span><p>The NumPy and Matplotlib chapters go deeper than the tutorials.</p></li>
+    </ul>
+    <div class="callout" style="margin-top:20px">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>Run one seed end to end before you run ten.</p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 12 — Neural Networks and Deep Learning · CS 5700</title>
+<meta name="description" content="CS 5700 Module 12: multilayer perceptrons, backpropagation derivation, optimizers, convolutional networks, residual connections, regularization, and a practical debugging checklist.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 12 lecture slides: Neural Networks and Deep Learning">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 12 of 15</p>
+  <h1>Neural Networks and Deep Learning</h1>
+  <p class="subtitle">
+    A composition of simple functions, differentiated by the chain rule,
+    fitted by gradient descent.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 70 L160 55"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 70 L160 115"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 70 L160 175"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 70 L160 235"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 70 L160 295"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 130 L160 55"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 130 L160 115"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 130 L160 175"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 130 L160 235"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 130 L160 295"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 190 L160 55"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 190 L160 115"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 190 L160 175"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 190 L160 235"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 190 L160 295"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 250 L160 55"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 250 L160 115"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 250 L160 175"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 250 L160 235"/></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M50 250 L160 295"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 55 L270 100"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 55 L270 160"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 55 L270 220"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 115 L270 100"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 115 L270 160"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 115 L270 220"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 175 L270 100"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 175 L270 160"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 175 L270 220"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 235 L270 100"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 235 L270 160"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 235 L270 220"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 295 L270 100"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 295 L270 160"/></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M160 295 L270 220"/></g>
+<g class="v-in" style="--d:1.00s"><path class="dg-line-q" d="M270 100 L350 160"/></g>
+<g class="v-in" style="--d:1.00s"><path class="dg-line-q" d="M270 160 L350 160"/></g>
+<g class="v-in" style="--d:1.00s"><path class="dg-line-q" d="M270 220 L350 160"/></g>
+<g class="v-in" style="--d:0.10s"><circle class="dg-box-t" cx="50" cy="70" r="13"/></g>
+<g class="v-in" style="--d:0.15s"><circle class="dg-box-t" cx="50" cy="130" r="13"/></g>
+<g class="v-in" style="--d:0.20s"><circle class="dg-box-t" cx="50" cy="190" r="13"/></g>
+<g class="v-in" style="--d:0.25s"><circle class="dg-box-t" cx="50" cy="250" r="13"/></g>
+<g class="v-in" style="--d:0.50s"><circle class="dg-box" cx="160" cy="55" r="13"/></g>
+<g class="v-in" style="--d:0.55s"><circle class="dg-box" cx="160" cy="115" r="13"/></g>
+<g class="v-in" style="--d:0.60s"><circle class="dg-box" cx="160" cy="175" r="13"/></g>
+<g class="v-in" style="--d:0.65s"><circle class="dg-box" cx="160" cy="235" r="13"/></g>
+<g class="v-in" style="--d:0.70s"><circle class="dg-box" cx="160" cy="295" r="13"/></g>
+<g class="v-in" style="--d:0.90s"><circle class="dg-box" cx="270" cy="100" r="13"/></g>
+<g class="v-in" style="--d:0.95s"><circle class="dg-box" cx="270" cy="160" r="13"/></g>
+<g class="v-in" style="--d:1.00s"><circle class="dg-box" cx="270" cy="220" r="13"/></g>
+<g class="v-in" style="--d:1.30s"><circle class="dg-box-a" cx="350" cy="160" r="13"/></g>
+<g class="v-in" style="--d:2.40s"><text class="dg-xs dg-teal" x="190" y="325" text-anchor="middle">layers, weights, and the chain rule</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>Explain why a multilayer network can represent functions a linear model cannot.</li>
+      <li>Derive the gradient of a two-layer network by hand.</li>
+      <li>Choose an optimizer and diagnose a bad learning rate from symptoms.</li>
+      <li>Count the parameters in a convolutional layer and explain weight sharing.</li>
+      <li>Apply the standard debugging sequence to a network that will not train.</li>
+      <li>Recognise the evaluation mistakes that make deep-learning results look better than they are.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Practise <strong>one backward pass through two layers</strong> and
+        <strong>one parameter count</strong>. Both are mechanical if you have done them
+        once by hand.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>Networks and backpropagation</h2>
+  <p>Why depth, and how the gradient gets computed.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>Why one layer is not enough</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A single layer computes a linear function of its input. Composing linear functions
+          gives another linear function, so depth without nonlinearity is wasted.
+        </p>
+        <p>
+          The XOR problem is the classic demonstration: no line separates (0,1) and (1,0)
+          from (0,0) and (1,1).
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          XOR(x₁, x₂) = (x₁ ∨ x₂) ∧ ¬(x₁ ∧ x₂)
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.595" class="dg-seq" viewBox="34 12.6 346 265.3" role="img" aria-labelledby="f3t f3d">
+          <title id="f3t">The XOR problem is not linearly separable</title>
+          <desc id="f3d">Four points in a plane. Two points labelled one sit on opposite corners, and two points labelled zero sit on the other corners. No single straight line separates the classes.</desc>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:0.0s" d="M40 240 H 380"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:0.11s" d="M60 260 V 30"/>
+          <g class="v-in" style="--d:0.22s">
+          <circle cx="120" cy="180" r="10" class="dg-box-a"/>
+          </g>
+          <g class="v-in" style="--d:0.33s">
+          <text class="dg-txt-b" x="104" y="164">0</text>
+          </g>
+          <g class="v-in" style="--d:0.44s">
+          <circle cx="300" cy="180" r="10" class="dg-box-t"/>
+          </g>
+          <g class="v-in" style="--d:0.55s">
+          <text class="dg-txt-b" x="316" y="164">1</text>
+          </g>
+          <g class="v-in" style="--d:0.66s">
+          <circle cx="120" cy="80" r="10" class="dg-box-t"/>
+          </g>
+          <g class="v-in" style="--d:0.77s">
+          <text class="dg-txt-b" x="104" y="64">1</text>
+          </g>
+          <g class="v-in" style="--d:0.88s">
+          <circle cx="300" cy="80" r="10" class="dg-box-a"/>
+          </g>
+          <g class="v-in" style="--d:0.99s">
+          <text class="dg-txt-b" x="316" y="64">0</text>
+          </g>
+          <g class="v-in" style="--d:1.1s">
+          <path class="dg-dash" d="M60 118 L 380 152"/>
+          </g>
+          <g class="v-in" style="--d:1.21s">
+          <text class="dg-txt-s" x="210" y="22" text-anchor="middle">any line misclassifies two points</text>
+          </g>
+          <g class="v-in" style="--d:1.32s">
+          <text class="dg-txt-s" x="60" y="276">x₁</text>
+          </g>
+          <g class="v-in" style="--d:1.43s">
+          <text class="dg-txt-s" x="34" y="40">x₂</text>
+          </g>
+        </svg>
+        <figcaption>
+          <strong>Figure 12.1.</strong> XOR becomes solvable with one hidden nonlinear
+          layer.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>Forward pass, in the notation we will use all module</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="eq" style="text-align:left">
+          z<sup>(1)</sup> = W<sup>(1)</sup>x + b<sup>(1)</sup><br>
+          a<sup>(1)</sup> = σ(z<sup>(1)</sup>)<br>
+          z<sup>(2)</sup> = W<sup>(2)</sup>a<sup>(1)</sup> + b<sup>(2)</sup><br>
+          ŷ = softmax(z<sup>(2)</sup>)
+        </div>
+        <p style="margin-top:14px">
+          Each layer is an affine map followed by a pointwise nonlinearity. The nonlinearity
+          is what makes the composition more than a matrix product.
+        </p>
+        <figure class="fig" style="margin-top:6px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 104" role="img" aria-labelledby="n12at n12ad">
+          <title id="n12at">A two-layer network</title>
+          <desc id="n12ad">Three input units connect through weight matrix W(1) to four hidden units, which connect through W(2) to three output scores. Every unit in one layer connects to every unit in the next.</desc>
+          
+          <g class="v-in" style="--d:0.00s"><circle class="dg-box-m" cx="70" cy="16" r="10"/><circle class="dg-box-m" cx="70" cy="41" r="10"/><circle class="dg-box-m" cx="70" cy="66" r="10"/><text class="dg-txt-s" x="70" y="100" text-anchor="middle">x: d inputs</text></g>
+          <g class="v-in" style="--d:0.12s"><path class="dg-line-q" d="M80 16 L266 11"/><path class="dg-line-q" d="M80 16 L266 31"/><path class="dg-line-q" d="M80 16 L266 51"/><path class="dg-line-q" d="M80 16 L266 71"/><path class="dg-line-q" d="M80 41 L266 11"/><path class="dg-line-q" d="M80 41 L266 31"/><path class="dg-line-q" d="M80 41 L266 51"/><path class="dg-line-q" d="M80 41 L266 71"/><path class="dg-line-q" d="M80 66 L266 11"/><path class="dg-line-q" d="M80 66 L266 31"/><path class="dg-line-q" d="M80 66 L266 51"/><path class="dg-line-q" d="M80 66 L266 71"/><text class="dg-txt-s" x="173" y="100" text-anchor="middle">W(1), b(1)</text></g>
+          <g class="v-in" style="--d:0.24s"><circle class="dg-box-t" cx="276" cy="11" r="10"/><circle class="dg-box-t" cx="276" cy="31" r="10"/><circle class="dg-box-t" cx="276" cy="51" r="10"/><circle class="dg-box-t" cx="276" cy="71" r="10"/><text class="dg-txt-s" x="276" y="100" text-anchor="middle">a(1): h units</text></g>
+          <g class="v-in" style="--d:0.36s"><path class="dg-line-q" d="M286 11 L472 16"/><path class="dg-line-q" d="M286 11 L472 41"/><path class="dg-line-q" d="M286 11 L472 66"/><path class="dg-line-q" d="M286 31 L472 16"/><path class="dg-line-q" d="M286 31 L472 41"/><path class="dg-line-q" d="M286 31 L472 66"/><path class="dg-line-q" d="M286 51 L472 16"/><path class="dg-line-q" d="M286 51 L472 41"/><path class="dg-line-q" d="M286 51 L472 66"/><path class="dg-line-q" d="M286 71 L472 16"/><path class="dg-line-q" d="M286 71 L472 41"/><path class="dg-line-q" d="M286 71 L472 66"/><text class="dg-txt-s" x="379" y="100" text-anchor="middle">W(2), b(2)</text></g>
+          <g class="v-in" style="--d:0.48s"><circle class="dg-box-a" cx="482" cy="16" r="10"/><circle class="dg-box-a" cx="482" cy="41" r="10"/><circle class="dg-box-a" cx="482" cy="66" r="10"/><text class="dg-txt-s" x="482" y="100" text-anchor="middle">ŷ: k scores</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 12.2.</strong> Each band of arrows is one weight matrix.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <h3>Shapes, because most bugs are shape bugs</h3>
+        <ul>
+          <li><var>x</var> ∈ ℝ<sup>d</sup> — the input.</li>
+          <li><var>W</var><sup>(1)</sup> ∈ ℝ<sup>h×d</sup> — one row per hidden unit.</li>
+          <li><var>a</var><sup>(1)</sup> ∈ ℝ<sup>h</sup> — hidden activations.</li>
+          <li><var>ŷ</var> ∈ ℝ<sup>k</sup> — one score per class.</li>
+        </ul>
+        <div class="panel panel--key" style="margin-top:12px">
+          <h3>Activation choices</h3>
+          <p>
+            ReLU is the default because its gradient does not vanish for positive inputs.
+            Sigmoid saturates; tanh saturates less. Softmax is for the output only, when
+            classes are mutually exclusive.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>Backpropagation is the chain rule, applied carefully</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          For a loss <var>L</var> and a two-layer network, the gradient with respect to the
+          first layer's weights is:
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          ∂L/∂W<sup>(1)</sup> = ((W<sup>(2)</sup>)<sup>⊤</sup> ∂L/∂z<sup>(2)</sup> ⊙ σ′(z<sup>(1)</sup>)) x<sup>⊤</sup>
+        </div>
+        <p style="margin-top:12px">
+          Read it right to left: start from the output error, pass it back through the second
+          layer's weights, multiply by the local derivative of the activation, then multiply
+          by the input.
+        </p>
+        <p>
+          Every layer repeats this pattern. That is the whole algorithm.
+        </p>
+        <figure class="fig" style="margin-top:4px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 76" role="img" aria-labelledby="n12bt n12bd">
+          <title id="n12bt">Forward and backward pass on the scalar example</title>
+          <desc id="n12bd">Boxes in a row hold the forward values: w = 2 and x = 3, then z = 6, a = 6, y-hat = 24 and loss L = 98. Arrows underneath run right to left with the gradients: dL/dy-hat = 14, dL/da = 56, dL/dz = 56 and dL/dw = 168.</desc>
+          <defs><marker id="n12ba" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#16181d"/></marker><marker id="n12bc" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#9e1b32"/></marker></defs>
+          <g class="v-in" style="--d:0.00s"><rect class="dg-box-m" x="0" y="2" width="104" height="32" rx="3"/><text class="dg-txt-b" x="52" y="24" text-anchor="middle">w = 2, x = 3</text></g>
+          <g class="v-in" style="--d:0.12s"><path class="dg-line" d="M104 18 H 135" marker-end="url(#n12ba)"/><rect class="dg-box-m" x="138" y="2" width="76" height="32" rx="3"/><text class="dg-txt-b" x="176" y="24" text-anchor="middle">z = 6</text></g>
+          <g class="v-in" style="--d:0.24s"><path class="dg-line" d="M214 18 H 245" marker-end="url(#n12ba)"/><rect class="dg-box-t" x="248" y="2" width="76" height="32" rx="3"/><text class="dg-txt-b" x="286" y="24" text-anchor="middle">a = 6</text></g>
+          <g class="v-in" style="--d:0.36s"><path class="dg-line" d="M324 18 H 355" marker-end="url(#n12ba)"/><rect class="dg-box-t" x="358" y="2" width="80" height="32" rx="3"/><text class="dg-txt-b" x="398" y="24" text-anchor="middle">ŷ = 24</text></g>
+          <g class="v-in" style="--d:0.48s"><path class="dg-line" d="M438 18 H 469" marker-end="url(#n12ba)"/><rect class="dg-box-a" x="472" y="2" width="80" height="32" rx="3"/><text class="dg-txt-b" x="512" y="24" text-anchor="middle">L = 98</text></g>
+          <g class="v-in" style="--d:0.60s"><path class="dg-plot-a" d="M504.0 48 H 410.0" marker-end="url(#n12bc)"/><text class="dg-lbl" x="455" y="71" text-anchor="middle">∂L/∂ŷ = 14</text></g>
+          <g class="v-in" style="--d:0.72s"><path class="dg-plot-a" d="M390.0 48 H 298.0" marker-end="url(#n12bc)"/><text class="dg-lbl" x="342" y="71" text-anchor="middle">∂L/∂a = 56</text></g>
+          <g class="v-in" style="--d:0.84s"><path class="dg-plot-a" d="M278.0 48 H 188.0" marker-end="url(#n12bc)"/><text class="dg-lbl" x="231" y="71" text-anchor="middle">∂L/∂z = 56</text></g>
+          <g class="v-in" style="--d:0.96s"><path class="dg-plot-a" d="M168.0 48 H 64.0" marker-end="url(#n12bc)"/><text class="dg-lbl" x="114" y="71" text-anchor="middle">∂L/∂w = 168</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 12.3.</strong> Values go forward on top; gradients come back below.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="worked">
+          <span class="worked-label">Worked scalar example</span>
+          <p>
+            One hidden unit, <var>w</var> = 2, <var>x</var> = 3, <var>σ</var> = ReLU,
+            output weight <var>v</var> = 4, loss <var>L</var> = ½(<var>ŷ</var> −
+            <var>y</var>)² with <var>y</var> = 10.
+          </p>
+          <p class="eq" style="text-align:left">
+            z = 2·3 = 6, a = 6, ŷ = 4·6 = 24<br>
+            ∂L/∂ŷ = 24 − 10 = 14<br>
+            ∂L/∂v = 14 · 6 = 84<br>
+            ∂L/∂a = 14 · 4 = 56<br>
+            ∂L/∂w = 56 · 1 · 3 = 168
+          </p>
+          <p>
+            One gradient step with learning rate 0.01 moves <var>w</var> from 2 to 0.32.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s7">
+  <h2>Autodiff exists so you do not do this by hand</h2>
+  <div class="slide-main">
+    <div class="cols-1-2">
+      <div>
+        <p>
+          A framework records the operations in the forward pass and applies the chain rule
+          in reverse. This is <strong>reverse-mode automatic differentiation</strong>, and it
+          costs roughly one extra forward pass regardless of how many parameters you have.
+        </p>
+        <p>
+          That efficiency is why deep learning became practical: the gradient of a
+          billion-parameter model costs about twice a forward pass.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>What to know even though the framework does it</h3>
+          <ul>
+            <li>Gradients accumulate by default; you must zero them each step.</li>
+            <li>In-place operations can break the graph.</li>
+            <li>Detaching a tensor silently stops gradient flow — the classic bug.</li>
+            <li>Numerically unstable losses (log of a softmax) have stable library versions; use them.</li>
+          </ul>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            <strong>Always check the gradient numerically once</strong> on a tiny model:
+            compare against a finite-difference estimate. It catches sign errors and missing
+            terms in minutes.
+          </p>
+        </div>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 86" role="img" aria-labelledby="f12at f12ad">
+<title id="f12at">A computation graph with its forward and backward passes</title>
+<desc id="f12ad">Inputs x and w feed a multiply node, then an add-bias node, a sigmoid and the loss. Forward arrows carry values left to right. Backward arrows, in red, carry the derivative of the loss with respect to each node from right to left, one chain-rule step at a time.</desc>
+<defs><marker id="mk-f12f" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker><marker id="mk-f12b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9e1b32"/></marker></defs>
+<g class="v-in" style="--d:0.20s"><rect class="dg-box-m" x="10" y="4" width="60" height="30" rx="15"/><text class="dg-sm-b" x="40" y="24" text-anchor="middle">x</text></g>
+<g class="v-in" style="--d:0.30s"><rect class="dg-box-m" x="10" y="50" width="60" height="30" rx="15"/><text class="dg-sm-b" x="40" y="70" text-anchor="middle">w</text></g>
+<g class="v-in" style="--d:0.40s"><rect class="dg-box" x="220" y="22" width="80" height="34" rx="17"/><text class="dg-sm-b" x="260" y="44" text-anchor="middle">×</text></g>
+<g class="v-in" style="--d:0.70s"><rect class="dg-box" x="420" y="22" width="80" height="34" rx="17"/><text class="dg-sm-b" x="460" y="44" text-anchor="middle">+ b</text></g>
+<g class="v-in" style="--d:1.00s"><rect class="dg-box" x="620" y="22" width="80" height="34" rx="17"/><text class="dg-sm-b" x="660" y="44" text-anchor="middle">σ</text></g>
+<g class="v-in" style="--d:1.30s"><rect class="dg-box-a" x="840" y="22" width="80" height="34" rx="17"/><text class="dg-sm-b" x="880" y="44" text-anchor="middle">loss</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.50s" d="M72 19 L216 33" marker-end="url(#mk-f12f)"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.60s" d="M72 65 L216 47" marker-end="url(#mk-f12f)"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.80s" d="M302 39 H416" marker-end="url(#mk-f12f)"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.10s" d="M502 39 H616" marker-end="url(#mk-f12f)"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.40s" d="M702 39 H836" marker-end="url(#mk-f12f)"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:2.00s" d="M850 60 Q770.0 76 690 60" marker-end="url(#mk-f12b)"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:2.30s" d="M630 60 Q560.0 76 490 60" marker-end="url(#mk-f12b)"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:2.60s" d="M430 60 Q360.0 76 290 60" marker-end="url(#mk-f12b)"/>
+<g class="v-in" style="--d:3.00s"><text class="dg-xs" x="560" y="12" text-anchor="middle">forward: values →</text><text class="dg-xs dg-txt-bad" x="560" y="84" text-anchor="middle">← backward: ∂loss/∂node, one chain-rule step at a time</text></g>
+</svg>
+<figcaption><strong>Figure 12.4.</strong> Reverse mode walks the recorded forward pass backward.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s8">
+  <h2>Training in practice</h2>
+  <p>Optimizers and the learning rate.</p>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s9">
+  <h2>Optimizers: mostly about curvature and noise</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption class="visually-hidden">Optimizers: mostly about curvature and noise</caption>
+      <thead>
+        <tr><th scope="col">Optimizer</th><th scope="col">Idea</th><th scope="col">When it helps</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>SGD</strong></td><td>Step against the minibatch gradient</td><td>Large batches, well-tuned schedules; often best final accuracy</td></tr>
+        <tr><td><strong>Momentum</strong></td><td>Accumulate a velocity term</td><td>Ravines and noisy gradients; almost always an improvement</td></tr>
+        <tr><td><strong>Adam</strong></td><td>Per-parameter adaptive step sizes</td><td>Fast default; robust to scale differences between parameters</td></tr>
+        <tr><td><strong>AdamW</strong></td><td>Adam with decoupled weight decay</td><td>Transformers and anything with L2 regularization</td></tr>
+      </tbody>
+    </table>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 112" role="img" aria-labelledby="f12bt f12bd">
+<title id="f12bt">Plain SGD and momentum on a long, narrow valley</title>
+<desc id="f12bd">Elliptical contours of a loss surface that is long and narrow, with the minimum at the centre. Plain SGD, in red, zigzags across the narrow direction while creeping along the long one. Momentum, in teal, averages the oscillation away and takes a smooth path to the minimum.</desc>
+<g class="v-in" style="--d:0.10s"><ellipse class="dg-line-q" cx="500" cy="56" rx="420" ry="50"/></g>
+<g class="v-in" style="--d:0.20s"><ellipse class="dg-line-q" cx="500" cy="56" rx="300" ry="36"/></g>
+<g class="v-in" style="--d:0.30s"><ellipse class="dg-line-q" cx="500" cy="56" rx="190" ry="24"/></g>
+<g class="v-in" style="--d:0.40s"><ellipse class="dg-line-q" cx="500" cy="56" rx="90" ry="12"/></g>
+<path class="dg-plot-a v-draw" pathLength="1" style="--d:0.60s" d="M110 30 L152 90 L194 26 L236 83 L278 33 L320 76 L362 40 L404 68 L446 47 L488 61 L500 56"/>
+<path class="dg-plot-t v-draw" pathLength="1" style="--d:1.80s" d="M110 84 Q220 94 330 70 T500 56"/>
+<g class="v-in" style="--d:0.20s"><circle class="dg-card" cx="500" cy="56" r="5"/></g>
+<g class="v-in" style="--d:1.40s"><text class="dg-xs dg-txt-bad" x="1000" y="26" text-anchor="end">SGD: zigzags across the valley</text></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-xs dg-teal" x="1000" y="98" text-anchor="end">momentum: averages the zigzag away</text></g>
+</svg>
+<figcaption><strong>Figure 12.5.</strong> Curvature makes the zigzag; momentum cancels it.</figcaption>
+</figure>
+    <div class="callout" style="margin-top:16px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Optimizer choice matters less than learning rate and data quality. A well-tuned SGD
+        usually beats a badly tuned Adam, and both lose to clean labels.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s10">
+  <h2>Diagnosing the learning rate from symptoms</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption class="visually-hidden">Diagnosing the learning rate from symptoms</caption>
+      <thead>
+        <tr><th scope="col">Symptom</th><th scope="col">Likely cause</th><th scope="col">First fix</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Loss becomes NaN or explodes</td><td>Learning rate too high</td><td>Divide by 10; add gradient clipping</td></tr>
+        <tr><td>Loss decreases then plateaus high</td><td>Rate too low, or model too small</td><td>Raise the rate; check capacity</td></tr>
+        <tr><td>Loss oscillates with large amplitude</td><td>Batch too small, rate too high</td><td>Increase batch or lower rate</td></tr>
+        <tr><td>Training loss falls, validation rises</td><td>Overfitting, not a rate problem</td><td>Regularize, augment, or stop earlier</td></tr>
+        <tr><td>Loss barely moves from the start</td><td>Bug in data, labels, or gradient flow</td><td>Overfit one batch — see slide 15</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:16px">
+      The last row is not a hyperparameter problem, and no amount of tuning will fix it. The
+      ability to distinguish "wrong hyperparameter" from "wrong code" is most of the
+      practical skill in this module.
+    </p>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s11">
+  <h2>Architectures, regularization and debugging</h2>
+  <p>Convolutions, residuals, and a debugging order that works.</p>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s12">
+  <h2>Convolutions: share weights, preserve locality</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          A convolutional layer slides a small filter across the input, computing the same
+          weighted sum at every position. Three properties follow:
+        </p>
+        <ul>
+          <li><strong>Local connectivity</strong> — each output depends on a small neighbourhood.</li>
+          <li><strong>Weight sharing</strong> — one filter, many positions, far fewer parameters.</li>
+          <li><strong>Translation equivariance</strong> — a shifted input produces a shifted feature map.</li>
+        </ul>
+        <p class="eq eq--tight" style="text-align:left; margin-top:10px">
+          params = (k · k · C<sub>in</sub> + 1) · C<sub>out</sub>
+        </p>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.755" viewBox="26 24 310 189.7" role="img" aria-labelledby="f9t f9d">
+          <title id="f9t">A convolutional filter sliding over an input grid</title>
+          <desc id="f9d">A five by five input grid with a three by three filter highlighted in one position. The filter moves across the input, producing one value in the output feature map per position.</desc>
+          <g>
+            <rect x="26" y="40" width="150" height="150" fill="none" stroke="#c9ced5"/>
+            <g stroke="#e3e6ea">
+              <path d="M56 40 V 190 M86 40 V 190 M116 40 V 190 M146 40 V 190"/>
+              <path d="M26 70 H 176 M26 100 H 176 M26 130 H 176 M26 160 H 176"/>
+            </g>
+            <rect x="26" y="40" width="90" height="90" fill="#fbf5f6" stroke="#9e1b32" stroke-width="2"/>
+            <text class="dg-txt-s" x="101" y="212" text-anchor="middle">input 5×5</text>
+            <text class="dg-txt-s" x="71" y="32" text-anchor="middle">filter 3×3</text>
+          </g>
+          <path class="dg-line" d="M186 115 H 236" marker-end="url(#a12c)"/>
+          <defs>
+            <marker id="a12c" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <g>
+            <rect x="246" y="55" width="90" height="90" fill="none" stroke="#c9ced5"/>
+            <g stroke="#e3e6ea">
+              <path d="M276 55 V 145 M306 55 V 145"/>
+              <path d="M246 85 H 336 M246 115 H 336"/>
+            </g>
+            <text class="dg-txt-s" x="291" y="176" text-anchor="middle">feature map 3×3</text>
+          </g>
+                            </svg>
+        <figcaption>
+          <strong>Figure 12.6.</strong> One filter produces one feature map. Stacking filters
+          gives multiple channels, and stacking layers grows the receptive field.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s13">
+  <h2>Depth needs help: residuals and normalization</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Stacking layers should not make a network worse, yet plain deep networks degrade.
+          The fix is to learn a <em>residual</em>:
+        </p>
+        <figure class="fig" style="margin-top:8px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 114" role="img" aria-labelledby="n12ct n12cd">
+          <title id="n12ct">A residual block</title>
+          <desc id="n12cd">The input x passes through two weight layers that compute F(x). A skip path carries x around both layers unchanged. The two are added, so the output y equals F(x) plus x.</desc>
+          <defs><marker id="n12ca" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#16181d"/></marker></defs>
+          <g class="v-in" style="--d:0.00s"><text class="dg-txt-b" x="14" y="75" text-anchor="middle">x</text><path class="dg-line" d="M26 69 H 69" marker-end="url(#n12ca)"/></g>
+          <g class="v-in" style="--d:0.12s"><rect class="dg-box-m" x="72" y="52" width="124" height="34" rx="3"/><text class="dg-txt" x="134" y="75" text-anchor="middle">weight layer</text></g>
+          <path class="dg-line v-draw" pathLength="1" style="--d:0.24s" d="M196 69 H 225" marker-end="url(#n12ca)"/>
+          <g class="v-in" style="--d:0.36s"><rect class="dg-box-m" x="228" y="52" width="124" height="34" rx="3"/><text class="dg-txt" x="290" y="75" text-anchor="middle">weight layer</text></g>
+          <g class="v-in" style="--d:0.48s"><path class="dg-line" d="M72 90 V 96 H 352 V 90"/><text class="dg-txt-s" x="212" y="113" text-anchor="middle">F(x), learned</text></g>
+          <g class="v-in" style="--d:0.60s"><path class="dg-line" d="M44 69 V 30 H 428 V 50" marker-end="url(#n12ca)"/><text class="dg-lbl" x="236" y="22" text-anchor="middle">skip path carries x unchanged</text></g>
+          <g class="v-in" style="--d:0.72s"><path class="dg-line" d="M352 69 H 409" marker-end="url(#n12ca)"/><circle class="dg-box-a" cx="428" cy="69" r="16"/><text class="dg-txt-b" x="428" y="76" text-anchor="middle">+</text></g>
+          <g class="v-in" style="--d:0.84s"><path class="dg-line" d="M444 69 H 497" marker-end="url(#n12ca)"/><text class="dg-txt-b" x="516" y="75" text-anchor="middle">y</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 12.7.</strong> Output <strong>y = F(x) + x</strong>: the layers learn only the change.
+        </figcaption>
+      </figure>
+        <p style="margin-top:10px">
+          The identity path gives gradients a direct route to earlier layers, so very deep
+          networks train.
+        </p>
+        <p>
+          Batch normalization standardizes layer inputs during training, which stabilizes
+          optimization and permits higher learning rates. Layer normalization is its
+          sequence-friendly variant, used in transformers.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>What residuals actually buy</h3>
+          <p>
+            With a residual, the network can represent the identity function trivially — so
+            adding a layer cannot hurt in principle. In practice it also improves gradient
+            conditioning, which is the larger effect.
+          </p>
+        </div>
+        <div class="panel panel--key" style="margin-top:12px">
+          <h3>Batch norm caveat</h3>
+          <p>
+            It makes a prediction depend on the other examples in the batch. That is fine for
+            training and a problem for deployment, streaming inference, or very small batches
+            — where layer norm or no normalization is the better choice.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s14">
+  <h2>Regularizing a large network</h2>
+  <div class="slide-main">
+    <div class="cols-3">
+      <div class="panel">
+        <h3>Dropout</h3>
+        <p>Randomly zero units during training so no unit can rely on another. Cheap, effective, and now less common than weight decay in transformers.</p>
+      </div>
+      <div class="panel">
+        <h3>Augmentation</h3>
+        <p>Create plausible variations of the input. The most reliable regularizer when it matches the invariances of the task — and harmful when it does not.</p>
+      </div>
+      <div class="panel">
+        <h3>Weight decay</h3>
+        <p>Penalize large weights. In modern practice, decoupled weight decay (AdamW) is the default for transformers.</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Augmentation encodes an assumption: "this transformation should not change the
+        label." Horizontal flips are right for photographs and wrong for digits, where a
+        flipped 6 is not a 6.
+      </p>
+    </div>
+    <p style="margin-top:16px">
+      Every regularizer is a prior. If the prior is wrong, the regularizer actively hurts —
+      which is why "add augmentation" is not free advice.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s15">
+  <h2>The debugging sequence that actually works</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>Overfit a single batch</strong><p>Train 32 examples to near-zero loss. If that fails, suspect labels or loss.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Check the labels</strong><p>Ten examples with their labels. Label errors commonly cap accuracy.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Disable the fancy parts</strong><p>Remove augmentation, dropout and schedules; train a boring baseline first.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>Verify shapes and gradient flow</strong><p>Check shapes once; confirm every parameter gets a non-zero gradient.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Only then tune</strong><p>Learning rate, then batch size, then capacity. In that order.</p></div></li>
+    </ol>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Almost every "model does not learn" problem is <strong>a data or code problem</strong>,
+        and tuning searches a space that does not contain the bug.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s16">
+  <h2>Evaluation in deep learning has its own traps</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <h3>Traps specific to this setting</h3>
+        <ul>
+          <li><strong>Test-set reuse</strong> — after fifty runs you have effectively trained on it.</li>
+          <li><strong>Best-of-N reporting</strong> — reporting the best seed inflates the result.</li>
+          <li><strong>Pretraining contamination</strong> — the benchmark was in the pretraining data.</li>
+          <li><strong>Comparison against an untuned baseline</strong> — the baseline deserved the same search budget.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>The compute-matching rule</h3>
+          <p>
+            If method A got a hundred hyperparameter trials and method B got five, the
+            comparison measures your effort, not the methods.
+          </p>
+          <p style="margin-top:8px">
+            This is why strong papers report the tuning budget explicitly — and why "our
+            method beats the baseline" is uninformative without it.
+          </p>
+        </div>
+        <p style="margin-top:12px; font-size:17px; color:var(--muted)">
+          Module 11's checklist still applies. Nothing about scale changes the methodology.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s17">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>Depth without nonlinearity is a single matrix.</strong><p>Nonlinearity is what buys representation.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Backprop is the chain rule, once per layer.</strong><p>Reverse-mode autodiff makes it cost about one extra forward pass.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Convolutions trade parameters for assumptions.</strong><p>Locality and translation equivariance, encoded as weight sharing.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>Residuals and normalization make depth trainable.</strong><p>Not accuracy tricks; optimization enablers.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Debug in order: data, then code, then hyperparameters.</strong><p>Overfit one batch before tuning anything.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s18">
+  <h2>This week's work</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA §19.6–19.7 and §21.1–21.6.</li>
+          <li>Derive the two-layer gradient once without notes.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Lab 5: train a small CNN; include the overfit-one-batch check in your report.</li>
+          <li>Report five seeds, not one.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — Lab 5.</li>
+          <li>Friday class, 8:30–11:10 a.m. CT, MIC: debugging clinic, bring a failing run; online students watch the recorded lecture.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next:</strong> module 13 removes the locality assumption and lets every
+        position attend to every other. That is the transformer.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 16 ─────────────────────────────── Python learning resources -->
+<section class="slide" id="s19">
+  <h2>Python help for Lab 5</h2>
+  <div class="slide-main">
+    <p style="margin-bottom:14px">Lab 5 lets you use any framework's layers and optimizers. If you have not chosen one, PyTorch's beginner series is a good start.</p>
+    <ul class="resources">
+      <li><a href="https://docs.pytorch.org/tutorials/beginner/basics/intro.html">PyTorch: Learn the Basics</a><span class="src">docs.pytorch.org</span><p>Tensors, datasets, models, the training loop and saving weights, in order.</p></li>
+      <li><a href="https://scikit-learn.org/stable/modules/calibration.html">scikit-learn: Probability calibration</a><span class="src">scikit-learn.org</span><p>Background and code for the reliability diagram in task 4.</p></li>
+      <li><a href="https://numpy.org/doc/stable/user/absolute_beginners.html">NumPy: the absolute basics for beginners</a><span class="src">numpy.org</span><p>Reshaping raw arrays into 28 × 28 images.</p></li>
+      <li><a href="https://matplotlib.org/stable/tutorials/pyplot.html">Matplotlib pyplot tutorial</a><span class="src">matplotlib.org</span><p>Loss and accuracy per epoch, as the lab asks.</p></li>
+      <li><a href="https://docs.python.org/3/library/json.html">json</a><span class="src">docs.python.org</span><p>The split file, dataset_meta.json, is JSON.</p></li>
+      <li><a href="https://docs.python.org/3/tutorial/venv.html">Virtual environments and packages</a><span class="src">docs.python.org</span><p>Install your framework in its own environment.</p></li>
+    </ul>
+    <div class="callout" style="margin-top:20px">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>Overfit one batch of 32 examples before anything else. It is the cheapest bug check there is.</p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

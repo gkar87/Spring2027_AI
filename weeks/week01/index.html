@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 1 — Foundations: Agents and Environments · CS 5700</title>
+<meta name="description" content="CS 5700 Module 1: what artificial intelligence is as an engineering target, rational agents, PEAS descriptions, and the taxonomy of task environments.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 1 lecture slides: Foundations">
+
+<!-- 1 ─────────────────────────────────────────────────────────── title -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 1 of 15</p>
+  <h1>Foundations: Agents and Environments</h1>
+  <p class="subtitle">
+    Before we can build intelligence, we have to decide what would count.
+    This module turns that philosophical question into an engineering one.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<defs><marker id="mk-ta1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker><marker id="mk-ta1b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9e1b32"/></marker></defs>
+<g class="v-in" style="--d:0.20s"><rect class="dg-box-a" x="120" y="20" width="140" height="64" rx="6"/><text class="dg-sm-b" x="190" y="50" text-anchor="middle">Agent</text><text class="dg-xs dg-mono" x="190" y="70" text-anchor="middle">f : P* → A</text></g>
+<g class="v-in" style="--d:0.60s"><rect class="dg-box-m" x="120" y="196" width="140" height="64" rx="6"/><text class="dg-sm-b" x="190" y="226" text-anchor="middle">Environment</text><text class="dg-xs" x="190" y="246" text-anchor="middle">state, dynamics</text></g>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:1.00s" d="M262 228 H330 V52 H266" marker-end="url(#mk-ta1)"/>
+<g class="v-in" style="--d:1.40s"><text class="dg-xs dg-teal" x="342" y="145" text-anchor="middle" transform="rotate(90 342 145)">percepts</text></g>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.60s" d="M118 52 H50 V228 H114" marker-end="url(#mk-ta1b)"/>
+<g class="v-in" style="--d:2.00s"><text class="dg-xs" x="38" y="145" text-anchor="middle" transform="rotate(-90 38 145)">actions</text></g>
+<g class="v-in" style="--d:2.40s"><text class="dg-sm dg-teal" x="190" y="310" text-anchor="middle">sense, decide, act, repeat</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 20 ─────────────────────────────────────── course logistics -->
+<section class="slide" id="s2">
+  <h2>How this course runs</h2>
+  <div class="slide-main">
+    <table class="tbl facts-tbl">
+      <caption class="visually-hidden">Course logistics</caption>
+      <tbody>
+        <tr><th scope="row">Class</th><td>Fridays, 8:30–11:10 a.m. CT, face to face at the Missouri Innovation Campus (MIC). Room to be announced.</td></tr>
+        <tr><th scope="row">Online section</th><td>The same lecture, recorded each week and posted for you.</td></tr>
+        <tr><th scope="row">Office hours</th><td>Tuesday and Wednesday, 12:00–3:00 p.m., MIC room D159.</td></tr>
+        <tr><th scope="row">Contact</th><td>kar@ucmo.edu · (660) 543-6612</td></tr>
+        <tr><th scope="row">Deadlines</th><td>Sunday, 11:59 p.m. CT, unless the assignment says otherwise.</td></tr>
+        <tr><th scope="row">Late work</th><td>Loses 10% per day for up to three days. After three days it is not accepted.</td></tr>
+        <tr><th scope="row">Midterm</th><td>Week 8, in the Friday class slot. There is no final exam; the capstone takes its place.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>The syllabus has every date. If anything on a slide disagrees with the syllabus, the syllabus wins, and please tell me.</p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 2 ───────────────────────────────────────────────────── objectives -->
+<section class="slide" id="s3">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>State the four standard definitions of AI and explain what each one commits you to.</li>
+      <li>Describe an agent as a function from percept history to action, and separate the architecture from the program.</li>
+      <li>Write a PEAS description for a task you have never modelled before.</li>
+      <li>Classify an environment along six properties and predict which algorithms will struggle in it.</li>
+      <li>Explain why formulation, not algorithm choice, is usually the decisive step.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        The midterm question for this module is never "define an agent." It is
+        <strong>"here is a task; describe its environment, and tell me what that
+        description costs you."</strong>
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s4">
+  <h2>What counts as intelligent</h2>
+  <p>Four definitions, and the one this course uses: rational agents.</p>
+  
+</section>
+
+<!-- 3 ──────────────────────────────────────────────────── four views -->
+<section class="slide" id="s5">
+  <h2>Four definitions, four different research programmes</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption>The two axes are <em>thought versus behaviour</em> and <em>human standard versus rational standard</em>. Russell and Norvig, §1.1.</caption>
+      <thead>
+        <tr>
+          <td></td>
+          <th scope="col">Human-centred</th>
+          <th scope="col">Rationalist</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Thinking</th>
+          <td><strong>Thinking humanly.</strong> Model cognition itself; validate against psychology and neuroscience.</td>
+          <td><strong>Thinking rationally.</strong> Laws of thought; logic and probability as the standard.</td>
+        </tr>
+        <tr>
+          <th scope="row">Acting</th>
+          <td><strong>Acting humanly.</strong> The Turing test; indistinguishable behaviour is the goal.</td>
+          <td><strong>Acting rationally.</strong> Maximize expected performance in an environment.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      Each cell buys something and pays for something. The Turing test avoids defining
+      consciousness but measures imitation, not competence. The laws-of-thought
+      approach gives proofs but assumes the world can be written down completely.
+    </p>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        This course takes the <strong>acting rationally</strong> view. Not because the
+        others are wrong, but because it is the only one that produces a specification
+        you can test.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 4 ─────────────────────────────────────────────────── rational agent -->
+<section class="slide" id="s6">
+  <h2>Rationality is a relationship, not a property</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="panel panel--definition">
+          <span class="term">Rational agent</span>
+          <p>
+            For each possible percept sequence, an agent should select an action that
+            is expected to maximize its performance measure, given the evidence
+            provided by the percept sequence and whatever built-in knowledge it has.
+          </p>
+        </div>
+        <p class="mono" style="margin-top:18px; font-size:16px;">
+          f : P<sup>*</sup> → A
+        </p>
+        <p>
+          An agent is a function from percept histories to actions. That is the whole
+          formal object. Everything else — neural networks, planners, lookup tables —
+          is an implementation of that function.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Three words doing the work</h3>
+          <ul>
+            <li><strong>Expected</strong> — rationality is about what the agent knows, not what turns out to be true. A rational agent is not <em>omniscient</em>.</li>
+            <li><strong>Performance measure</strong> — defined by the designer, outside the agent.</li>
+            <li><strong>Percept sequence</strong> — not the current percept alone. Memory is part of the input.</li>
+          </ul>
+        </div>
+        <div class="panel" style="margin-top:16px;">
+          <h3>The classic counterexample</h3>
+          <p>
+            A vacuum agent that moves at random may clean a room by luck. It performed
+            well; it did not act rationally. Benchmarks reward outcomes, so we must
+            reason about the policy, not just the
+            score.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 5 ─────────────────────────────────────────────── agent-environment -->
+<section class="slide" id="s7">
+  <h2>An agent is a program running on an architecture</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          The <strong>architecture</strong> is the machinery: sensors, actuators, and
+          the computing substrate. The <strong>program</strong> is the function
+          <var>f</var>. Keeping them separate is what lets the same algorithm run on a
+          robot, a web service, or a simulated grid.
+        </p>
+        <ul>
+          <li><strong>Percept</strong> — the content the agent receives at one instant.</li>
+          <li><strong>Percept sequence</strong> — the complete history, which is the true input to <var>f</var>.</li>
+          <li><strong>Action</strong> — what the agent emits; the environment decides the consequence.</li>
+        </ul>
+        <div class="callout">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>The agent never sees the world. It sees its sensors. Most AI failures are failures to remember this.</p>
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.325" class="dg-seq" viewBox="53.7 34 410.6 234" role="img" aria-labelledby="f5t f5d">
+          <title id="f5t">The agent-environment interaction loop</title>
+          <desc id="f5d">A loop in which the environment sends percepts upward to the agent, and the agent sends actions downward to the environment. Neither box sees inside the other.</desc>
+          <defs>
+            <marker id="a5" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <g class="v-in" style="--d:0.0s">
+          <rect class="dg-box-a" x="160" y="34" width="200" height="72" rx="4"/>
+          </g>
+          <g class="v-in" style="--d:0.11s">
+          <text class="dg-txt-b" x="260" y="66" text-anchor="middle">Agent</text>
+          </g>
+          <g class="v-in" style="--d:0.22s">
+          <text class="dg-txt-s" x="260" y="88" text-anchor="middle">program f : P* → A</text>
+          </g>
+
+          <g class="v-in" style="--d:0.33s">
+          <rect class="dg-box-m" x="160" y="196" width="200" height="72" rx="4"/>
+          </g>
+          <g class="v-in" style="--d:0.44s">
+          <text class="dg-txt-b" x="260" y="228" text-anchor="middle">Environment</text>
+          </g>
+          <g class="v-in" style="--d:0.55s">
+          <text class="dg-txt-s" x="260" y="250" text-anchor="middle">state, dynamics, reward</text>
+          </g>
+
+          <path class="dg-line v-draw" pathLength="1" style="--d:0.66s" d="M372 214 H 452 V 84 H 374" marker-end="url(#a5)"/>
+          <g class="v-in" style="--d:0.77s">
+          <text class="dg-lbl" x="462" y="156" text-anchor="middle" transform="rotate(-90 462 156)">percepts</text>
+          </g>
+
+          <path class="dg-line v-draw" pathLength="1" style="--d:0.88s" d="M148 84 H 68 V 214 H 156" marker-end="url(#a5)"/>
+          <g class="v-in" style="--d:0.99s">
+          <text class="dg-lbl" x="56" y="156" text-anchor="middle" transform="rotate(90 56 156)">actions</text>
+          </g>
+        </svg>
+        <figcaption>
+          <strong>Figure 1.1.</strong> The interaction loop. The arrow labels matter
+          more than the boxes: information flows one way, and the agent's only channel
+          to the world is the percept stream.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 6 ──────────────────────────────────────────────────────────── PEAS -->
+<section class="slide" id="s8">
+  <h2>PEAS: describe the task before you write any code</h2>
+  <div class="slide-main">
+    <p>
+      Performance measure, Environment, Actuators, Sensors. Four columns that force
+      you to name what "good" means before you fall in love with an algorithm.
+    </p>
+    <table class="tbl tbl--compact">
+      <caption>Worked example: an academic-advising assistant for a graduate program.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Performance</th>
+          <th scope="col">Environment</th>
+          <th scope="col">Actuators</th>
+          <th scope="col">Sensors</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Student reaches graduation on time; fewer unnecessary credit hours; low advisor workload</td>
+          <td>Course catalog, prerequisites, term offerings, student records, program rules</td>
+          <td>Recommended plan, warning message, escalation to a human advisor</td>
+          <td>Transcript, current enrollment, declared program, deadline calendar</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="cols-2" style="margin-top:6px">
+      <div class="panel panel--accent">
+        <h3>The performance measure is a design decision</h3>
+        <p>
+          "Students graduate on time" and "students take the courses they are
+          interested in" are different objectives that produce different advising.
+          Neither is discoverable from the data; both come from a human.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Write PEAS first, and disagreements surface early</h3>
+        <p>
+          Most failed AI projects did not fail at modelling. They failed because two
+          stakeholders meant different things by "good" and nobody wrote it down.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 7 ────────────────────────────────────────────── environment props -->
+<section class="slide" id="s9">
+  <h2>Six properties, and what each one costs you</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption class="visually-hidden">Six properties, and what each one costs you</caption>
+      <thead>
+        <tr><th scope="col">Property</th><th scope="col">If the hard option holds…</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Fully observable</strong> vs partially</td><td>You must maintain beliefs over hidden state — module 10's particle filters exist for this reason.</td></tr>
+        <tr><td><strong>Deterministic</strong> vs stochastic</td><td>You need probabilities and expected values, not just plans — modules 6 through 9.</td></tr>
+        <tr><td><strong>Episodic</strong> vs sequential</td><td>Current decisions change future options; you cannot optimize one step at a time.</td></tr>
+        <tr><td><strong>Static</strong> vs dynamic</td><td>The world moves while you think; a plan can be stale before it is executed.</td></tr>
+        <tr><td><strong>Discrete</strong> vs continuous</td><td>Enumeration fails; you need function approximation or search over continuous space.</td></tr>
+        <tr><td><strong>Known</strong> vs unknown</td><td>You cannot simulate outcomes, so you must learn the model by acting — module 7.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:18px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        These are not six independent yes/no questions. The <strong>hardest realistic
+        combination</strong> — partially observable, stochastic, sequential, dynamic,
+        continuous, unknown — is the one an autonomous agent in the physical world
+        actually faces.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 8 ─────────────────────────────────────────── four environments -->
+<section class="slide" id="s10">
+  <h2>The same label, four very different problems</h2>
+  <div class="slide-main">
+    <table class="tbl tbl--compact">
+      <caption>Reading across a row tells you which machinery the rest of the course will be needed.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Task</th>
+          <th scope="col">Observable</th>
+          <th scope="col">Deterministic</th>
+          <th scope="col">Sequential</th>
+          <th scope="col">Agents</th>
+          <th scope="col">Tool from this course</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Chess</td><td>Full</td><td>Yes</td><td>Yes</td><td>Two, adversarial</td><td>Alpha–beta (M5)</td></tr>
+        <tr><td>Poker</td><td>Partial</td><td>No</td><td>Yes</td><td>Two, adversarial</td><td>Beliefs + game theory (M5, M9)</td></tr>
+        <tr><td>Robot vacuum</td><td>Partial</td><td>No</td><td>Yes</td><td>One</td><td>MDP + filtering (M6, M10)</td></tr>
+        <tr><td>Image classifier</td><td>Full (one shot)</td><td>Yes</td><td>No</td><td>One</td><td>Supervised learning (M11–12)</td></tr>
+        <tr><td>Chat assistant</td><td>Partial</td><td>No</td><td>Yes</td><td>One + humans</td><td>LLMs + RLHF (M7, M13)</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:16px">
+      A classifier and a chess engine are both "AI," but they share almost no
+      mathematics. The environment description is what tells you which half of the
+      field you are standing in.
+    </p>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 72" role="img" aria-labelledby="f1at f1ad">
+<title id="f1at">The five tasks placed by how much of the world the agent can observe</title>
+<desc id="f1ad">A horizontal line runs from fully observable on the left to partially observable on the right. Chess and the image classifier sit at the fully observable end; poker, the robot vacuum and the chat assistant sit toward the partial end, where the agent has more to infer.</desc>
+<path class="dg-line-q" d="M120 64 H900"/>
+<text class="dg-xs" x="110" y="68" text-anchor="end">fully observable</text>
+<text class="dg-xs" x="910" y="68">partial</text>
+<g class="v-in" style="--d:0.30s"><circle class="dg-box-t" cx="199.2" cy="64" r="7"/><path class="dg-line-q" d="M199 48 V56"/><text class="dg-xs" x="199.2" y="44" text-anchor="middle">Chess</text></g>
+<g class="v-in" style="--d:0.60s"><circle class="dg-box-t" cx="288" cy="64" r="7"/><path class="dg-line-q" d="M288 28 V56"/><text class="dg-xs" x="288" y="24" text-anchor="middle">Image classifier</text></g>
+<g class="v-in" style="--d:0.90s"><circle class="dg-box-a" cx="598.8" cy="64" r="7"/><path class="dg-line-q" d="M599 48 V56"/><text class="dg-xs" x="598.8" y="44" text-anchor="middle">Poker</text></g>
+<g class="v-in" style="--d:1.20s"><circle class="dg-box-a" cx="702.4" cy="64" r="7"/><path class="dg-line-q" d="M702 28 V56"/><text class="dg-xs" x="702.4" y="24" text-anchor="middle">Robot vacuum</text></g>
+<g class="v-in" style="--d:1.50s"><circle class="dg-box-a" cx="806" cy="64" r="7"/><path class="dg-line-q" d="M806 48 V56"/><text class="dg-xs" x="806" y="44" text-anchor="middle">Chat assistant</text></g>
+<g class="v-in" style="--d:2.00s"><text class="dg-xs dg-teal" x="120" y="14">less to infer</text></g>
+<g class="v-in" style="--d:2.00s"><text class="dg-xs dg-txt-bad" x="900" y="14" text-anchor="end">more to infer</text></g>
+</svg>
+<figcaption><strong>Figure 1.2.</strong> Observability alone splits the five tasks in two.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s11">
+  <h2>Five agent designs</h2>
+  <p>Each one adds a single capability, and each fails in its own way.</p>
+  
+</section>
+
+<!-- 9 ───────────────────────────────────────────────────── agent types -->
+<section class="slide" id="s12">
+  <h2>Five designs, each adding one capability</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <ol class="steps">
+          <li><span class="n" aria-hidden="true">1</span><div><strong>Simple reflex</strong><p>Condition–action rules on the current percept. No memory, no model.</p></div></li>
+          <li><span class="n" aria-hidden="true">2</span><div><strong>Model-based reflex</strong><p>Keeps internal state to track the part of the world it cannot see.</p></div></li>
+          <li><span class="n" aria-hidden="true">3</span><div><strong>Goal-based</strong><p>Adds a target and searches for action sequences that reach it.</p></div></li>
+          <li><span class="n" aria-hidden="true">4</span><div><strong>Utility-based</strong><p>Adds preferences, so competing goals can be traded off.</p></div></li>
+          <li><span class="n" aria-hidden="true">5</span><div><strong>Learning</strong><p>Improves all of the above from experience, guided by a critic.</p></div></li>
+        </ol>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.533" viewBox="40 38.2 360 285.8" role="img" aria-labelledby="f9t f9d">
+          <title id="f9t">Increasing capability across five agent designs</title>
+          <desc id="f9d">A staircase with five steps: simple reflex, model-based, goal-based, utility-based, learning. Each step adds one representational capability: memory, goals, preferences, and adaptation.</desc>
+          <defs>
+            <marker id="a9" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#5c6470"/>
+            </marker>
+          </defs>
+          <path class="dg-dash" d="M40 300 H 400" marker-end="url(#a9)"/>
+          <text class="dg-txt-s" x="220" y="322" text-anchor="middle">capability under uncertainty</text>
+
+          <rect class="dg-box-m" x="46"  y="248" width="62" height="30" rx="3"/>
+          <rect class="dg-box-m" x="116" y="200" width="62" height="78" rx="3"/>
+          <rect class="dg-box-t" x="186" y="152" width="62" height="126" rx="3"/>
+          <rect class="dg-box-t" x="256" y="104" width="62" height="174" rx="3"/>
+          <rect class="dg-box-a" x="326" y="56"  width="62" height="222" rx="3"/>
+
+          <text class="dg-txt-s" x="77"  y="240" text-anchor="middle">reflex</text>
+          <text class="dg-txt-s" x="147" y="192" text-anchor="middle">model</text>
+          <text class="dg-txt-s" x="217" y="144" text-anchor="middle">goal</text>
+          <text class="dg-txt-s" x="287" y="96"  text-anchor="middle">utility</text>
+          <text class="dg-txt-s" x="357" y="48"  text-anchor="middle">learning</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 1.3.</strong> Height is capability, not code sophistication.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 10 ────────────────────────────────────────────────── reflex agent -->
+<section class="slide" id="s13">
+  <h2>A reflex agent, and the exact moment it fails</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+<pre class="code"><span class="c"># Rule: if the current square is dirty,</span>
+<span class="c"># clean it; otherwise move to the other square.</span>
+<span class="k">def</span> reflex_agent(percept):
+    location, status = percept
+    <span class="k">if</span> status == <span class="s">"Dirty"</span>:
+        <span class="k">return</span> <span class="s">"Suck"</span>
+    <span class="k">elif</span> location == <span class="s">"A"</span>:
+        <span class="k">return</span> <span class="s">"Right"</span>
+    <span class="k">else</span>:
+        <span class="k">return</span> <span class="s">"Left"</span></pre>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>It works — until the world is bigger than its rules</h3>
+          <p>
+            In a two-square world this agent is optimal. Move it to three squares and
+            it oscillates forever between two clean rooms, never reaching the third.
+            The code did not get worse; the environment outgrew the representation.
+          </p>
+        </div>
+        <p style="margin-top:16px">
+          This is the pattern to watch for all term: <strong>a method fails not where
+          it was tested, but one assumption away from where it was tested.</strong>
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 165" role="img" aria-labelledby="f1bt f1bd">
+<title id="f1bt">The reflex vacuum agent succeeds with two squares and loops with three</title>
+<desc id="f1bd">Left: two squares, A and B, both dirty. The agent sucks in A, moves right, sucks in B, and the world is clean. Right: three squares in a row, A and B clean and C dirty. With only the rule &#x27;in A move right, otherwise move left&#x27;, the agent moves between A and B forever and never reaches C.</desc>
+<defs><marker id="mk-f1bt" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker><marker id="mk-f1ba" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9e1b32"/></marker></defs>
+<g class="v-in" style="--d:0.10s"><text class="dg-sm-b" x="40" y="20">Two squares: the rule is enough</text></g>
+<g class="v-in" style="--d:0.10s"><text class="dg-sm-b" x="560" y="20">Three squares: the same rule loops</text></g>
+<g class="v-in" style="--d:0.30s"><rect class="dg-box-m" x="40" y="40" width="170" height="80" rx="4"/><text class="dg-sm-b" x="125" y="70" text-anchor="middle">A</text><text class="dg-xs" x="125" y="100" text-anchor="middle">dirty → Suck → clean</text></g>
+<g class="v-in" style="--d:0.50s"><rect class="dg-box-m" x="230" y="40" width="170" height="80" rx="4"/><text class="dg-sm-b" x="315" y="70" text-anchor="middle">B</text><text class="dg-xs" x="315" y="100" text-anchor="middle">dirty → Suck → clean</text></g>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:0.90s" d="M130 126 Q220 156 310 126" marker-end="url(#mk-f1bt)"/>
+<g class="v-in" style="--d:1.20s"><text class="dg-xs dg-teal" x="220" y="160" text-anchor="middle">Suck, Right, Suck: done</text></g>
+<g class="v-in" style="--d:1.40s"><rect class="dg-box" x="560" y="40" width="130" height="80" rx="4"/><text class="dg-sm-b" x="625" y="70" text-anchor="middle">A</text><text class="dg-xs" x="625" y="100" text-anchor="middle">clean</text></g>
+<g class="v-in" style="--d:1.60s"><rect class="dg-box" x="705" y="40" width="130" height="80" rx="4"/><text class="dg-sm-b" x="770" y="70" text-anchor="middle">B</text><text class="dg-xs" x="770" y="100" text-anchor="middle">clean</text></g>
+<g class="v-in" style="--d:1.80s"><rect class="dg-bad" x="850" y="40" width="130" height="80" rx="4"/><text class="dg-sm-b" x="915" y="70" text-anchor="middle">C</text><text class="dg-xs" x="915" y="100" text-anchor="middle">dirty</text></g>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:2.20s" d="M635 126 Q705 154 775 126" marker-end="url(#mk-f1ba)"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:2.60s" d="M770 124 Q700 150 640 124" marker-end="url(#mk-f1ba)"/>
+<g class="v-in" style="--d:3.00s"><text class="dg-xs dg-txt-bad" x="705" y="160" text-anchor="middle">Right, Left, Right, Left …</text><text class="dg-xs dg-txt-bad" x="915" y="140" text-anchor="middle">C is never</text><text class="dg-xs dg-txt-bad" x="915" y="158" text-anchor="middle">reached</text></g>
+</svg>
+<figcaption><strong>Figure 1.4.</strong> The code is the same in both worlds; only the environment grew.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 11 ─────────────────────────────────────────────── model-based agent -->
+<section class="slide" id="s14">
+  <h2>Model-based agents remember what they cannot see</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          A model-based agent keeps two things: a <strong>transition model</strong>
+          ("if I move right, where do I end up?") and a <strong>sensor model</strong>
+          ("if the world is like this, what would I perceive?"). Together they let the
+          agent maintain internal state.
+        </p>
+        <ul>
+          <li>The state is a <em>belief</em>, not a fact. It can be wrong.</li>
+          <li>Updating it is inference — module 9 and 10 will make this precise.</li>
+          <li>Memory is not free: the state space of beliefs is much larger than the state space of the world.</li>
+        </ul>
+        <div class="callout">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>An agent that remembers is an agent that can be mistaken about the past.</p>
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.388" viewBox="18 112 392 162" role="img" aria-labelledby="f11t f11d">
+          <title id="f11t">Model-based agent with internal state</title>
+          <desc id="f11d">A diagram in which the percept enters a state-estimation block, which updates an internal state that is combined with the transition and sensor models to choose an action.</desc>
+          <defs>
+            <marker id="a11" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <rect class="dg-box-m" x="18" y="122" width="86" height="48" rx="3"/>
+          <text class="dg-txt" x="61" y="150" text-anchor="middle">percept</text>
+
+          <rect class="dg-box-a" x="126" y="112" width="132" height="68" rx="3"/>
+          <text class="dg-txt-b" x="192" y="140" text-anchor="middle">state estimate</text>
+          <text class="dg-txt-s" x="192" y="160" text-anchor="middle">update(belief, percept)</text>
+
+          <rect class="dg-box" x="126" y="222" width="132" height="52" rx="3"/>
+          <text class="dg-txt" x="192" y="244" text-anchor="middle">transition model</text>
+          <text class="dg-txt-s" x="192" y="262" text-anchor="middle">sensor model</text>
+
+          <rect class="dg-box-a" x="300" y="112" width="110" height="68" rx="3"/>
+          <text class="dg-txt-b" x="355" y="140" text-anchor="middle">policy</text>
+          <text class="dg-txt-s" x="355" y="160" text-anchor="middle">state → action</text>
+
+          <rect class="dg-box-m" x="300" y="222" width="110" height="52" rx="3"/>
+          <text class="dg-txt" x="355" y="252" text-anchor="middle">action</text>
+
+          <path class="dg-line" d="M104 146 H 124" marker-end="url(#a11)"/>
+          <path class="dg-line" d="M258 146 H 298" marker-end="url(#a11)"/>
+          <path class="dg-line" d="M355 180 V 220" marker-end="url(#a11)"/>
+          <path class="dg-line" d="M192 180 V 220" marker-end="url(#a11)"/>
+        </svg>
+        <figcaption>
+          <strong>Figure 1.5.</strong> The state estimate is the agent's theory of the
+          present. Everything downstream — planning, learning, control — consumes it,
+          so its errors propagate everywhere.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 12 ───────────────────────────────────────── goal vs utility -->
+<section class="slide" id="s15">
+  <h2>Goals say "reach it"; utilities say "how much do I want it"</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div class="panel">
+        <h3>Goal-based</h3>
+        <p>
+          The agent searches for a sequence of actions that reaches a goal state. Its
+          output is a plan. Its weakness is that all goal states are equally good, so
+          it cannot choose between two plans that both succeed.
+        </p>
+        <p class="mono" style="font-size:15px;">plan = [a₁, a₂, …, aₙ] such that result(s₀, plan) ⊨ goal</p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Utility-based</h3>
+        <p>
+          The agent maximizes expected utility, so it can compare outcomes with
+          different likelihoods and different values. This is what lets it accept a
+          risk, or refuse one.
+        </p>
+        <p class="eq eq--tight" style="background:none; border:0; text-align:left; padding:6px 0;">
+          a* = argmax<sub>a</sub> Σ<sub>s′</sub> P(s′ | s, a) · U(s′)
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 86" role="img" aria-labelledby="f1ct f1cd">
+<title id="f1ct">Two routes that a goal test cannot tell apart</title>
+<desc id="f1cd">Two routes from start to goal. Route 1 takes 30 minutes and arrives 40 percent of the time; route 2 takes 45 minutes and arrives 95 percent of the time. A goal test accepts both, because both can reach the goal; an expected utility prefers route 2.</desc>
+<defs><marker id="mk-f1c" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#16181d"/></marker><marker id="mk-f1ct" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker></defs>
+<g class="v-in" style="--d:0.10s"><rect class="dg-box-m" x="10" y="23" width="90" height="40" rx="20"/><text class="dg-xs" x="55" y="48" text-anchor="middle">start</text></g>
+<g class="v-in" style="--d:0.20s"><rect class="dg-box-a" x="900" y="23" width="90" height="40" rx="20"/><text class="dg-xs" x="945" y="48" text-anchor="middle">goal</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.50s" d="M100 36 Q500 0 896 36" marker-end="url(#mk-f1c)"/>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:1.00s" d="M100 52 Q500 88 896 52" marker-end="url(#mk-f1ct)"/>
+<g class="v-in" style="--d:0.80s"><text class="dg-xs" x="500" y="12" text-anchor="middle">Route 1: 30 min, arrives 40% of the time</text></g>
+<g class="v-in" style="--d:1.30s"><text class="dg-xs dg-teal" x="500" y="84" text-anchor="middle">Route 2: 45 min, arrives 95% of the time</text></g>
+<g class="v-in" style="--d:1.80s"><text class="dg-xs" x="130" y="48">goal test: both routes “reach it”</text></g>
+<g class="v-in" style="--d:2.30s"><text class="dg-xs dg-teal" x="870" y="48" text-anchor="end">utility: route 2 is worth more</text></g>
+</svg>
+<figcaption><strong>Figure 1.6.</strong> A goal accepts both plans; a utility picks one.</figcaption>
+</figure>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        A goal-based agent that plans a route with a 40% chance of arrival is
+        <em>not wrong</em> — it is answering a different question than you asked.
+        Utility is how you ask the question you actually meant.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 13 ───────────────────────────────────────────────── learning agent -->
+<section class="slide" id="s16">
+  <h2>Learning agents trade correctness for improvement</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          Four components: the <strong>performance element</strong> acts, the
+          <strong>critic</strong> judges the action against a fixed performance
+          standard, the <strong>learning element</strong> changes the performance
+          element, and the <strong>problem generator</strong> proposes exploratory
+          actions.
+        </p>
+        <p>
+          The critic is the load-bearing part. It must be fixed and external, because
+          an agent that can edit its own success criterion will always succeed.
+        </p>
+        <div class="panel panel--key">
+          <h3>This is where the course turns</h3>
+          <p>
+            Modules 1–6 build agents that are given a model. Modules 7 onward build
+            agents that must estimate it — and the critic becomes a reward signal,
+            a loss function, or a preference dataset.
+          </p>
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.327" viewBox="20 34 410 250" role="img" aria-labelledby="f13t f13d">
+          <title id="f13t">Components of a learning agent</title>
+          <desc id="f13d">The performance element acts on the environment. A critic compares the result to a fixed standard and informs the learning element, which updates the performance element. A problem generator supplies exploratory actions.</desc>
+          <defs>
+            <marker id="a13" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <rect class="dg-box-a" x="20" y="34" width="150" height="58" rx="3"/>
+          <text class="dg-txt-b" x="95" y="58" text-anchor="middle">performance</text>
+          <text class="dg-txt-b" x="95" y="76" text-anchor="middle">element</text>
+
+          <rect class="dg-box-m" x="280" y="34" width="150" height="58" rx="3"/>
+          <text class="dg-txt-b" x="355" y="58" text-anchor="middle">environment</text>
+          <text class="dg-txt-s" x="355" y="76" text-anchor="middle">world</text>
+
+          <rect class="dg-box-t" x="280" y="150" width="150" height="52" rx="3"/>
+          <text class="dg-txt" x="355" y="172" text-anchor="middle">critic</text>
+          <text class="dg-txt-s" x="355" y="190" text-anchor="middle">fixed standard</text>
+
+          <rect class="dg-box" x="20" y="150" width="150" height="52" rx="3"/>
+          <text class="dg-txt" x="95" y="172" text-anchor="middle">learning element</text>
+          <text class="dg-txt-s" x="95" y="190" text-anchor="middle">updates f</text>
+
+          <rect class="dg-box-m" x="20" y="238" width="150" height="46" rx="3"/>
+          <text class="dg-txt" x="95" y="266" text-anchor="middle">problem generator</text>
+
+          <path class="dg-line" d="M172 63 H 276" marker-end="url(#a13)"/>
+          <path class="dg-line" d="M355 94 V 146" marker-end="url(#a13)"/>
+          <path class="dg-line" d="M276 176 H 174" marker-end="url(#a13)"/>
+          <path class="dg-line" d="M95 148 V 94" marker-end="url(#a13)"/>
+          <path class="dg-line" d="M95 236 V 206" marker-end="url(#a13)"/>
+          <text class="dg-txt-s" x="230" y="52">actions</text>
+          <text class="dg-txt-s" x="198" y="166">feedback</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 1.7.</strong> The learning loop. Note the direction of the
+          critic's arrow: feedback flows back to the learner, never forward into the
+          standard.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s17">
+  <h2>Formulating problems, and what is still open</h2>
+  <p>Where the real difficulty sits before any algorithm runs.</p>
+  
+</section>
+
+<!-- 14 ──────────────────────────────────────────────── formulation -->
+<section class="slide" id="s18">
+  <h2>Formulation is where the real difficulty lives</h2>
+  <div class="slide-main">
+    <div class="cols-2-1">
+      <div>
+        <p>
+          The 8-puzzle: a 3×3 grid with eight numbered tiles and one blank. Slide a
+          tile into the blank; reach the ordered arrangement.
+        </p>
+        <table class="tbl tbl--compact">
+      <caption class="visually-hidden">Formulation is where the real difficulty lives</caption>
+          <thead>
+            <tr><th scope="col">Formulation choice</th><th scope="col" class="num">States</th><th scope="col">Consequence</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Tiles only</td><td class="num">9!/2 = 181,440</td><td>Exhaustive search is possible</td></tr>
+            <tr><td>Tiles + blank position implied</td><td class="num">181,440</td><td>Same problem, cheaper encoding</td></tr>
+            <tr><td>Add move count and path</td><td class="num">much larger</td><td>Search space explodes for no benefit</td></tr>
+            <tr><td>15-puzzle, same style</td><td class="num">≈ 1.05 × 10¹³</td><td>Uninformed search is hopeless; heuristics required</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel panel--accent">
+        <h3>The lesson generalizes</h3>
+        <p>
+          Choosing what a state <em>contains</em> is a modelling decision with a
+          computational price. Too little, and the agent cannot distinguish situations
+          that need different actions — the Markov property fails. Too much, and the
+          state space becomes unsearchable.
+        </p>
+        <p>
+          Every algorithm in modules 2 through 7 is downstream of this choice.
+        </p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        <strong>181,440 is small. 10¹³ is not.</strong> The same puzzle family, the
+        same rules, and a completely different algorithmic situation — because of one
+        number.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 15 ───────────────────────────────────────────────────── history -->
+<section class="slide" id="s19">
+  <h2>Six shifts, and what each one actually changed</h2>
+  <div class="slide-main">
+    <figure class="fig">
+      <svg style="--dg-k:1.088" viewBox="36.3 110.4 1043.7 105.4" role="img" aria-labelledby="f15t f15d">
+        <title id="f15t">Timeline of six shifts in artificial intelligence</title>
+        <desc id="f15d">A timeline from 1943 to today with six labelled moments: the McCulloch-Pitts neuron, the Dartmouth workshop naming the field, the move to expert systems, the statistical turn, deep learning's ImageNet breakthrough, and the foundation-model era.</desc>
+        <path class="dg-line" d="M40 150 H 1080"/>
+        <g>
+          <circle cx="80" cy="150" r="7" class="dg-card"/>
+          <text class="dg-txt-b" x="80" y="126" text-anchor="middle">1943</text>
+          <text class="dg-txt-s" x="80" y="180" text-anchor="middle">neuron model</text>
+          <text class="dg-txt-s" x="80" y="197" text-anchor="middle">learning as</text>
+          <text class="dg-txt-s" x="80" y="213" text-anchor="middle">computation</text>
+        </g>
+        <g>
+          <circle cx="270" cy="150" r="7" class="dg-card"/>
+          <text class="dg-txt-b" x="270" y="126" text-anchor="middle">1956</text>
+          <text class="dg-txt-s" x="270" y="180" text-anchor="middle">Dartmouth</text>
+          <text class="dg-txt-s" x="270" y="197" text-anchor="middle">the field gets</text>
+          <text class="dg-txt-s" x="270" y="213" text-anchor="middle">its name</text>
+        </g>
+        <g>
+          <circle cx="460" cy="150" r="7" class="dg-card"/>
+          <text class="dg-txt-b" x="460" y="126" text-anchor="middle">1980s</text>
+          <text class="dg-txt-s" x="460" y="180" text-anchor="middle">expert systems</text>
+          <text class="dg-txt-s" x="460" y="197" text-anchor="middle">knowledge beats</text>
+          <text class="dg-txt-s" x="460" y="213" text-anchor="middle">general search</text>
+        </g>
+        <g>
+          <circle cx="650" cy="150" r="7" class="dg-card"/>
+          <text class="dg-txt-b" x="650" y="126" text-anchor="middle">1990s</text>
+          <text class="dg-txt-s" x="650" y="180" text-anchor="middle">statistical turn</text>
+          <text class="dg-txt-s" x="650" y="197" text-anchor="middle">probability and</text>
+          <text class="dg-txt-s" x="650" y="213" text-anchor="middle">data replace rules</text>
+        </g>
+        <g>
+          <circle cx="840" cy="150" r="7" class="dg-card"/>
+          <text class="dg-txt-b" x="840" y="126" text-anchor="middle">2012</text>
+          <text class="dg-txt-s" x="840" y="180" text-anchor="middle">deep learning</text>
+          <text class="dg-txt-s" x="840" y="197" text-anchor="middle">GPUs plus data</text>
+          <text class="dg-txt-s" x="840" y="213" text-anchor="middle">plus scale</text>
+        </g>
+        <g>
+          <circle cx="1030" cy="150" r="7" class="dg-card"/>
+          <text class="dg-txt-b" x="1030" y="126" text-anchor="middle">2020s</text>
+          <text class="dg-txt-s" x="1030" y="180" text-anchor="middle">foundation</text>
+          <text class="dg-txt-s" x="1030" y="197" text-anchor="middle">models and</text>
+          <text class="dg-txt-s" x="1030" y="213" text-anchor="middle">post-training</text>
+        </g>
+      </svg>
+      <figcaption>
+        <strong>Figure 1.8.</strong> The pattern across all six: a representational
+        idea plus a compute or data resource that made it feasible. No shift was
+        purely algorithmic.
+      </figcaption>
+    </figure>
+    <p>
+      Two things to notice. First, the field has repeatedly rediscovered that
+      <strong>scale changes which methods are correct</strong>, not just which are
+      fast. Second, each shift kept the previous mathematics: A* from 1968 still runs
+      inside modern game engines and robot planners.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 16 ─────────────────────────────────────────────── open problems -->
+<section class="slide" id="s20">
+  <h2>What is genuinely unsolved</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div class="panel">
+        <h3>Generalization outside the distribution</h3>
+        <p>
+          A model that is 95% accurate on its test set can collapse on the same task
+          in a different hospital, dialect, or camera. We can measure this; we cannot
+          yet guarantee against it.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Grounding and reference</h3>
+        <p>
+          A language model manipulates symbols that co-occur with the world. Whether
+          that constitutes referring to the world is contested — and it matters for
+          whether we can trust a system's claims about it.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Evaluation</h3>
+        <p>
+          Benchmarks saturate, then leak into training data. We are better at building
+          systems than at knowing whether they work, and the gap is now the binding
+          constraint on deployment.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Alignment and control</h3>
+        <p>
+          Specifying what we want, in a form an optimizer cannot satisfy by exploiting
+          the specification rather than the intent, remains open. Modules 7 and 13 show the
+          mechanism; module 15 shows the stakes.
+        </p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        You are entering a field where the <strong>engineering is ahead of the
+        science</strong>. That is uncomfortable and it is also the opportunity.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 17 ─────────────────────────────────────────────────── scope -->
+<section class="slide" id="s21">
+  <h2>What this course covers, and what it deliberately does not</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div class="panel panel--key">
+        <h3>Inside the scope</h3>
+        <ul>
+          <li>Search, constraint satisfaction, and game playing — the classical core, with proofs.</li>
+          <li>Decision processes and reinforcement learning, from Bellman to PPO.</li>
+          <li>Probabilistic representation and inference.</li>
+          <li>Learning theory enough to evaluate honestly.</li>
+          <li>Deep learning, transformers, and how they are adapted.</li>
+          <li>Safety, fairness, and governance as engineering constraints.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Outside the scope</h3>
+        <ul>
+          <li>Logic programming and first-order inference in depth (AIMA 7–10, for self-study).</li>
+          <li>Automated planning formalisms beyond search (AIMA 11).</li>
+          <li>Multi-agent game theory (AIMA 18).</li>
+          <li>Training frontier models — economics, not coursework.</li>
+          <li>Neuroanatomy, cognitive science, and philosophy of mind.</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:16px">
+      These areas are not assessed, but a graduate in this field should know they
+      exist and roughly what they claim.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 18 ───────────────────────────────────────────── take-aways -->
+<section class="slide" id="s22">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>AI in this course means acting rationally.</strong><p>Rationality is relative to a performance measure, a percept history, and what the agent knows.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>An agent is a function, not a program listing.</strong><p>Architecture and program are separable, which is why simulation is a valid laboratory.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>PEAS before code.</strong><p>Write the performance measure down. Disagreements about "good" are the most expensive bugs in AI.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>The environment decides the algorithm.</strong><p>Six properties, and the hard combination is the realistic one.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Formulation is the decisive step.</strong><p>181,440 versus 10¹³ is a modelling choice, not an implementation detail.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 19 ──────────────────────────────────────────── this week -->
+<section class="slide" id="s23">
+  <h2>This week's work</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA chapters 1 and 2.</li>
+          <li>Skim §2.4 twice: the environment taxonomy is used all term.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Reflection 1: pick one AI system you use; write its PEAS and classify its environment.</li>
+          <li>Setup check: Python 3.11+, NumPy, a Colab notebook that runs.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — reflection and setup check.</li>
+          <li>Friday class, 8:30–11:10 a.m. CT, MIC: formulation clinic; online students watch the recorded lecture.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next:</strong> if an agent must find a sequence of actions, where does
+        it start? Module 2 turns "search" into a data structure and a complexity
+        statement.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 21 ─────────────────────────────── Python learning resources -->
+<section class="slide" id="s24">
+  <h2>Python: where to start</h2>
+  <div class="slide-main">
+    <p style="margin-bottom:14px">The labs assume you can write a short Python program and read an error message. If that is new, these free resources close the gap.</p>
+    <ul class="resources">
+      <li><a href="https://docs.python.org/3/tutorial/index.html">The Python Tutorial</a><span class="src">docs.python.org</span><p>Official and free. Chapters 3 to 5 cover what the labs use: numbers, strings, lists, dictionaries, loops and functions.</p></li>
+      <li><a href="https://www.py4e.com/">Python for Everybody (free course)</a><span class="src">py4e.com</span><p>Videos and exercises for newer programmers. Start here if loops and functions feel shaky.</p></li>
+      <li><a href="https://docs.python.org/3/tutorial/venv.html">Virtual environments and packages</a><span class="src">docs.python.org</span><p>How to install NumPy for this course without breaking other projects.</p></li>
+      <li><a href="https://docs.python.org/3/tutorial/errors.html">Errors and exceptions</a><span class="src">docs.python.org</span><p>How to read a traceback, the first step in debugging any lab.</p></li>
+      <li><a href="https://numpy.org/doc/stable/user/absolute_beginners.html">NumPy: the absolute basics for beginners</a><span class="src">numpy.org</span><p>Arrays, shapes and indexing. Read it before Lab 2.</p></li>
+      <li><a href="https://cs231n.github.io/python-numpy-tutorial/">Stanford CS231n Python and NumPy tutorial</a><span class="src">cs231n.github.io</span><p>A fast refresher if you already program in another language.</p></li>
+    </ul>
+    <div class="callout" style="margin-top:20px">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>Do the setup check this week. If a step fails, bring the error message to office hours, Tuesday and Wednesday 12:00–3:00 p.m., MIC room D159.</p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

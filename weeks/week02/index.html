@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 2 — Uninformed Search · CS 5700</title>
+<meta name="description" content="CS 5700 Module 2: problem formulation, search trees, breadth-first, depth-first, uniform-cost and iterative deepening search, with complexity analysis.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 2 lecture slides: Uninformed Search">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 2 of 15</p>
+  <h1>Uninformed Search</h1>
+  <p class="subtitle">
+    How to find a sequence of actions when you know nothing about the goal
+    except how to recognize it.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<path class="dg-line v-draw" pathLength="1" style="--d:0.30s" d="M190 53 L100 97"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.48s" d="M190 53 L190 97"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.66s" d="M190 53 L280 97"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.84s" d="M100 123 L60 172"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.02s" d="M100 123 L125 172"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.20s" d="M190 123 L170 172"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.38s" d="M190 123 L215 172"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.56s" d="M280 123 L260 172"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.74s" d="M280 123 L320 172"/>
+<g class="v-in" style="--d:0.20s"><circle class="dg-box-t" cx="190" cy="40" r="13"/></g>
+<g class="v-in" style="--d:0.38s"><circle class="dg-box" cx="100" cy="110" r="13"/></g>
+<g class="v-in" style="--d:0.56s"><circle class="dg-box" cx="190" cy="110" r="13"/></g>
+<g class="v-in" style="--d:0.74s"><circle class="dg-box" cx="280" cy="110" r="13"/></g>
+<g class="v-in" style="--d:0.92s"><circle class="dg-box" cx="60" cy="185" r="13"/></g>
+<g class="v-in" style="--d:1.10s"><circle class="dg-box" cx="125" cy="185" r="13"/></g>
+<g class="v-in" style="--d:1.28s"><circle class="dg-box" cx="170" cy="185" r="13"/></g>
+<g class="v-in" style="--d:1.46s"><circle class="dg-box-a" cx="215" cy="185" r="13"/></g>
+<g class="v-in" style="--d:1.64s"><circle class="dg-box" cx="260" cy="185" r="13"/></g>
+<g class="v-in" style="--d:1.82s"><circle class="dg-box" cx="320" cy="185" r="13"/></g>
+<g class="v-in" style="--d:2.20s"><path class="dg-dash" d="M20 75 H360"/><text class="dg-xs" x="366" y="79" text-anchor="end">1</text></g>
+<g class="v-in" style="--d:2.40s"><path class="dg-dash" d="M20 148 H360"/><text class="dg-xs" x="366" y="152" text-anchor="end">2</text></g>
+<g class="v-in" style="--d:2.70s"><text class="dg-xs" x="190" y="250" text-anchor="middle">expand in rings: depth 0, 1, 2</text></g>
+<g class="v-in" style="--d:3.00s"><text class="dg-sm dg-teal" x="190" y="300" text-anchor="middle">frontier + explored set</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>Turn a verbal problem statement into the five components of a search problem.</li>
+      <li>Trace breadth-first, uniform-cost, depth-first, and iterative deepening search on a small graph.</li>
+      <li>State the completeness, optimality, time and space complexity of each, with the assumptions each one needs.</li>
+      <li>Explain why the frontier is a queue in one algorithm and a priority queue in another.</li>
+      <li>Predict which of these algorithms is unusable for a given problem size, and say why.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        The midterm will give you a graph and a start and goal, and ask for the
+        <strong>expansion order</strong>. If you can produce that, you understand the
+        algorithm; everything else is vocabulary.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>Search problems</h2>
+  <p>Five components, two data structures and one generic algorithm.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>A search problem has exactly five components</h2>
+  <div class="slide-main">
+    <div class="panel panel--definition">
+      <span class="term">Formal definition</span>
+      <p>
+        A problem is a tuple (<var>S</var>, <var>A</var>, <var>T</var>, <var>s₀</var>,
+        <var>G</var>, <var>c</var>): a set of states, a set of actions, a transition
+        function, an initial state, a goal test, and a step cost.
+      </p>
+    </div>
+    <table class="tbl tbl--compact">
+      <caption class="visually-hidden">A search problem has exactly five components</caption>
+      <thead>
+        <tr><th scope="col">Component</th><th scope="col">Question it answers</th><th scope="col">Where students go wrong</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>State space</strong></td><td>What configuration is the world in?</td><td>Including information the actions cannot change — needless blow-up.</td></tr>
+        <tr><td><strong>Actions</strong></td><td>What can I do from a state?</td><td>Modelling actions as outcomes ("move to B") instead of attempts ("try to move east").</td></tr>
+        <tr><td><strong>Transition</strong></td><td>What happens if I do it?</td><td>Assuming determinism in a stochastic world.</td></tr>
+        <tr><td><strong>Goal test</strong></td><td>Am I done?</td><td>Testing too late; a cheap test prunes far more than a fast expander saves.</td></tr>
+        <tr><td><strong>Step cost</strong></td><td>What did that cost me?</td><td>Forgetting that cost can depend on the action, the state, or both.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>Worked formulation: driving from Arad to Bucharest</h2>
+  <div class="slide-main">
+    <div class="cols-1-2">
+      <div>
+        <table class="tbl tbl--compact">
+      <caption class="visually-hidden">Worked formulation: driving from Arad to Bucharest</caption>
+          <thead><tr><th scope="col">Component</th><th scope="col">This problem</th></tr></thead>
+          <tbody>
+            <tr><td>State</td><td>A city on the map</td></tr>
+            <tr><td>Initial state</td><td>Arad</td></tr>
+            <tr><td>Actions</td><td>Drive to an adjacent city</td></tr>
+            <tr><td>Transition</td><td>Result(state, action) = that city</td></tr>
+            <tr><td>Goal test</td><td>state = Bucharest</td></tr>
+            <tr><td>Path cost</td><td>Sum of road distances in km</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p>
+          This formulation assumes the road network is the only relevant fact about
+          the world. That assumption is doing enormous work, and it is worth naming:
+        </p>
+        <ul>
+          <li>No traffic, weather, or time of day.</li>
+          <li>No fuel constraint — so the state does not need to include fuel.</li>
+          <li>No uncertainty — every action has one outcome.</li>
+        </ul>
+        <div class="panel panel--accent" style="margin-top:14px">
+          <h3>Each omission is a modelling claim</h3>
+          <p>
+            Add fuel and the state doubles. Add traffic and the transition becomes
+            stochastic. Both are realistic. Neither is free.
+          </p>
+        </div>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 90" role="img" aria-labelledby="f2at f2ad">
+<title id="f2at">Part of the Romania road map as a search problem</title>
+<desc id="f2ad">Eight cities joined by roads labelled with their length in kilometres: Arad to Zerind 75, Arad to Timisoara 118, Arad to Sibiu 140, Sibiu to Fagaras 99, Sibiu to Rimnicu Vilcea 80, Rimnicu Vilcea to Pitesti 97, Fagaras to Bucharest 211 and Pitesti to Bucharest 101. Arad is the initial state and Bucharest the goal. One path, Arad, Sibiu, Rimnicu Vilcea, Pitesti, Bucharest, is drawn: 418 km.</desc>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M60 43 L120 13"/><text class="dg-xs dg-teal" x="94" y="24">75</text></g>
+<g class="v-in" style="--d:0.15s"><path class="dg-line-q" d="M60 43 L110 73"/><text class="dg-xs dg-teal" x="89" y="54">118</text></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M60 43 L290 35"/><text class="dg-xs dg-teal" x="179" y="35">140</text></g>
+<g class="v-in" style="--d:0.25s"><path class="dg-line-q" d="M290 35 L520 22"/><text class="dg-xs dg-teal" x="409" y="24.5">99</text></g>
+<g class="v-in" style="--d:0.30s"><path class="dg-line-q" d="M290 35 L400 66"/><text class="dg-xs dg-teal" x="349" y="46.5">80</text></g>
+<g class="v-in" style="--d:0.35s"><path class="dg-line-q" d="M400 66 L640 68"/><text class="dg-xs dg-teal" x="524" y="63">97</text></g>
+<g class="v-in" style="--d:0.40s"><path class="dg-line-q" d="M520 22 L860 45"/><text class="dg-xs dg-teal" x="694" y="29.5">211</text></g>
+<g class="v-in" style="--d:0.45s"><path class="dg-line-q" d="M640 68 L860 45"/><text class="dg-xs dg-teal" x="754" y="52.5">101</text></g>
+<g class="v-in" style="--d:0.50s"><circle class="dg-box-t" cx="60" cy="43" r="7"/><text class="dg-xs" x="70" y="35">Arad</text></g>
+<g class="v-in" style="--d:0.56s"><circle class="dg-box" cx="120" cy="13" r="7"/><text class="dg-xs" x="130" y="5">Zerind</text></g>
+<g class="v-in" style="--d:0.62s"><circle class="dg-box" cx="110" cy="73" r="7"/><text class="dg-xs" x="120" y="90">Timisoara</text></g>
+<g class="v-in" style="--d:0.68s"><circle class="dg-box" cx="290" cy="35" r="7"/><text class="dg-xs" x="300" y="27">Sibiu</text></g>
+<g class="v-in" style="--d:0.74s"><circle class="dg-box" cx="520" cy="22" r="7"/><text class="dg-xs" x="530" y="14">Fagaras</text></g>
+<g class="v-in" style="--d:0.80s"><circle class="dg-box" cx="400" cy="66" r="7"/><text class="dg-xs" x="410" y="83">Rimnicu Vilcea</text></g>
+<g class="v-in" style="--d:0.86s"><circle class="dg-box" cx="640" cy="68" r="7"/><text class="dg-xs" x="650" y="85">Pitesti</text></g>
+<g class="v-in" style="--d:0.92s"><circle class="dg-box-a" cx="860" cy="45" r="7"/><text class="dg-xs" x="870" y="62">Bucharest</text></g>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:1.30s" stroke-width="4" stroke-linecap="round" opacity="0.8" d="M60 43 L290 35 L400 66 L640 68 L860 45"/>
+<g class="v-in" style="--d:2.20s"><text class="dg-xs" x="1000" y="86" text-anchor="end">goal test: city = Bucharest</text></g>
+</svg>
+<figcaption><strong>Figure 2.1.</strong> Cities are states, roads are actions; this path costs 418 km.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>The same world, two sizes of problem</h2>
+  <div class="slide-main">
+    <div class="cols-3">
+      <div class="panel">
+        <h3>8-puzzle</h3>
+        <p class="mono" style="font-size:18px;">9!/2 = 181,440</p>
+        <p>Branching factor ≈ 2.13. Average solution length ≈ 22. Uninformed search is feasible.</p>
+      </div>
+      <div class="panel">
+        <h3>15-puzzle</h3>
+        <p class="mono" style="font-size:18px;">≈ 1.05 × 10¹³</p>
+        <p>Branching factor ≈ 2.13. Average solution length ≈ 53. Uninformed search is not feasible.</p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>What changed</h3>
+        <p>One extra row of tiles. The branching factor barely moved. The depth grew by a factor of 2.4 — and the state count grew by a factor of 5.8 × 10⁷.</p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 150" role="img" aria-labelledby="f2bt f2bd">
+<title id="f2bt">State counts of the 8-puzzle and the 15-puzzle on a logarithmic scale</title>
+<desc id="f2bd">Two bars on a logarithmic axis from 1 to 10 to the 14th. The 8-puzzle bar ends at 181,440 states, about 10 to the 5.3. The 15-puzzle bar ends at about 1.05 times 10 to the 13th states, nearly eight powers of ten further.</desc>
+<path class="dg-line-q" d="M200 112 H960"/>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M200 112 V118"/><text class="dg-xs" x="200" y="134" text-anchor="middle">10^0</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M304 112 V118"/><text class="dg-xs" x="304" y="134" text-anchor="middle">10^2</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M408 112 V118"/><text class="dg-xs" x="408" y="134" text-anchor="middle">10^4</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M512 112 V118"/><text class="dg-xs" x="512" y="134" text-anchor="middle">10^6</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M616 112 V118"/><text class="dg-xs" x="616" y="134" text-anchor="middle">10^8</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M720 112 V118"/><text class="dg-xs" x="720" y="134" text-anchor="middle">10^10</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M824 112 V118"/><text class="dg-xs" x="824" y="134" text-anchor="middle">10^12</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M928 112 V118"/><text class="dg-xs" x="928" y="134" text-anchor="middle">10^14</text></g>
+<g class="v-in" style="--d:0.30s"><text class="dg-sm-b" x="190" y="41" text-anchor="end">8-puzzle</text></g>
+<rect class="dg-bar v-grow" style="--d:0.40s" x="200" y="18" width="273.52" height="34"/>
+<g class="v-in" style="--d:1.00s"><text class="dg-xs" x="483.52" y="41">181,440 states</text></g>
+<g class="v-in" style="--d:1.30s"><text class="dg-sm-b" x="190" y="89" text-anchor="end">15-puzzle</text></g>
+<rect class="dg-bar-a v-grow" style="--d:1.40s" x="200" y="66" width="677.04" height="34"/>
+<g class="v-in" style="--d:2.20s"><text class="dg-xs" x="867.04" y="89" text-anchor="end" style="fill:#fff">≈ 1.05 × 10¹³ states</text></g>
+<g class="v-in" style="--d:2.80s"><text class="dg-xs" x="960" y="150" text-anchor="end">log scale: each tick is 100 times the last</text></g>
+</svg>
+<figcaption><strong>Figure 2.2.</strong> One extra row of tiles adds almost eight powers of ten.</figcaption>
+</figure>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Exponential growth is not a metaphor. <strong>The 15-puzzle is not "harder";
+        it is a different class of problem</strong>, and it is why module 3 exists.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s7">
+  <h2>A search tree is not the state graph</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          The state graph is the problem: nodes are world configurations, edges are
+          actions. The search tree is what the algorithm builds: nodes are
+          <em>paths</em>, and the same world state can appear in many tree nodes.
+        </p>
+        <ul>
+          <li>A tree node holds a state, a parent, an action, and a path cost <var>g</var>.</li>
+          <li>The branching factor <var>b</var> counts successors per node; the depth <var>d</var> is the shallowest goal's depth.</li>
+          <li>Repeated states are why graph search keeps an <strong>explored set</strong>.</li>
+        </ul>
+        <div class="callout">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            With <var>b</var> = 10 and <var>d</var> = 12, a tree search visits
+            10¹² nodes while the reachable state graph may contain a few thousand.
+            <strong>Most of that work is repeated.</strong>
+          </p>
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.268" viewBox="12 6.2 429 131.8" role="img" aria-labelledby="f6t f6d">
+          <title id="f6t">State graph expanded into a search tree with duplicates</title>
+          <desc id="f6d">Three states A, B and C form a small graph. Expanding it into a tree produces duplicate nodes: C is reached directly from A and indirectly through B.</desc>
+          <defs>
+            <marker id="a6" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <text class="dg-txt-s" x="12" y="18">state graph</text>
+          <circle cx="70" cy="70" r="20" class="dg-box-a"/>
+          <text class="dg-txt-b" x="70" y="75" text-anchor="middle">A</text>
+          <circle cx="170" cy="48" r="20" class="dg-box-m"/>
+          <text class="dg-txt-b" x="170" y="53" text-anchor="middle">B</text>
+          <circle cx="170" cy="118" r="20" class="dg-box-m"/>
+          <text class="dg-txt-b" x="170" y="123" text-anchor="middle">C</text>
+          <path class="dg-line" d="M88 62 L150 52" marker-end="url(#a6)"/>
+          <path class="dg-line" d="M88 78 L150 112" marker-end="url(#a6)"/>
+          <path class="dg-line" d="M170 68 V 96" marker-end="url(#a6)"/>
+
+          <text class="dg-txt-s" x="250" y="18">search tree</text>
+          <circle cx="300" cy="52" r="18" class="dg-box-a"/>
+          <text class="dg-txt-b" x="300" y="57" text-anchor="middle">A</text>
+          <circle cx="368" cy="34" r="17" class="dg-box-m"/>
+          <text class="dg-txt-b" x="368" y="39" text-anchor="middle">B</text>
+          <circle cx="368" cy="88" r="17" class="dg-box-m"/>
+          <text class="dg-txt-b" x="368" y="93" text-anchor="middle">C</text>
+          <path class="dg-line" d="M318 46 L352 37" marker-end="url(#a6)"/>
+          <path class="dg-line" d="M318 58 L352 83" marker-end="url(#a6)"/>
+          <circle cx="424" cy="70" r="17" class="dg-box-a"/>
+          <text class="dg-txt-b" x="424" y="75" text-anchor="middle">C</text>
+          <path class="dg-line" d="M384 38 L414 62" marker-end="url(#a6)"/>
+          <text class="dg-txt-s" x="392" y="124" text-anchor="middle">duplicate</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 2.3.</strong> Node C is reached twice. A tree search expands it
+          twice; a graph search recognizes the repeat and discards it.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s8">
+  <h2>Two data structures do all the work</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div class="panel panel--key">
+        <h3>Frontier</h3>
+        <p>
+          The set of generated-but-not-yet-expanded nodes. <strong>Its discipline is
+          the algorithm.</strong>
+        </p>
+        <table class="tbl tbl--compact" style="margin-top:8px">
+      <caption class="visually-hidden">Frontier</caption>
+          <thead><tr><th scope="col">Frontier policy</th><th scope="col">Algorithm</th></tr></thead>
+          <tbody>
+            <tr><td>FIFO queue</td><td>Breadth-first</td></tr>
+            <tr><td>LIFO stack</td><td>Depth-first</td></tr>
+            <tr><td>Priority: g(n)</td><td>Uniform cost</td></tr>
+            <tr><td>Priority: g(n) + h(n)</td><td>A* (module 3)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>Explored set</h3>
+        <p>
+          States already expanded. Its only job is to prevent redundant work, and
+          whether it is <em>safe</em> depends on the algorithm: for uniform cost it is
+          safe, for A* it requires a consistent heuristic.
+        </p>
+        <p>
+          Storing states costs memory. Re-deriving them costs time. Every practical
+          search engine chooses one and pays for it.
+        </p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Six algorithms in this module are <strong>one algorithm with six queue
+        policies</strong>. Learning them as six separate procedures is why students
+        forget them.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s9">
+  <h2>The generic algorithm, and the one line that varies</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+<pre class="code"><span class="k">function</span> GRAPH-SEARCH(problem, frontier):
+  frontier.insert(MAKE-NODE(problem.initial))
+  explored = set()
+
+  <span class="k">while</span> frontier not empty:
+    node = frontier.remove()          <span class="c"># ← the only line</span>
+    <span class="k">if</span> problem.is-goal(node.state):  <span class="c">#    that decides</span>
+      <span class="k">return</span> node                    <span class="c">#    the algorithm</span>
+    explored.add(node.state)
+
+    <span class="k">for</span> action <span class="k">in</span> problem.actions(node.state):
+      child = CHILD-NODE(problem, node, action)
+      <span class="k">if</span> child.state <span class="k">not in</span> explored
+         <span class="k">and</span> child <span class="k">not in</span> frontier:
+        frontier.insert(child)
+
+  <span class="k">return</span> failure</pre>
+      </div>
+      <div>
+        <h3>Three details that matter more than they look</h3>
+        <ul>
+          <li>
+            <strong>The goal test happens on removal</strong>, not insertion. That
+            makes the algorithm correct for uniform cost, at the cost of possibly
+            expanding extra nodes.
+          </li>
+          <li>
+            <strong>The explored check is on states, not nodes.</strong> Two nodes can
+            share a state; only the state is duplicated work.
+          </li>
+          <li>
+            <strong>Frontier membership checks cost time.</strong> A hash set makes
+            them O(1); a list makes them O(n) and quietly destroys your complexity
+            analysis.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s10">
+  <h2>Four criteria, and they conflict</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption class="visually-hidden">Four criteria, and they conflict</caption>
+      <thead>
+        <tr><th scope="col">Criterion</th><th scope="col">Question</th><th scope="col">Why it is not enough on its own</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Completeness</strong></td><td>Does it find a solution whenever one exists?</td><td>A complete algorithm can still be useless if it takes longer than the universe allows.</td></tr>
+        <tr><td><strong>Optimality</strong></td><td>Does it find the lowest-cost solution?</td><td>Only meaningful relative to a cost function; change the cost and the ranking changes.</td></tr>
+        <tr><td><strong>Time complexity</strong></td><td>How many nodes are generated?</td><td>Counting nodes hides the per-node cost, which varies by orders of magnitude.</td></tr>
+        <tr><td><strong>Space complexity</strong></td><td>How many nodes are held at once?</td><td>Usually the binding constraint — and the one students forget.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:18px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        These are properties of an algorithm <strong>on a problem class</strong>,
+        never properties of the algorithm alone. "BFS is optimal" is incomplete
+        without "when every step costs the same."
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s11">
+  <h2>Uninformed strategies</h2>
+  <p>Breadth, cost, depth and iterative deepening, side by side.</p>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s12">
+  <h2>Breadth-first search expands in rings</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          Expand every node at depth 1, then depth 2, and so on. Because it never
+          expands a deeper node before a shallower one, the first goal it removes is
+          the shallowest — and therefore, if every step costs the same, the cheapest.
+        </p>
+        <table class="tbl tbl--compact">
+      <caption class="visually-hidden">Breadth-first search expands in rings</caption>
+          <tbody>
+            <tr><th scope="row">Complete</th><td>Yes, if <var>b</var> is finite.</td></tr>
+            <tr><th scope="row">Optimal</th><td>Yes, only when all step costs are equal.</td></tr>
+            <tr><th scope="row">Time</th><td>O(<var>b<sup>d</sup></var>) — it expands the whole level.</td></tr>
+            <tr><th scope="row">Space</th><td>O(<var>b<sup>d</sup></var>) — every node of the last level is held.</td></tr>
+          </tbody>
+        </table>
+        <div class="panel panel--accent" style="margin-top:14px">
+          <h3>The cost is not time, it is memory</h3>
+          <p>
+            BFS cannot start the goal level until the previous level is complete, so
+            the frontier is nearly the entire level. That is why it dies at
+            <var>d</var> ≈ 12 in practice.
+          </p>
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.572" class="dg-seq" viewBox="37 23 346 258.9" role="img" aria-labelledby="f10t f10d">
+          <title id="f10t">Breadth-first expansion order on the shared seven-node tree</title>
+          <desc id="f10d">A three-level tree with S at the root, A and B on the first level, and C, D under A and E, F under B. A line beneath the tree gives the order breadth-first search expands them, which runs across each level from left to right.</desc>
+          <defs>
+            <marker id="abfs" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#c9ced5"/>
+            </marker>
+          </defs>
+          <path class="dg-line-q" d="M195 54 L125 110" marker-end="url(#abfs)"/>
+          <path class="dg-line-q" d="M225 54 L295 110" marker-end="url(#abfs)"/>
+          <path class="dg-line-q" d="M99 138 L67 186" marker-end="url(#abfs)"/>
+          <path class="dg-line-q" d="M121 138 L153 186" marker-end="url(#abfs)"/>
+          <path class="dg-line-q" d="M299 138 L267 186" marker-end="url(#abfs)"/>
+          <path class="dg-line-q" d="M321 138 L353 186" marker-end="url(#abfs)"/>
+
+          <g class="v-in" style="--d:0.00s">
+            <circle class="tn-halo" cx="210" cy="42" r="19"/>
+            <circle cx="210" cy="42" r="19" class="dg-box-a"/>
+            <text class="dg-txt-b" x="210" y="47" text-anchor="middle">S</text>
+          </g>
+          <g class="v-in" style="--d:0.26s">
+            <circle class="tn-halo" cx="110" cy="122" r="19"/>
+            <circle cx="110" cy="122" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="110" y="127" text-anchor="middle">A</text>
+          </g>
+          <g class="v-in" style="--d:0.52s">
+            <circle class="tn-halo" cx="310" cy="122" r="19"/>
+            <circle cx="310" cy="122" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="310" y="127" text-anchor="middle">B</text>
+          </g>
+          <g class="v-in" style="--d:0.78s">
+            <circle class="tn-halo" cx="56" cy="202" r="19"/>
+            <circle cx="56" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="56" y="207" text-anchor="middle">C</text>
+          </g>
+          <g class="v-in" style="--d:1.04s">
+            <circle class="tn-halo" cx="164" cy="202" r="19"/>
+            <circle cx="164" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="164" y="207" text-anchor="middle">D</text>
+          </g>
+          <g class="v-in" style="--d:1.30s">
+            <circle class="tn-halo" cx="256" cy="202" r="19"/>
+            <circle cx="256" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="256" y="207" text-anchor="middle">E</text>
+          </g>
+          <g class="v-in" style="--d:1.56s">
+            <circle class="tn-halo" cx="364" cy="202" r="19"/>
+            <circle cx="364" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="364" y="207" text-anchor="middle">F</text>
+          </g>
+
+          <text class="dg-txt-s" x="210" y="256" text-anchor="middle">level 0 → level 1 → level 2</text>
+          <text class="dg-txt-s" x="210" y="280" text-anchor="middle">order: <tspan class="dg-lbl">S · A · B · C · D · E · F</tspan></text>
+        </svg>
+        <figcaption>
+          <strong>Figure 2.4.</strong> One tree, used for every uninformed search in
+          this module. Breadth-first works down the levels, one at a time.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s13">
+  <h2>Uniform-cost search: the cheapest-first frontier</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          When step costs differ, depth no longer tracks cost. Uniform-cost search
+          orders the frontier by <var>g</var>(<var>n</var>), the cost of the path to
+          that node, and expands the cheapest.
+        </p>
+        <p>
+          It is Dijkstra's algorithm. It is complete when every step cost exceeds some
+          positive <var>ε</var> — otherwise a zero-cost cycle can be traversed forever.
+        </p>
+        <div class="eq">
+          g(n) = g(parent) + c(parent, n)
+        </div>
+        <p style="margin-top:14px">
+          Because a node is expanded only when its path is the cheapest known, the
+          explored set is <strong>safe</strong> here: no cheaper route to that state
+          can appear later.
+        </p>
+      </div>
+      <div>
+        <h3>Worked trace</h3>
+        <table class="tbl tbl--compact">
+          <caption>Start S. Goal G. Expand order shown; ties broken alphabetically.</caption>
+          <thead><tr><th scope="col">Step</th><th scope="col">Expanded</th><th scope="col">Frontier after</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>S</td><td>A(2), B(5)</td></tr>
+            <tr><td>2</td><td>A (cost 2)</td><td>B(5), C(4)</td></tr>
+            <tr><td>3</td><td>C (cost 4)</td><td>B(5), G(7)</td></tr>
+            <tr><td>4</td><td>B (cost 5)</td><td>G(7), D(9)</td></tr>
+            <tr><td>5</td><td>G (cost 7)</td><td>goal removed → solution cost 7</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:12px; font-size:18px">
+          Note step 4: <strong>D is generated with cost 9 and never expanded.</strong>
+          UCS does not prune it deliberately — it simply reaches the goal first,
+          because the goal is cheaper than D.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 12 ─────────────────────────── uniform cost on the shared tree -->
+<section class="slide" id="s11b">
+  <h2>Cost, not depth: the same tree under uniform cost</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          Uniform cost expands the frontier node with the smallest path cost
+          <var>g</var>, so depth no longer predicts the order.
+        </p>
+        <table class="tbl tbl--compact">
+          <caption>Accumulated cost from the start node. Ties broken alphabetically.</caption>
+          <thead><tr><th scope="col">Node</th><th scope="col" class="num">Depth</th><th scope="col" class="num">g</th></tr></thead>
+          <tbody>
+            <tr><td>S</td><td class="num">0</td><td class="num">0</td></tr>
+            <tr><td>A</td><td class="num">1</td><td class="num">1</td></tr>
+            <tr><td>B</td><td class="num">1</td><td class="num">3</td></tr>
+            <tr><td>D</td><td class="num">2</td><td class="num">2</td></tr>
+            <tr><td>E</td><td class="num">2</td><td class="num">4</td></tr>
+            <tr><td>F</td><td class="num">2</td><td class="num">4</td></tr>
+            <tr><td>C</td><td class="num">2</td><td class="num">5</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:14px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            <strong>D is expanded before B</strong>, though B is shallower. That is the
+            whole difference from breadth-first.
+          </p>
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.572; max-height:400px" class="dg-seq" viewBox="37 23 346 258.9" role="img" aria-labelledby="fucst fucsd">
+          <title id="fucst">Uniform-cost expansion order on the shared tree with edge costs</title>
+          <desc id="fucsd">The same tree with a cost on every edge: S to A costs 1, S to B costs 3, A to C costs 4, A to D costs 1, B to E and B to F cost 1 each. The order line gives each node with its accumulated cost, so D at cost 2 is expanded before B at cost 3 even though B is shallower.</desc>
+          <defs>
+            <marker id="aucs" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#c9ced5"/>
+            </marker>
+          </defs>
+          <path class="dg-line-q" d="M195 54 L125 110" marker-end="url(#aucs)"/>
+          <path class="dg-line-q" d="M225 54 L295 110" marker-end="url(#aucs)"/>
+          <path class="dg-line-q" d="M99 138 L67 186" marker-end="url(#aucs)"/>
+          <path class="dg-line-q" d="M121 138 L153 186" marker-end="url(#aucs)"/>
+          <path class="dg-line-q" d="M299 138 L267 186" marker-end="url(#aucs)"/>
+          <path class="dg-line-q" d="M321 138 L353 186" marker-end="url(#aucs)"/>
+
+          <text class="dg-lbl" x="170" y="95" text-anchor="middle">1</text>
+          <text class="dg-lbl" x="250" y="95" text-anchor="middle">3</text>
+          <text class="dg-lbl" x="94" y="169" text-anchor="middle">4</text>
+          <text class="dg-lbl" x="126" y="169" text-anchor="middle">1</text>
+          <text class="dg-lbl" x="294" y="169" text-anchor="middle">1</text>
+          <text class="dg-lbl" x="326" y="169" text-anchor="middle">1</text>
+
+          <g class="v-in" style="--d:0.00s">
+            <circle class="tn-halo" cx="210" cy="42" r="19"/>
+            <circle cx="210" cy="42" r="19" class="dg-box-a"/>
+            <text class="dg-txt-b" x="210" y="47" text-anchor="middle">S</text>
+          </g>
+          <g class="v-in" style="--d:0.26s">
+            <circle class="tn-halo" cx="110" cy="122" r="19"/>
+            <circle cx="110" cy="122" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="110" y="127" text-anchor="middle">A</text>
+          </g>
+          <g class="v-in" style="--d:0.52s">
+            <circle class="tn-halo" cx="164" cy="202" r="19"/>
+            <circle cx="164" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="164" y="207" text-anchor="middle">D</text>
+          </g>
+          <g class="v-in" style="--d:0.78s">
+            <circle class="tn-halo" cx="310" cy="122" r="19"/>
+            <circle cx="310" cy="122" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="310" y="127" text-anchor="middle">B</text>
+          </g>
+          <g class="v-in" style="--d:1.04s">
+            <circle class="tn-halo" cx="256" cy="202" r="19"/>
+            <circle cx="256" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="256" y="207" text-anchor="middle">E</text>
+          </g>
+          <g class="v-in" style="--d:1.30s">
+            <circle class="tn-halo" cx="364" cy="202" r="19"/>
+            <circle cx="364" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="364" y="207" text-anchor="middle">F</text>
+          </g>
+          <g class="v-in" style="--d:1.56s">
+            <circle class="tn-halo" cx="56" cy="202" r="19"/>
+            <circle cx="56" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="56" y="207" text-anchor="middle">C</text>
+          </g>
+
+          <text class="dg-txt-s" x="210" y="256" text-anchor="middle">cheapest first, whatever the depth</text>
+          <text class="dg-txt-s" x="210" y="280" text-anchor="middle">order: <tspan class="dg-lbl">S(0) · A(1) · D(2) · B(3) · E(4) · F(4) · C(5)</tspan></text>
+        </svg>
+        <figcaption>
+          <strong>Figure 2.5.</strong> Figure 2.4's tree with edge costs, expanded
+          cheapest first.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s14">
+  <h2>Depth-first search: the whole answer, one path at a time</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          DFS expands the most recently generated node. It commits to a path until it
+          dead-ends, then backs up. Its memory cost is small — it holds one path plus
+          the siblings along it.
+        </p>
+        <table class="tbl tbl--compact">
+      <caption class="visually-hidden">Depth-first search: the whole answer, one path at a time</caption>
+          <tbody>
+            <tr><th scope="row">Complete</th><td>No, in infinite or cyclic spaces. Yes in finite spaces with a cycle check.</td></tr>
+            <tr><th scope="row">Optimal</th><td>No. It returns the first solution it stumbles into.</td></tr>
+            <tr><th scope="row">Time</th><td>O(<var>b<sup>m</sup></var>) where <var>m</var> is the maximum depth.</td></tr>
+            <tr><th scope="row">Space</th><td>O(<var>bm</var>) — linear, and that is the entire appeal.</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:14px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            DFS is the only uninformed method whose memory grows linearly with depth.
+            A long dead-end branch absorbs all its time, and on an infinite tree there
+            is always another node to descend into.
+          </p>
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.595" class="dg-seq" viewBox="37 23 346 258.9" role="img" aria-labelledby="fd1t fd1d">
+          <title id="fd1t">Depth-first expansion order on the shared seven-node tree</title>
+          <desc id="fd1d">The same tree as the breadth-first figure. The order line shows depth-first search expanding S, then A, then C at the bottom of the left branch, before returning to D, B, E and F.</desc>
+          <defs>
+            <marker id="adfs" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#c9ced5"/>
+            </marker>
+          </defs>
+          <path class="dg-line-q" d="M195 54 L125 110" marker-end="url(#adfs)"/>
+          <path class="dg-line-q" d="M225 54 L295 110" marker-end="url(#adfs)"/>
+          <path class="dg-line-q" d="M99 138 L67 186" marker-end="url(#adfs)"/>
+          <path class="dg-line-q" d="M121 138 L153 186" marker-end="url(#adfs)"/>
+          <path class="dg-line-q" d="M299 138 L267 186" marker-end="url(#adfs)"/>
+          <path class="dg-line-q" d="M321 138 L353 186" marker-end="url(#adfs)"/>
+
+          <g class="v-in" style="--d:0.00s">
+            <circle class="tn-halo" cx="210" cy="42" r="19"/>
+            <circle cx="210" cy="42" r="19" class="dg-box-a"/>
+            <text class="dg-txt-b" x="210" y="47" text-anchor="middle">S</text>
+          </g>
+          <g class="v-in" style="--d:0.26s">
+            <circle class="tn-halo" cx="110" cy="122" r="19"/>
+            <circle cx="110" cy="122" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="110" y="127" text-anchor="middle">A</text>
+          </g>
+          <g class="v-in" style="--d:0.52s">
+            <circle class="tn-halo" cx="56" cy="202" r="19"/>
+            <circle cx="56" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="56" y="207" text-anchor="middle">C</text>
+          </g>
+          <g class="v-in" style="--d:0.78s">
+            <circle class="tn-halo" cx="164" cy="202" r="19"/>
+            <circle cx="164" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="164" y="207" text-anchor="middle">D</text>
+          </g>
+          <g class="v-in" style="--d:1.04s">
+            <circle class="tn-halo" cx="310" cy="122" r="19"/>
+            <circle cx="310" cy="122" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="310" y="127" text-anchor="middle">B</text>
+          </g>
+          <g class="v-in" style="--d:1.30s">
+            <circle class="tn-halo" cx="256" cy="202" r="19"/>
+            <circle cx="256" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="256" y="207" text-anchor="middle">E</text>
+          </g>
+          <g class="v-in" style="--d:1.56s">
+            <circle class="tn-halo" cx="364" cy="202" r="19"/>
+            <circle cx="364" cy="202" r="19" class="dg-box-m"/>
+            <text class="dg-txt-b" x="364" y="207" text-anchor="middle">F</text>
+          </g>
+
+          <text class="dg-txt-s" x="210" y="256" text-anchor="middle">the third expansion is already at the bottom</text>
+          <text class="dg-txt-s" x="210" y="280" text-anchor="middle">order: <tspan class="dg-lbl">S · A · C · D · B · E · F</tspan></text>
+        </svg>
+        <figcaption>
+          <strong>Figure 2.6.</strong> Figure 2.4's tree, expanded depth-first. The
+          third expansion already reaches the bottom of a branch.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s15">
+  <h2>Iterative deepening: DFS's memory, BFS's answers</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Run depth-limited search with limit 0, then 1, then 2, and so on until a
+          goal is found. It sounds wasteful — it re-expands the top levels many times.
+        </p>
+        <div class="eq">
+          N(IDS) = (d+1)·1 + d·b + (d−1)·b² + … + b<sup>d</sup> ≈ b<sup>d</sup>·b/(b−1)
+        </div>
+        <p style="margin-top:14px">
+          For <var>b</var> = 10 the overhead factor is about 1.11. <strong>An 11%
+          increase in time buys a memory reduction from O(<var>b<sup>d</sup></var>) to
+          O(<var>bd</var>).</strong> That is the best trade in classical AI.
+        </p>
+        <p>
+          IDS is complete, optimal for uniform step cost, O(<var>b<sup>d</sup></var>)
+          time, and O(<var>bd</var>) space. It is the default uninformed choice.
+        </p>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.333" viewBox="18 8.7 414.1 265.6" role="img" aria-labelledby="f13t f13d">
+          <title id="f13t">Re-expansion cost of iterative deepening</title>
+          <desc id="f13d">Four bars show the number of nodes generated at each depth limit. The shallow levels are re-expanded repeatedly, but their total is a small fraction of the final level's count.</desc>
+          <text class="dg-txt-s" x="18" y="20">nodes generated per iteration</text>
+          <g class="dg-bars" style="--base:260px">
+            <rect x="42"  y="250" width="46" height="10"  class="dg-box-m seq-bar" style="--d:0.06s"/>
+            <rect x="106" y="230" width="46" height="30"  class="dg-box-t seq-bar" style="--d:0.20s"/>
+            <rect x="170" y="180" width="46" height="80"  class="dg-box-t seq-bar" style="--d:0.34s"/>
+            <rect x="234" y="100" width="46" height="160" class="dg-box-a seq-bar" style="--d:0.48s"/>
+            <rect x="298" y="40"  width="46" height="220" class="dg-box-a seq-bar" style="--d:0.62s"/>
+          </g>
+          <text class="dg-txt-s" x="65"  y="272" text-anchor="middle">d=0</text>
+          <text class="dg-txt-s" x="129" y="272" text-anchor="middle">d=1</text>
+          <text class="dg-txt-s" x="193" y="272" text-anchor="middle">d=2</text>
+          <text class="dg-txt-s" x="257" y="272" text-anchor="middle">d=3</text>
+          <text class="dg-txt-s" x="321" y="272" text-anchor="middle">d=4</text>
+          <text class="dg-txt-s" x="362" y="130">the last level</text>
+          <text class="dg-txt-s" x="362" y="148">dominates;</text>
+          <text class="dg-txt-s" x="362" y="166">re-expansion</text>
+          <text class="dg-txt-s" x="362" y="184">is cheap</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 2.7.</strong> Geometric growth means the deepest level
+          outweighs everything above it. Re-expanding the top of the tree is
+          nearly free.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s16">
+  <h2>The comparison, with the assumptions attached</h2>
+  <div class="slide-main">
+    <table class="tbl tbl--compact">
+      <caption><var>b</var> = branching factor, <var>d</var> = depth of shallowest goal, <var>m</var> = maximum depth, <var>ℓ</var> = depth limit.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Algorithm</th>
+          <th scope="col">Frontier</th>
+          <th scope="col">Complete?</th>
+          <th scope="col">Optimal?</th>
+          <th scope="col">Time</th>
+          <th scope="col">Space</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Breadth-first</td><td>FIFO queue</td><td>Yes (finite <var>b</var>)</td><td>Yes (equal costs)</td><td>O(<var>b<sup>d</sup></var>)</td><td>O(<var>b<sup>d</sup></var>)</td></tr>
+        <tr><td>Uniform cost</td><td>Priority on <var>g</var></td><td>Yes (<var>c</var> ≥ <var>ε</var> &gt; 0)</td><td>Yes</td><td>O(<var>b</var><sup>1+⌊C*/ε⌋</sup>)</td><td>Same</td></tr>
+        <tr><td>Depth-first</td><td>LIFO stack</td><td>No (infinite depth)</td><td>No</td><td>O(<var>b<sup>m</sup></var>)</td><td>O(<var>bm</var>)</td></tr>
+        <tr><td>Depth-limited</td><td>LIFO stack</td><td>No (<var>ℓ</var> &lt; <var>d</var>)</td><td>No</td><td>O(<var>b<sup>ℓ</sup></var>)</td><td>O(<var>bℓ</var>)</td></tr>
+        <tr><td>Iterative deepening</td><td>LIFO stack</td><td>Yes</td><td>Yes (equal costs)</td><td>O(<var>b<sup>d</sup></var>)</td><td>O(<var>bd</var>)</td></tr>
+        <tr><td>Bidirectional</td><td>Two frontiers</td><td>Yes</td><td>Yes (equal costs)</td><td>O(<var>b</var><sup><var>d</var>/2</sup>)</td><td>O(<var>b</var><sup><var>d</var>/2</sup>)</td></tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:14px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        <strong>Read the "Complete?" column as a list of assumptions, not a verdict.</strong>
+        Every "yes" is conditional, and the condition is where midterm questions live.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s17">
+  <h2>Why memory, not time, ends the argument</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <table class="tbl tbl--compact">
+          <caption><var>b</var> = 10, 10,000 nodes generated per second, 1 KB per node.</caption>
+          <thead><tr><th scope="col">Depth</th><th scope="col" class="num">Nodes</th><th scope="col">Time</th><th scope="col">Memory</th></tr></thead>
+          <tbody>
+            <tr><td>2</td><td class="num">110</td><td>11 ms</td><td>110 KB</td></tr>
+            <tr><td>4</td><td class="num">11,110</td><td>1.1 s</td><td>11 MB</td></tr>
+            <tr><td>6</td><td class="num">1.1 × 10⁶</td><td>1.9 min</td><td>1.1 GB</td></tr>
+            <tr><td>8</td><td class="num">1.1 × 10⁸</td><td>3.1 h</td><td>111 GB</td></tr>
+            <tr><td>10</td><td class="num">1.1 × 10¹⁰</td><td>13 days</td><td>11 TB</td></tr>
+            <tr><td>12</td><td class="num">1.1 × 10¹²</td><td>3.5 years</td><td>1.1 PB</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Two different walls</h3>
+          <p>
+            Time grows by a factor of 10 per level; memory grows by the same factor.
+            But memory runs out first in practice, because the machine has less of it
+            and because the frontier must be <em>randomly accessible</em>, which rules
+            out streaming it to disk.
+          </p>
+        </div>
+        <p style="margin-top:16px">
+          This table is the honest answer to "why not just search harder?" At
+          <var>d</var> = 12, breadth-first search needs more memory than exists in a
+          small data center — for a problem with ten actions per state.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 112" role="img" aria-labelledby="f2ct f2cd">
+<title id="f2ct">Breadth-first memory against depth, with a laptop and a server marked</title>
+<desc id="f2cd">Memory needed by breadth-first search with branching factor 10 and 1 KB per node, on a logarithmic scale, for depths 2 to 12: 110 KB, 11 MB, 1.1 GB, 111 GB, 11 TB and 1.1 PB. A dashed line marks a 16 GB laptop, passed between depth 6 and depth 8, and another marks a 1 TB server, passed between depth 8 and depth 10.</desc>
+<path class="dg-line-q" d="M140 96 H880 M140 96 V8"/>
+<text class="dg-xs" x="130" y="94" text-anchor="end">100 KB</text>
+<text class="dg-xs" x="130" y="14" text-anchor="end">1 PB</text>
+<g class="v-in" style="--d:0.10s"><text class="dg-xs" x="140" y="110" text-anchor="middle">d = 2</text></g>
+<g class="v-in" style="--d:0.10s"><text class="dg-xs" x="280" y="110" text-anchor="middle">d = 4</text></g>
+<g class="v-in" style="--d:0.10s"><text class="dg-xs" x="420" y="110" text-anchor="middle">d = 6</text></g>
+<g class="v-in" style="--d:0.10s"><text class="dg-xs" x="560" y="110" text-anchor="middle">d = 8</text></g>
+<g class="v-in" style="--d:0.10s"><text class="dg-xs" x="700" y="110" text-anchor="middle">d = 10</text></g>
+<g class="v-in" style="--d:0.10s"><text class="dg-xs" x="840" y="110" text-anchor="middle">d = 12</text></g>
+<g class="v-in" style="--d:0.30s"><path class="dg-dash" d="M140 52.3 H880"/><text class="dg-xs" x="150" y="66.2854">16 GB laptop</text></g>
+<g class="v-in" style="--d:0.30s"><path class="dg-dash" d="M140 37.2 H880"/><text class="dg-xs" x="150" y="33.2">1 TB server</text></g>
+<path class="dg-plot-a v-draw" pathLength="1" style="--d:0.60s" d="M140 95.7 L280 78.9 L420 62.1 L560 45.2 L700 28.5 L840 11.7"/>
+<g class="v-in" style="--d:0.60s"><circle class="dg-box-a" cx="140" cy="95.6523" r="5"/></g>
+<g class="v-in" style="--d:0.95s"><circle class="dg-box-a" cx="280" cy="78.8523" r="5"/></g>
+<g class="v-in" style="--d:1.30s"><circle class="dg-box-a" cx="420" cy="62.0523" r="5"/></g>
+<g class="v-in" style="--d:1.65s"><circle class="dg-box-a" cx="560" cy="45.2193" r="5"/></g>
+<g class="v-in" style="--d:2.00s"><circle class="dg-box-a" cx="700" cy="28.4523" r="5"/></g>
+<g class="v-in" style="--d:2.35s"><circle class="dg-box-a" cx="840" cy="11.6523" r="5"/></g>
+</svg>
+<figcaption><strong>Figure 2.8.</strong> A laptop runs out by depth 8, a server by depth 10.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s18">
+  <h2>Beyond the basics</h2>
+  <p>Searching from both ends, and when the explored set is safe.</p>
+  
+</section>
+
+<!-- 16 -->
+<section class="slide" id="s19">
+  <h2>Bidirectional search halves the exponent</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Search forward from the start and backward from the goal, and stop when the
+          two frontiers meet. If both searches go to depth <var>d</var>/2, the cost is
+          O(<var>b</var><sup><var>d</var>/2</sup>) instead of O(<var>b<sup>d</sup></var>).
+        </p>
+        <p>
+          For <var>b</var> = 10 and <var>d</var> = 12, that is 10⁶ instead of 10¹² —
+          a factor of a million.
+        </p>
+        <div class="panel panel--key" style="margin-top:14px">
+          <h3>The catch is the backward step</h3>
+          <p>
+            You must be able to generate predecessors. For "drive to Bucharest" that
+            is easy. For "win this chess position" it is not defined: many positions
+            can precede a given one.
+          </p>
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.516" viewBox="38 49.4 364 138.6" role="img" aria-labelledby="f16t f16d">
+          <title id="f16t">Two frontiers meeting in the middle</title>
+          <desc id="f16d">A start node on the left and a goal node on the right, each with a shaded region of explored states. The two regions expand toward each other until they overlap in the middle.</desc>
+          <defs>
+            <marker id="a16" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <circle cx="60" cy="130" r="22" class="dg-box-a"/>
+          <text class="dg-txt-b" x="60" y="135" text-anchor="middle">S</text>
+          <circle cx="380" cy="130" r="22" class="dg-box-t"/>
+          <text class="dg-txt-b" x="380" y="135" text-anchor="middle">G</text>
+
+          <path class="dg-dash" d="M84 130 H 352" marker-end="url(#a16)"/>
+          <circle cx="160" cy="130" r="34" fill="#fbf5f6" stroke="#9e1b32" stroke-width="1.6"/>
+          <circle cx="280" cy="130" r="34" fill="#f2f7f8" stroke="#0e5a6b" stroke-width="1.6"/>
+          <text class="dg-txt-s" x="160" y="186" text-anchor="middle">depth d/2</text>
+          <text class="dg-txt-s" x="280" y="186" text-anchor="middle">depth d/2</text>
+          <circle cx="220" cy="130" r="7" class="dg-card"/>
+          <text class="dg-txt-s" x="220" y="112" text-anchor="middle">meet</text>
+          <text class="dg-txt-s" x="220" y="60" text-anchor="middle">O(b<tspan baseline-shift="super" font-size=".7em">d/2</tspan>) work on each side</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 2.9.</strong> Two searches of half the depth. The saving is
+          exponential, and it is the reason bidirectional methods dominate route
+          planning on road networks.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 17 -->
+<section class="slide" id="s20">
+  <h2>Where the explored set is safe — and where it is not</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div class="panel panel--key">
+        <h3>Safe: uniform cost</h3>
+        <p>
+          If a node is expanded with cost <var>g</var>, every other frontier node has
+          cost ≥ <var>g</var>. Any alternative path to that state would have to pass
+          through the frontier, so it would cost at least as much. Discarding the state
+          cannot lose a cheaper path.
+        </p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Not automatically safe: A*</h3>
+        <p>
+          With an inconsistent heuristic, A* can reach a state by an expensive path,
+          expand it, and only later find a cheaper route. If the explored set blocked
+          re-expansion, the cheaper route would be lost and the answer would be
+          wrong.
+        </p>
+        <p>
+          Module 3 fixes this with <strong>consistency</strong>, which is exactly the
+          condition that restores the argument.
+        </p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        <strong>An optimization is only correct relative to a proof.</strong> The
+        explored set is an optimization. Here is its proof, and here is the assumption
+        it needs.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 18 -->
+<section class="slide" id="s21">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>The frontier policy is the algorithm.</strong><p>Queue, stack, or priority queue — six algorithms, one loop.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Tree nodes are paths; states are configurations.</strong><p>Confusing them is the origin of both duplicate work and incorrect explored sets.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Optimality always carries a condition.</strong><p>"BFS is optimal" means "when step costs are equal."</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>Memory is the binding constraint.</strong><p>1.1 PB at depth 12 with ten actions per state.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Iterative deepening is the sensible default.</strong><p>BFS-quality answers at DFS-quality memory, for about 11% extra time.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 19 -->
+<section class="slide" id="s22">
+  <h2>This week's work</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA §3.1–3.4.</li>
+          <li>Work the Romania example on paper before class.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Reflection 2: formulate a task you know well as a search problem.</li>
+          <li>Implement BFS and DFS on the same graph; report where they differ.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — reflection 2.</li>
+          <li>Friday class, 8:30–11:10 a.m. CT, MIC: search traces on the Romania map; online students watch the recorded lecture.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next:</strong> what if the agent already knows roughly which
+        direction the goal lies? Module 3 turns a guess into a proof.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 21 ─────────────────────────────── Python learning resources -->
+<section class="slide" id="s23">
+  <h2>Python help for Lab 1</h2>
+  <div class="slide-main">
+    <p style="margin-bottom:14px">Lab 1 is a search library. These are the Python pieces it is built from.</p>
+    <ul class="resources">
+      <li><a href="https://docs.python.org/3/tutorial/datastructures.html">Data structures (tutorial, chapter 5)</a><span class="src">docs.python.org</span><p>Lists, dictionaries and sets: the explored set and the parent map that rebuilds the path.</p></li>
+      <li><a href="https://docs.python.org/3/library/collections.html">collections: deque</a><span class="src">docs.python.org</span><p>A first-in, first-out queue for breadth-first search.</p></li>
+      <li><a href="https://docs.python.org/3/library/heapq.html">heapq: priority queues</a><span class="src">docs.python.org</span><p>The frontier for uniform-cost search and A*. Push (priority, counter, state) so ties never compare states.</p></li>
+      <li><a href="https://docs.python.org/3/tutorial/classes.html">Classes (tutorial, chapter 9)</a><span class="src">docs.python.org</span><p>A small Node class keeps state, parent, action and path cost together.</p></li>
+      <li><a href="https://docs.python.org/3/howto/argparse.html">Argparse tutorial</a><span class="src">docs.python.org</span><p>How a script reads options such as --grid and --algorithm from the command line.</p></li>
+      <li><a href="https://docs.python.org/3/library/pathlib.html">pathlib</a><span class="src">docs.python.org</span><p>Open grid files by path without string fiddling.</p></li>
+    </ul>
+    <div class="callout" style="margin-top:20px">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>Stuck on Python rather than on search? Bring the error message to office hours, Tuesday and Wednesday 12:00–3:00 p.m., MIC room D159.</p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

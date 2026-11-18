@@ -1,0 +1,21 @@
+# CS 5700 Lab 1 grid — 15 rows, 27 columns
+# legend: '#' wall, '.' cost 1, ',' cost 2, ';' cost 3, 'S' start, 'G' goal
+# movement: 8 directions; entering a cell costs that cell's cost,
+#           multiplied by 1.5 for a diagonal move
+# corner-cutting between two diagonal walls is allowed
+# the start cell is free; the goal cell is counted when you enter it
+###########################
+#S#..,..#.................#
+#..##.#.#.#######,,######.#
+#.....#.#...#.....,.#.....#
+#..###..#.#.#.###..;..###.#
+#.....#.;...#...#...#.#G..#
+#####.##.##.###.#...#.#...#
+#...#.#...#....;.....,#.#.#
+#.#;;.#.#.###;##..#####...#
+#.....#,#....;..#...#.....#
+#.#.#.#,###.#.,.###.#.##..#
+#.#.,....,#.#.....#.#.;.#;#
+#.#.#...#.#.#.###.#.##....#
+#,..#.....#,,........,....#
+###########################

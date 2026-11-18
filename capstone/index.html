@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capstone project — CS 5700</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="doc">
+
+  <header class="doc-masthead">
+    <p class="inst">
+      <span>University of Central Missouri</span>
+      <span>CS 5700 Artificial Intelligence</span>
+      <span>Spring 2027</span>
+    </p>
+    <h1>Capstone project</h1>
+    <p class="tagline">
+      One question, of your choosing, carried from a claim to evidence that could refute
+      it. Twenty-eight percent of the course, and the only work here where you decide what
+      the problem is.
+    </p>
+    <p class="instructor">
+      <strong>Dr. Gorkem Kar</strong>
+      <span>28% of the course grade · four milestones</span>
+      <span>Individual or pair · pairs submit contribution statements</span>
+      <span>Proposal Sun, Feb 21 · Checkpoint Sun, Mar 28 · Report Sun, May 2</span>
+    </p>
+  </header>
+
+  <main id="main">
+
+    <section>
+      <h2>What this project is</h2>
+      <p>
+        The capstone is an AI system, an analysis of one, or a rigorous replication —
+        something where a defensible answer is possible in eight weeks and where the
+        interesting part is not the accuracy number. Every project must contain four
+        things, and a project missing any of them is not finished regardless of how well
+        the code runs:
+      </p>
+      <ol>
+        <li><strong>A claim that could be false.</strong> "Build a chatbot for the
+          library" is a task. "A retrieval-augmented assistant over library policy
+          documents reduces wrong-answer rate below the plain model's, at the cost of
+          more refusals" is a claim — it can fail, and the failure would teach something.</li>
+        <li><strong>An evaluation that could refute it.</strong> A baseline, a metric, a
+          held-out set, and a stated condition under which you would conclude you were
+          wrong.</li>
+        <li><strong>A failure case, examined.</strong> One concrete input where the system
+          fails, with an explanation of why and what it implies about the design.</li>
+        <li><strong>A model card.</strong> The system's intended use, limits, evaluation
+          data, and known failure modes, written for someone deciding whether to trust it.</li>
+      </ol>
+      <p>
+        What it is not: a literature review with a demo attached, a wrapper around an API
+        with no measurement, or an attempt to train something large enough to need hardware
+        you do not have. All three have been submitted before, and all three score badly.
+      </p>
+    </section>
+
+    <section>
+      <h2>Three shapes that work</h2>
+      <table class="tbl">
+        <caption>Pick one. Each is graded the same way: claim, evidence, failure, card.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Shape</th>
+            <th scope="col">What you do</th>
+            <th scope="col">What "finished" looks like</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Build and evaluate</strong></td>
+            <td>Implement a system, then design an evaluation that could falsify your own
+              claim about it. Example: a question-answering system over UCM course
+              catalogs, measuring whether retrieval or fine-tuning drives the improvement.</td>
+            <td>An ablation that isolates the thing you claimed mattered, against a
+              computed baseline, with the cost of the improvement stated.</td>
+          </tr>
+          <tr>
+            <td><strong>Analyze an existing system</strong></td>
+            <td>Take a deployed model or dataset and characterise where it breaks.
+              Example: how a public recommendation model's error rate varies across
+              demographic subgroups and across time.</td>
+            <td>A measurement study with a pre-registered slice, not a hunt for the worst
+              example you can find after the fact.</td>
+          </tr>
+          <tr>
+            <td><strong>Replicate and stress-test</strong></td>
+            <td>Reproduce a published result, then vary one assumption.
+              Example: replicate a policy-gradient result and test its sensitivity to the
+              seed budget the paper reported.</td>
+            <td>A reproduction table next to the paper's own numbers, then a
+              one-variable sensitivity study that explains any gap.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>The week-5 test</h2>
+      <p>
+        Before the proposal is due, write your project as one sentence of this form and see
+        whether it survives being read aloud:
+      </p>
+      <div class="note note--info">
+        <p>
+          <em>I claim that</em> [intervention] <em>improves</em> [metric] <em>over</em>
+          [baseline] <em>on</em> [data], <em>and I will know I am wrong if</em>
+          [specific condition].
+        </p>
+      </div>
+      <p>
+        If you cannot fill all four brackets, the scope is wrong — usually too large.
+        Bring the sentence to office hours in week 5; that conversation is free and it is much
+        cheaper than a failed checkpoint. Every term, the projects that struggle are the
+        ones that tried to train a large model from scratch on a laptop. A small, carefully
+        evaluated system beats an ambitious one you cannot finish.
+      </p>
+    </section>
+
+    <section>
+      <h2>Milestones</h2>
+      <table class="tbl">
+        <caption>Four deliverables, 28% of the course. Submit to the course system by 11:59 p.m. Central.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Milestone</th>
+            <th scope="col">Due</th>
+            <th scope="col" class="num">Weight</th>
+            <th scope="col">What you submit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Proposal</strong></td>
+            <td class="date">Sun, Feb 21</td>
+            <td class="num">3%</td>
+            <td>Two pages using <a href="proposal.html">the proposal template</a>: claim,
+              method, evaluation plan, risks, timeline.</td>
+          </tr>
+          <tr>
+            <td><strong>Checkpoint</strong></td>
+            <td class="date">Sun, Mar 28</td>
+            <td class="num">5%</td>
+            <td>Working pipeline, preliminary results on real data, current risks, and what
+              changed since the proposal — using <a href="checkpoint.html">the checkpoint
+              template</a>. Plus a ten-minute meeting.</td>
+          </tr>
+          <tr>
+            <td><strong>Final report</strong></td>
+            <td class="date">Sun, May 2</td>
+            <td class="num">12%</td>
+            <td>8–12 pages in two-column conference format, with the model card as an
+              appendix and the failure case as a section.</td>
+          </tr>
+          <tr>
+            <td><strong>Presentation and demo</strong></td>
+            <td class="date">May 3–7</td>
+            <td class="num">8%</td>
+            <td>Twelve minutes plus questions, with a live demo or a recorded one.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>The proposal <span class="muted">(two pages, 3%)</span></h2>
+      <p>
+        Use <a href="proposal.html">the template</a>. It asks for eight things, and the
+        evaluation plan carries a third of the marks on its own. Write it before you write
+        code: a proposal that names its baseline and its falsification condition is the
+        single strongest predictor of a project that finishes.
+      </p>
+      <table class="tbl tbl--compact">
+        <thead><tr><th scope="col">Section</th><th scope="col">What has to be there</th></tr></thead>
+        <tbody>
+          <tr><td>Question and claim</td><td>One sentence in the week-5 form, then a paragraph of context</td></tr>
+          <tr><td>Why it matters</td><td>Two references, and one sentence on what changes if the answer is yes</td></tr>
+          <tr><td>Method</td><td>The system or study, in enough detail that a reader could object to a specific choice</td></tr>
+          <tr><td>Evaluation plan</td><td>Baseline, metric, data and split, and the falsification condition</td></tr>
+          <tr><td>Risks</td><td>Two things that could sink it, and what you would do instead</td></tr>
+          <tr><td>Timeline</td><td>Weekly, to May 2, with the checkpoint visible in it</td></tr>
+          <tr><td>Resources</td><td>Compute you have, data you need, and whether you have permission to use it</td></tr>
+          <tr><td>Scope box</td><td>What you are deliberately <em>not</em> doing, in one sentence</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>The checkpoint <span class="muted">(5%)</span></h2>
+      <p>
+        The checkpoint is not a progress report; it is evidence that the pipeline runs
+        end to end on real data. Fill in <a href="checkpoint.html">the checkpoint
+        template</a>: one page with four headings.
+      </p>
+      <ul>
+        <li><strong>Pipeline status</strong> — the command that reproduces your current
+          result, and what it consumes.</li>
+        <li><strong>Preliminary results</strong> — one table or figure, clearly labelled as
+          preliminary. Numbers that will change are fine; numbers you have not produced
+          are not.</li>
+        <li><strong>Risks now</strong> — what is most likely to stop you, and the fallback
+          you will take if it does.</li>
+        <li><strong>Changes since the proposal</strong> — what you narrowed, and why. Scope
+          reduction here is normal and costs nothing; scope reduction in May costs marks.</li>
+      </ul>
+      <p>
+        Then a ten-minute meeting, booked from the sign-up sheet, in weeks 9–10. Bring the
+        pipeline runnable. If the demo does not run in the meeting, the checkpoint is
+        incomplete regardless of the document.
+      </p>
+    </section>
+
+    <section>
+      <h2>The final report <span class="muted">(8–12 pages, 12%)</span></h2>
+      <p>
+        Two-column conference format, eight to twelve pages including references, figures
+        and tables. Use IEEE or NeurIPS style and stay consistent; both are fine and no
+        credit is awarded for the choice. Single column is acceptable only with a written
+        reason. The page limit excludes the model card appendix.
+      </p>
+      <table class="tbl tbl--compact">
+        <caption>Report structure. Page counts are guidance; the failure case and the evaluation are where the marks concentrate.</caption>
+        <thead><tr><th scope="col">Section</th><th scope="col" class="num">Pages</th><th scope="col">What a reader needs from it</th></tr></thead>
+        <tbody>
+          <tr><td>Abstract</td><td class="num">0.25</td><td>The claim, the result, and the caveat — in that order</td></tr>
+          <tr><td>Introduction</td><td class="num">1</td><td>Why the question is worth a term, and what you claim</td></tr>
+          <tr><td>Related work</td><td class="num">1</td><td>Three to six sources, and how your question differs from theirs</td></tr>
+          <tr><td>Method</td><td class="num">2</td><td>Enough detail to reimplement; every choice you made that a reader could dispute</td></tr>
+          <tr><td>Evaluation</td><td class="num">2</td><td>Baseline, metric, split, and the falsification condition you set in advance</td></tr>
+          <tr><td>Results</td><td class="num">2</td><td>Numbers with variance; ablations that isolate what you claimed mattered</td></tr>
+          <tr><td>Failure case</td><td class="num">1</td><td>One input that breaks it, why, and what it implies</td></tr>
+          <tr><td>Limitations and ethics</td><td class="num">1</td><td>What the result does not support, and who could be harmed by overreading it</td></tr>
+          <tr><td>References</td><td class="num">1</td><td>—</td></tr>
+          <tr><td>Appendix: model card</td><td class="num">1–2</td><td>The <a href="model-card.html">model card template</a>, filled in</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>The failure case <span class="muted">(required)</span></h2>
+      <p>
+        One page, in the report, on a single input where your system is wrong. Choose it
+        honestly — the most interesting failure, not the least embarrassing one. Answer four
+        questions:
+      </p>
+      <ol>
+        <li>What was the input, and what did the system do?</li>
+        <li>What should it have done, and how do you know?</li>
+        <li>Why did it fail — data, formulation, or implementation? Be specific enough that
+          the answer rules something out.</li>
+        <li>What would you change, and what would that change cost elsewhere?</li>
+      </ol>
+      <p>
+        A report with no failure case is incomplete. A report whose failure case is
+        "sometimes the model is wrong" earns nothing for that section.
+      </p>
+    </section>
+
+    <section>
+      <h2>The model card <span class="muted">(required appendix)</span></h2>
+      <p>
+        Fill in <a href="model-card.html">the model card template</a>. It is the document
+        someone reads to decide whether to deploy your system, so it must be written for
+        them rather than for your grader: intended use, out-of-scope use, evaluation data,
+        metrics with their variance, and known failure modes. For a replication or an
+        analysis rather than a built system, the card describes the system you studied and
+        what your analysis establishes about it.
+      </p>
+    </section>
+
+    <section>
+      <h2>The presentation <span class="muted">(12 minutes + questions, 8%)</span></h2>
+      <p>
+        Twelve minutes, then up to eight minutes of questions. A demo is expected: live if
+        it is reliable, recorded if it is not — a recording is not a penalty, a live failure
+        is not a story. Structure that works: two minutes of question and why it matters,
+        seven of method and results, two of the failure case, one of what you would do next.
+      </p>
+      <table class="tbl">
+        <caption>Presentation rubric. Each criterion is scored 1–4.</caption>
+        <thead>
+          <tr><th scope="col">Criterion</th><th scope="col" class="num">Weight</th><th scope="col">A 4 looks like</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Question and claim</td><td class="num">20%</td>
+            <td>Stated in the first ninety seconds, falsifiable, and clearly yours</td>
+          </tr>
+          <tr>
+            <td>Method and results</td><td class="num">30%</td>
+            <td>One figure a non-specialist can read; numbers with their baseline visible</td>
+          </tr>
+          <tr>
+            <td>Failure case</td><td class="num">20%</td>
+            <td>Presented without defensiveness, with a specific cause and a specific fix</td>
+          </tr>
+          <tr>
+            <td>Demo</td><td class="num">15%</td>
+            <td>Runs, is rehearsed, and shows the thing you claimed rather than a tour of the UI</td>
+          </tr>
+          <tr>
+            <td>Questions</td><td class="num">15%</td>
+            <td>Answers distinguish what you measured from what you assume</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Slides are due by 9:00 a.m. on your presentation day, so the room's laptop has them
+        before you arrive. Sign-up opens in week 13; slots are first come, and the online
+        section presents live by video at the same rubric and the same question period.
+      </p>
+    </section>
+
+    <section>
+      <h2>Full marks, milestone by milestone</h2>
+      <table class="tbl tbl--compact">
+        <caption>Weights are in the milestones table above; this is what each one has to contain.</caption>
+        <thead><tr><th scope="col">Milestone</th><th scope="col">Full marks require</th></tr></thead>
+        <tbody>
+          <tr><td>Proposal</td><td>A falsifiable claim, a real baseline, and a condition under which you would be wrong</td></tr>
+          <tr><td>Checkpoint</td><td>A pipeline that runs in the meeting and preliminary numbers on real data</td></tr>
+          <tr><td>Report</td><td>An evaluation that would survive a sceptical reader, plus the failure case and the model card</td></tr>
+          <tr><td>Presentation</td><td>The claim in ninety seconds, one readable figure, an honest failure, a demo that runs</td></tr>
+        </tbody>
+      </table>
+      <p>
+        The difference between an A and a B is almost never the model. It is whether the
+        evaluation could have refuted the claim, whether the failure case is examined rather
+        than confessed, and whether the limitations section is honest about what the numbers
+        do not show.
+      </p>
+    </section>
+
+    <section>
+      <h2>Rules</h2>
+      <h3>Individual and pair work</h3>
+      <p>
+        You may work alone or in a pair. Pairs submit one report and one presentation, and
+        both partners must be able to defend every part of it in questions. Pairs also submit
+        a half-page contribution statement with the final report, naming who did what; a pair
+        whose statement describes one person doing the work should expect to be asked about
+        it.
+      </p>
+
+      <h3>AI tools</h3>
+      <p>
+        Permitted as tools in the work itself, documented as you would document a library:
+        name the model and version, say what it was used for, and describe how you checked
+        its output. Not permitted to write your analysis, your failure case, or your
+        limitations section. You must be able to explain every line you submit.
+      </p>
+
+      <h3>Data, people, and permission</h3>
+      <p>
+        Use data you are allowed to use. Public datasets are fine; a scraped site is fine
+        only if its terms allow it, and you must say so in the report. If your project
+        involves human subjects — surveys, interviews, user studies, or identifiable
+        records — it requires IRB review before you collect anything, and that takes weeks,
+        not days. Ask in week 5 if you are unsure; a project that turns out to need IRB
+        approval in April cannot be finished.
+      </p>
+
+      <h3>Late work and fixed dates</h3>
+      <p>
+        The proposal and checkpoint follow the syllabus late policy: 10% off per day for up to three days, then not accepted. The final
+        report and the presentation have fixed dates: if something makes them impossible,
+        contact me before the deadline and we will find an arrangement, including an
+        incomplete grade where the situation warrants one.
+      </p>
+    </section>
+
+    <section>
+      <h2>Checklist before each deadline</h2>
+      <ul class="objectives">
+        <li><strong>Proposal:</strong> can a reader state your claim back to you after one
+          reading, and does your evaluation plan name a baseline and a falsification
+          condition?</li>
+        <li><strong>Checkpoint:</strong> does your reproduction command run from a clean
+          checkout, and is there a number in your document that came from real data?</li>
+        <li><strong>Report:</strong> is the failure case a specific input, and does the model
+          card say who should <em>not</em> use the system?</li>
+        <li><strong>Presentation:</strong> is your claim on screen before the first slide
+          change, and does the demo run twice in a row on the machine you will use?</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CS 5700 · Capstone project · University of Central Missouri · Spring 2027</p>
+  </footer>
+
+</div>
+</body>
+</html>

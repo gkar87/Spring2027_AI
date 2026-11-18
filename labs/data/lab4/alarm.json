@@ -1,0 +1,85 @@
+{
+  "name": "alarm",
+  "note": "The textbook alarm network. Small enough that enumeration is instant and you can check every number by hand.",
+  "order": [
+    "Burglary",
+    "Earthquake",
+    "Alarm",
+    "JohnCalls",
+    "MaryCalls"
+  ],
+  "cpt": {
+    "Burglary": {
+      "parents": [],
+      "table": [
+        [
+          0.999,
+          0.001
+        ]
+      ]
+    },
+    "Earthquake": {
+      "parents": [],
+      "table": [
+        [
+          0.998,
+          0.002
+        ]
+      ]
+    },
+    "Alarm": {
+      "parents": [
+        "Burglary",
+        "Earthquake"
+      ],
+      "table": [
+        [
+          0.999,
+          0.001
+        ],
+        [
+          0.71,
+          0.29
+        ],
+        [
+          0.06,
+          0.94
+        ],
+        [
+          0.05,
+          0.95
+        ]
+      ]
+    },
+    "JohnCalls": {
+      "parents": [
+        "Alarm"
+      ],
+      "table": [
+        [
+          0.95,
+          0.05
+        ],
+        [
+          0.1,
+          0.9
+        ]
+      ]
+    },
+    "MaryCalls": {
+      "parents": [
+        "Alarm"
+      ],
+      "table": [
+        [
+          0.99,
+          0.01
+        ],
+        [
+          0.3,
+          0.7
+        ]
+      ]
+    }
+  }
+}

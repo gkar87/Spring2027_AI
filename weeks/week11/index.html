@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 11 — Machine Learning Foundations · CS 5700</title>
+<meta name="description" content="CS 5700 Module 11: empirical risk minimization, bias and variance, regularization, cross-validation and leakage, classification metrics, calibration, naive Bayes, logistic regression, decision trees.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 11 lecture slides: Machine Learning Foundations">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 11 of 15</p>
+  <h1>Machine Learning Foundations</h1>
+  <p class="subtitle">
+    Fitting a model is the easy part. Knowing whether it works is the skill.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<path class="dg-line-q" d="M30 280 H350 M30 280 V20"/>
+<g class="v-in" style="--d:0.20s"><rect class="dg-box-t" x="167" y="157" width="14" height="14"/></g>
+<g class="v-in" style="--d:0.28s"><rect class="dg-box-t" x="301" y="135" width="14" height="14"/></g>
+<g class="v-in" style="--d:0.36s"><rect class="dg-box-t" x="183" y="163" width="14" height="14"/></g>
+<g class="v-in" style="--d:0.44s"><circle class="dg-box-a" cx="97.6282" cy="152.739" r="7"/></g>
+<g class="v-in" style="--d:0.52s"><rect class="dg-box-t" x="218" y="210" width="14" height="14"/></g>
+<g class="v-in" style="--d:0.60s"><circle class="dg-box-a" cx="71.8252" cy="104.782" r="7"/></g>
+<g class="v-in" style="--d:0.68s"><circle class="dg-box-a" cx="70.8411" cy="221.218" r="7"/></g>
+<g class="v-in" style="--d:0.76s"><circle class="dg-box-a" cx="242.63" cy="44.6325" r="7"/></g>
+<g class="v-in" style="--d:0.84s"><rect class="dg-box-t" x="318" y="250" width="14" height="14"/></g>
+<g class="v-in" style="--d:0.92s"><rect class="dg-box-t" x="224" y="170" width="14" height="14"/></g>
+<g class="v-in" style="--d:1.00s"><circle class="dg-box-a" cx="89.8858" cy="38.4502" r="7"/></g>
+<g class="v-in" style="--d:1.08s"><circle class="dg-box-a" cx="195.589" cy="48.6968" r="7"/></g>
+<g class="v-in" style="--d:1.16s"><circle class="dg-box-a" cx="99.2094" cy="90.6469" r="7"/></g>
+<g class="v-in" style="--d:1.24s"><circle class="dg-box-a" cx="53.5735" cy="141.705" r="7"/></g>
+<path class="dg-plot-g v-draw" pathLength="1" style="--d:1.60s" d="M40 264 L330 3"/>
+<g class="v-in" style="--d:2.40s"><text class="dg-xs dg-teal" x="190" y="315" text-anchor="middle">fit the training data, judge on new data</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>State the learning problem formally and explain what empirical risk minimization optimizes.</li>
+      <li>Decompose expected error into bias and variance, and diagnose which one you have.</li>
+      <li>Choose a regularization strategy and explain what it constrains.</li>
+      <li>Design a train/validation/test split that does not leak information.</li>
+      <li>Choose a metric that matches the decision the model will support.</li>
+      <li>Report a result with uncertainty, a baseline, and an honest description of what was tuned.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Every evaluation question in the labs and the capstone has the same shape:
+        <strong>given this deployment, which metric, and what would make your reported
+        number misleading?</strong>
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>The learning problem</h2>
+  <p>What we minimize, and what we actually want.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>The learning problem</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Given examples drawn from an unknown distribution, choose a hypothesis
+          <var>h</var> from a hypothesis class <var>H</var> that predicts well on
+          <em>unseen</em> examples from the same distribution.
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          h* = argmin<sub>h∈H</sub> E<sub>(x,y)~D</sub>[ L(h(x), y) ]
+        </div>
+        <p style="margin-top:12px">
+          The expectation is over the true distribution, which we do not have. So we
+          minimize the average over the training set instead — empirical risk.
+        </p>
+      </div>
+      <div>
+        <h3>Four kinds of learning in this course</h3>
+        <table class="tbl tbl--compact">
+      <caption class="visually-hidden">Four kinds of learning in this course</caption>
+          <thead><tr><th scope="col">Setting</th><th scope="col">Signal</th></tr></thead>
+          <tbody>
+            <tr><td>Supervised</td><td>Labelled pairs (x, y)</td></tr>
+            <tr><td>Unsupervised</td><td>Structure in x alone</td></tr>
+            <tr><td>Self-supervised</td><td>Labels derived from the data itself</td></tr>
+            <tr><td>Reinforcement</td><td>Reward from interaction (module 7)</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:10px; font-size:17px; color:var(--muted)">
+          Language models are self-supervised: the next token is the label, and it comes
+          free with the text.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 140" role="img" aria-labelledby="f11at f11ad">
+<title id="f11at">The learning problem as a pipeline</title>
+<desc id="f11ad">An unknown distribution D produces a training sample. A learner picks a hypothesis h from the class H by minimizing the average loss on the sample. The hypothesis is then judged on new data drawn from the same D, which is the quantity we actually care about.</desc>
+<defs><marker id="mk-f11a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker><marker id="mk-f11aa" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9e1b32"/></marker><marker id="mk-f11aq" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#8b8f98"/></marker></defs>
+<g class="v-in" style="--d:0.20s"><rect class="dg-box-m" x="10" y="30" width="210" height="60" rx="8"/><text class="dg-sm-b" x="115" y="66" text-anchor="middle">Unknown distribution D</text></g>
+<g class="v-in" style="--d:0.70s"><rect class="dg-box" x="270" y="30" width="210" height="60" rx="8"/><text class="dg-sm-b" x="375" y="66" text-anchor="middle">Training sample</text></g>
+<g class="v-in" style="--d:1.20s"><rect class="dg-box-t" x="520" y="30" width="210" height="60" rx="8"/><text class="dg-sm-b" x="625" y="66" text-anchor="middle">Learner picks h ∈ H</text></g>
+<g class="v-in" style="--d:1.70s"><rect class="dg-box-a" x="780" y="30" width="210" height="60" rx="8"/><text class="dg-sm-b" x="885" y="66" text-anchor="middle">New data from D</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.50s" d="M222 60 H266" marker-end="url(#mk-f11a)"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.00s" d="M482 60 H516" marker-end="url(#mk-f11a)"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.50s" d="M732 60 H776" marker-end="url(#mk-f11aa)"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.90s" d="M115 92 Q450 136 880 94" marker-end="url(#mk-f11aq)"/>
+<g class="v-in" style="--d:2.30s"><text class="dg-xs" x="500" y="18" text-anchor="middle">minimize the average loss over the sample …</text></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-xs dg-txt-bad" x="500" y="138" text-anchor="middle">… but the score that counts is on fresh draws from D</text></g>
+</svg>
+<figcaption><strong>Figure 11.1.</strong> Optimized on the sample, judged on the distribution.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>Training loss is not the objective</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Minimizing training error is trivially solvable: memorize the training set. A
+          lookup table achieves zero training loss and learns nothing.
+        </p>
+        <p>
+          What we want is low <strong>generalization</strong> error — performance on data we
+          have not seen. The gap between the two is the entire subject.
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          generalization error = training error + generalization gap
+        </div>
+      </div>
+      <div class="panel panel--accent">
+        <h3>The three sources of gap</h3>
+        <ol>
+          <li><strong>Variance</strong> — the model fits noise specific to this sample.</li>
+          <li><strong>Distribution shift</strong> — test data is not drawn from the same distribution.</li>
+          <li><strong>Leakage</strong> — information from the test set reached training, so the estimate is optimistic.</li>
+        </ol>
+        <p style="margin-top:10px">
+          The first is a modelling problem. The second is a deployment problem. The third is
+          a methodology error, and it is the most common in student projects.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 132" role="img" aria-labelledby="f11bt f11bd">
+<title id="f11bt">Test error as training error plus a gap with three sources</title>
+<desc id="f11bd">Two bars. Training error is short. Test error starts at the same length and continues with three added segments: variance, distribution shift, and leakage, which hides part of the gap by making the test estimate too optimistic. The added length is the generalization gap.</desc>
+<g class="v-in" style="--d:0.10s"><text class="dg-xs" x="150" y="34" text-anchor="end">training error</text><text class="dg-xs" x="150" y="92" text-anchor="end">test error</text></g>
+<rect class="dg-bar v-grow" style="--d:0.20s" x="160" y="18" width="120" height="26"/>
+<rect class="dg-bar v-grow" style="--d:0.60s" x="160" y="76" width="120" height="26"/>
+<rect class="dg-bar-a v-grow" style="--d:1.00s" x="280" y="76" width="200" height="26"/>
+<g class="v-in" style="--d:1.30s"><text class="dg-xs" x="380" y="126" text-anchor="middle">variance</text><path class="dg-line-q" d="M380.0 104 V112"/></g>
+<rect class="dg-gold v-grow" style="--d:1.50s" x="480" y="76" width="160" height="26"/>
+<g class="v-in" style="--d:1.80s"><text class="dg-xs" x="560" y="126" text-anchor="middle">distribution shift</text><path class="dg-line-q" d="M560.0 104 V112"/></g>
+<rect class="dg-box-m v-grow" style="--d:2.00s" x="640" y="76" width="220" height="26"/>
+<g class="v-in" style="--d:2.30s"><text class="dg-xs" x="750" y="126" text-anchor="middle">leakage hides part of the gap</text><path class="dg-line-q" d="M750.0 104 V112"/></g>
+<g class="v-in" style="--d:2.80s"><path class="dg-dash" d="M280 50 V108"/><text class="dg-xs dg-txt-bad" x="290" y="62">generalization gap</text></g>
+</svg>
+<figcaption><strong>Figure 11.2.</strong> Leakage does not shrink the gap; it hides it.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>Bias, variance, and the shape of the error curve</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <div class="eq" style="text-align:left; font-size:21px">
+          E[(y − ĥ(x))²] = σ² + Bias(ĥ)² + Var(ĥ)
+        </div>
+        <p style="margin-top:14px">
+          Irreducible noise, plus systematic error, plus sensitivity to the particular
+          training sample. As model complexity rises, bias falls and variance rises.
+        </p>
+        <ul>
+          <li><strong>High bias</strong> — training and test error both high, and close together.</li>
+          <li><strong>High variance</strong> — training error low, test error much higher.</li>
+        </ul>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.373" class="dg-seq" viewBox="13.1 30 396.9 250.2" role="img" aria-labelledby="f5t f5d">
+          <title id="f5t">Bias and variance as a function of model complexity</title>
+          <desc id="f5d">Three curves over model complexity. Bias decreases, variance increases, and total error forms a U shape with a minimum in the middle. A dashed line marks the optimal complexity.</desc>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:0.0s" d="M50 250 H 410"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:0.11s" d="M50 250 V 30"/>
+          <g class="v-in" style="--d:0.22s">
+          <text class="dg-txt-s" x="230" y="278" text-anchor="middle">model complexity →</text>
+          </g>
+          <g class="v-in" style="--d:0.33s">
+          <text class="dg-txt-s" x="24" y="140" text-anchor="middle" transform="rotate(-90 24 140)">error</text>
+          </g>
+
+          <g class="v-in" style="--d:0.44s">
+          <path d="M60 80 Q 180 150 400 236" fill="none" stroke="#0e5a6b" stroke-width="2"/>
+          </g>
+          <g class="v-in" style="--d:0.55s">
+          <text class="dg-txt-s" x="320" y="236" fill="#0e5a6b">bias²</text>
+          </g>
+
+          <g class="v-in" style="--d:0.66s">
+          <path d="M60 240 Q 220 190 400 60" fill="none" stroke="#8a5a00" stroke-width="2"/>
+          </g>
+          <g class="v-in" style="--d:0.77s">
+          <text class="dg-txt-s" x="352" y="52" fill="#8a5a00">variance</text>
+          </g>
+
+          <path d="M60 200 Q 200 150 240 148 Q 300 150 400 190"
+                fill="none" stroke="#9e1b32" stroke-width="2.6"/>
+          <g class="v-in" style="--d:0.88s">
+          <text class="dg-txt-s" x="240" y="130" text-anchor="middle" fill="#7a1426">total error</text>
+          </g>
+
+          <g class="v-in" style="--d:0.99s">
+          <path d="M240 148 V 250" stroke="#c9ced5" stroke-width="1.4" stroke-dasharray="4 4"/>
+          </g>
+          <g class="v-in" style="--d:1.1s">
+          <text class="dg-txt-s" x="240" y="266" text-anchor="middle">optimum</text>
+          </g>
+        </svg>
+        <figcaption>
+          <strong>Figure 11.3.</strong> Total error is U-shaped. The practical question is
+          always which side of the minimum you are on — and training/test error together tell
+          you.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s7">
+  <h2>Regularization: constrain the hypothesis class</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Add a penalty for complexity to the objective. This is equivalent to restricting
+          the hypothesis class, which reduces variance at the cost of some bias.
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          L = training loss + λ · R(θ)
+        </div>
+        <table class="tbl tbl--compact" style="margin-top:10px">
+      <caption class="visually-hidden">Regularization: constrain the hypothesis class</caption>
+          <thead><tr><th scope="col">Penalty</th><th scope="col">Effect</th></tr></thead>
+          <tbody>
+            <tr><td>L2 (weight decay)</td><td>Shrinks weights smoothly; keeps all features</td></tr>
+            <tr><td>L1</td><td>Drives some weights to exactly zero — sparse</td></tr>
+            <tr><td>Early stopping</td><td>Limits effective capacity by limiting training time</td></tr>
+            <tr><td>Dropout</td><td>Randomly removes units, preventing co-adaptation</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>λ is a real trade-off</h3>
+          <p>
+            Too small and you overfit; too large and you underfit. It must be chosen on
+            validation data, never on the test set — and reporting the test score after
+            tuning λ on it makes the score meaningless.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            Every hyperparameter you tune on a set consumes some of its value as an
+            unbiased estimate. <strong>Tune on validation, report on test, once.</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s8">
+  <h2>Cross-validation, and the leaks that ruin it</h2>
+  <div class="slide-main">
+    <div class="cols-1-2">
+      <div>
+        <p>
+          Split the data into <var>k</var> folds; train on <var>k</var>−1 and validate on
+          the held-out fold; average. This gives a less noisy estimate than a single split,
+          which matters when data is limited.
+        </p>
+        <figure class="fig" style="margin-bottom:6px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 433 120" role="img" aria-labelledby="n11at n11ad">
+          <title id="n11at">Five-fold cross-validation</title>
+          <desc id="n11ad">Five rows, one per round. Each row splits the data into five blocks; a different block is held out for validation in each round and the other four are used for training. The five validation scores are averaged.</desc>
+          
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt-s" x="0" y="19">round 1</text><rect class="dg-card" x="84" y="4" width="60" height="19" rx="2"/><rect class="dg-box-m" x="150" y="4" width="60" height="19" rx="2"/><rect class="dg-box-m" x="216" y="4" width="60" height="19" rx="2"/><rect class="dg-box-m" x="282" y="4" width="60" height="19" rx="2"/><rect class="dg-box-m" x="348" y="4" width="60" height="19" rx="2"/></g>
+          <g class="v-in" style="--d:0.35s"><text class="dg-txt-s" x="0" y="43">round 2</text><rect class="dg-box-m" x="84" y="28" width="60" height="19" rx="2"/><rect class="dg-card" x="150" y="28" width="60" height="19" rx="2"/><rect class="dg-box-m" x="216" y="28" width="60" height="19" rx="2"/><rect class="dg-box-m" x="282" y="28" width="60" height="19" rx="2"/><rect class="dg-box-m" x="348" y="28" width="60" height="19" rx="2"/></g>
+          <g class="v-in" style="--d:0.60s"><text class="dg-txt-s" x="0" y="67">round 3</text><rect class="dg-box-m" x="84" y="52" width="60" height="19" rx="2"/><rect class="dg-box-m" x="150" y="52" width="60" height="19" rx="2"/><rect class="dg-card" x="216" y="52" width="60" height="19" rx="2"/><rect class="dg-box-m" x="282" y="52" width="60" height="19" rx="2"/><rect class="dg-box-m" x="348" y="52" width="60" height="19" rx="2"/></g>
+          <g class="v-in" style="--d:0.85s"><text class="dg-txt-s" x="0" y="91">round 4</text><rect class="dg-box-m" x="84" y="76" width="60" height="19" rx="2"/><rect class="dg-box-m" x="150" y="76" width="60" height="19" rx="2"/><rect class="dg-box-m" x="216" y="76" width="60" height="19" rx="2"/><rect class="dg-card" x="282" y="76" width="60" height="19" rx="2"/><rect class="dg-box-m" x="348" y="76" width="60" height="19" rx="2"/></g>
+          <g class="v-in" style="--d:1.10s"><text class="dg-txt-s" x="0" y="115">round 5</text><rect class="dg-box-m" x="84" y="100" width="60" height="19" rx="2"/><rect class="dg-box-m" x="150" y="100" width="60" height="19" rx="2"/><rect class="dg-box-m" x="216" y="100" width="60" height="19" rx="2"/><rect class="dg-box-m" x="282" y="100" width="60" height="19" rx="2"/><rect class="dg-card" x="348" y="100" width="60" height="19" rx="2"/></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 11.4.</strong> Red is the held-out fold. Each example is validated once; average the scores.
+        </figcaption>
+      </figure>
+        <p>
+          For time series, use a forward-chaining split: never train on the future to predict
+          the past.
+        </p>
+        <div class="callout" style="margin-top:16px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            If a result looks surprisingly good, suspect leakage before celebrating.
+          </p>
+        </div>
+      </div>
+      <div>
+        <h3>Four leaks that appear constantly</h3>
+        <ul>
+          <li><strong>Preprocessing before splitting</strong> — normalizing with the full dataset's mean leaks test statistics.</li>
+          <li><strong>Feature selection on all data</strong> — choosing features using test labels inflates performance.</li>
+          <li><strong>Duplicate rows across splits</strong> — near-identical examples make the test set a memory test.</li>
+          <li><strong>Group leakage</strong> — two images of the same patient in train and test.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s9">
+  <h2>Measuring what matters</h2>
+  <p>Metrics, calibration and the decision behind them.</p>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s10">
+  <h2>Accuracy is a decision, not a metric</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          With 1% positives, a classifier that always predicts "negative" is 99% accurate
+          and worthless. Accuracy implicitly weights every error equally, which is almost
+          never what the deployment wants.
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          precision = TP / (TP + FP)<br>
+          recall = TP / (TP + FN)<br>
+          F₁ = 2 · precision · recall / (precision + recall)
+        </div>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Choose by cost of error</h3>
+          <ul>
+            <li><strong>Screening</strong> — a missed case is expensive, so favour recall and accept false alarms.</li>
+            <li><strong>Enforcement</strong> — a false accusation is expensive, so favour precision.</li>
+            <li><strong>Ranking</strong> — use precision at k, or mean average precision.</li>
+          </ul>
+        </div>
+        <p style="margin-top:12px">
+          There is no metric that is right in general. There is a metric that matches the
+          consequence of being wrong, and naming that consequence is part of the modelling.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s11">
+  <h2>Calibration is separate from discrimination</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A model can rank cases perfectly and still report probabilities that are wrong.
+          Ranking is <strong>discrimination</strong>; the meaning of the number is
+          <strong>calibration</strong>.
+        </p>
+        <p>
+          If a model says 0.9 for a hundred cases, a calibrated model has about ninety
+          positives among them. A well-ranked, badly calibrated model might have fifty.
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          ECE = Σ<sub>bins</sub> (n<sub>bin</sub>/N) · |accuracy − confidence|
+        </div>
+        <figure class="fig" style="margin-top:4px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 150" role="img" aria-labelledby="n11bt n11bd">
+          <title id="n11bt">Reliability diagram</title>
+          <desc id="n11bd">Observed frequency of positives plotted against predicted confidence, both from 0 to 1. A calibrated model follows the diagonal. An overconfident model falls below the diagonal at high confidence: when it says 0.9, only about half the cases are positive.</desc>
+          
+          <path class="dg-line" d="M60 10 V 122 H 172"/><text class="dg-txt-s" x="60" y="142" text-anchor="middle">0</text><text class="dg-txt-s" x="172" y="142" text-anchor="middle">1</text><text class="dg-txt-s" x="52" y="127" text-anchor="end">0</text><text class="dg-txt-s" x="52" y="15" text-anchor="end">1</text>
+          <text class="dg-txt-s" x="116" y="160" text-anchor="middle">confidence</text>
+          <text class="dg-txt-s" x="30" y="66.0" text-anchor="middle" transform="rotate(-90 30 66.0)">observed</text>
+          <g class="v-in" style="--d:0.10s"><path class="dg-plot-g" d="M60.0 122.0 L172.0 10.0"/></g>
+          <path class="dg-plot-a draw" d="M60.0 122.0 L71.2 113.0 L93.6 97.4 L116.0 85.0 L138.4 75.0 L160.8 66.0 L172.0 61.5" pathLength="1" style="--d:0.40s"/>
+          <g class="v-in" style="--d:0.30s"><text class="dg-txt-s" x="230" y="40">calibrated: says 0.9,</text><text class="dg-txt-s" x="230" y="60">90% are positive</text><path class="dg-plot-g" d="M222 34 H 206"/></g>
+          <g class="v-in" style="--d:0.90s"><text class="dg-lbl" x="230" y="104">overconfident: says 0.9,</text><text class="dg-lbl" x="230" y="124">about 50% are positive</text><path class="dg-plot-a" d="M222 98 H 206"/></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 11.5.</strong> A reliability diagram. ECE adds up the gaps from the diagonal.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Why it matters for decisions</h3>
+          <p>
+            Any decision that weighs a probability against a cost needs calibration. A
+            triage system that says "0.8 risk" will be used as if 0.8 means 0.8.
+          </p>
+          <p style="margin-top:8px">
+            Fixes: Platt scaling, isotonic regression, temperature scaling. All are
+            post-hoc and cheap — and all require held-out data.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            <strong>ROC curves are insensitive to calibration</strong> because they use only
+            ranking. If calibration matters, report a reliability diagram too.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s12">
+  <h2>Three classic models</h2>
+  <p>Naive Bayes, logistic regression and decision trees.</p>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s13">
+  <h2>Naive Bayes, worked</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Assume features are conditionally independent given the class. Estimate each
+          conditional probability by counting, add smoothing, and multiply.
+        </p>
+        <div class="worked">
+          <span class="worked-label">Spam filtering</span>
+          <p>
+            P(spam) = 0.4. The word "free" appears in 60% of spam and 5% of ham. A message
+            contains "free".
+          </p>
+          <p class="eq" style="text-align:left">
+            P(spam | free) ∝ 0.4 × 0.6 = 0.24<br>
+            P(ham | free) ∝ 0.6 × 0.05 = 0.03
+          </p>
+          <p>Normalized: 0.89 spam, 0.11 ham.</p>
+        </div>
+      </div>
+      <div>
+        <h3>Two things this example teaches</h3>
+        <ul>
+          <li>The prior matters: with P(spam) = 0.01 the same evidence gives a much lower posterior.</li>
+          <li>The independence assumption is false — words correlate — and the classifier still works.</li>
+        </ul>
+        <div class="panel panel--accent" style="margin-top:12px">
+          <h3>Why it still works</h3>
+          <p>
+            It needs the ranking to be right, not the probabilities. Overconfident scores that
+            preserve order still classify correctly — which is exactly the discrimination
+            versus calibration distinction.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s14">
+  <h2>Logistic regression: a linear model with a probability output</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="eq eq--tight" style="text-align:left">
+          P(y=1 | x) = σ(w·x + b) = 1 / (1 + e<sup>−(w·x+b)</sup>)
+        </div>
+        <p style="margin-top:12px">
+          The decision boundary is linear; the output is a probability. Trained by minimizing
+          log loss, which is the negative log-likelihood:
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          L = −Σ [ y log p + (1−y) log(1−p) ]
+        </div>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Why it is still the baseline to beat</h3>
+          <ul>
+            <li>It is convex, so training is reliable and fast.</li>
+            <li>Coefficients are interpretable as log-odds ratios.</li>
+            <li>It is well calibrated by construction on the training distribution.</li>
+            <li>It fails in an informative way: if a linear model matches your neural network, the problem is not the model.</li>
+          </ul>
+        </div>
+        <p style="margin-top:12px; font-size:17px; color:var(--muted)">
+          A capstone that beats logistic regression by 0.3% has not shown that deep learning
+          was needed. It has shown that 0.3% is within noise.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s15">
+  <h2>Decision trees, and what entropy buys</h2>
+  <div class="slide-main">
+    <div class="cols-1-2">
+      <div>
+        <p>
+          Split on the feature that most reduces label impurity. With entropy as the
+          impurity measure, the gain is:
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          Gain = H(S) − Σ<sub>v</sub> (|S<sub>v</sub>|/|S|) · H(S<sub>v</sub>)
+        </div>
+        <div class="eq eq--tight" style="text-align:left">
+          H(S) = −Σ<sub>c</sub> p<sub>c</sub> log₂ p<sub>c</sub>
+        </div>
+        <figure class="fig" style="margin-top:8px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 433 136" role="img" aria-labelledby="n11ct n11cd">
+          <title id="n11ct">Entropy of a two-class set</title>
+          <desc id="n11cd">Entropy in bits against the share of positives p, from 0 to 1. It is 0 at p equal to 0 and at p equal to 1, and peaks at 1 bit when p is one half.</desc>
+          
+          <path class="dg-line" d="M40 14 V 104 H 300"/><text class="dg-txt-s" x="40" y="124" text-anchor="middle">0</text><text class="dg-txt-s" x="170" y="124" text-anchor="middle">0.5</text><text class="dg-txt-s" x="300" y="124" text-anchor="middle">1</text><text class="dg-txt-s" x="32" y="109" text-anchor="end">0</text><text class="dg-txt-s" x="32" y="19" text-anchor="end">1</text>
+          <path class="dg-plot-t draw" d="M40.0 104.0 L46.5 88.8 L53.0 78.2 L59.5 69.4 L66.0 61.8 L72.5 55.1 L79.0 49.1 L85.5 43.8 L92.0 39.0 L98.5 34.8 L105.0 31.0 L111.5 27.6 L118.0 24.7 L124.5 22.1 L131.0 19.9 L137.5 18.1 L144.0 16.6 L150.5 15.5 L157.0 14.7 L163.5 14.2 L170.0 14.0 L176.5 14.2 L183.0 14.7 L189.5 15.5 L196.0 16.6 L202.5 18.1 L209.0 19.9 L215.5 22.1 L222.0 24.7 L228.5 27.6 L235.0 31.0 L241.5 34.8 L248.0 39.0 L254.5 43.8 L261.0 49.1 L267.5 55.1 L274.0 61.8 L280.5 69.4 L287.0 78.2 L293.5 88.8 L300.0 104.0" pathLength="1" style="--d:0.20s"/>
+          <g class="v-in" style="--d:1.00s"><circle class="dg-card" cx="170.0" cy="14" r="5"/><text class="dg-txt-s" x="316" y="30">balanced:</text><text class="dg-lbl" x="316" y="48">H = 1 bit</text></g>
+          <g class="v-in" style="--d:1.20s"><text class="dg-txt-s" x="316" y="92">pure: H = 0</text></g>
+          <text class="dg-txt-s" x="316" y="128">share of class 1</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 11.6.</strong> A balanced set has H = 1 bit and a pure set has H = 0. The gain is how many bits a split saves.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <h3>Properties worth knowing</h3>
+        <ul>
+          <li>Trees capture interactions automatically — no feature crosses needed.</li>
+          <li>They are unstable: a small data change can produce a different tree.</li>
+          <li>Deep trees memorize, so depth and leaf size are the regularization.</li>
+          <li>Ensembles (random forests, gradient boosting) fix the instability and remain the strongest tabular baseline.</li>
+        </ul>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            <strong>Unstable does not mean inaccurate.</strong> It means the explanation
+            changes, which matters when the tree is the deliverable rather than the
+            prediction.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s16">
+  <h2>A reporting checklist you will be graded against</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div class="panel panel--key">
+        <h3>Must be present</h3>
+        <ul>
+          <li>The split, and how it was made.</li>
+          <li>The metric, and why that metric.</li>
+          <li>At least one trivial baseline.</li>
+          <li>Mean and spread over at least five seeds or folds.</li>
+          <li>Every hyperparameter tuned, and on what data.</li>
+        </ul>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Immediately disqualifying</h3>
+        <ul>
+          <li>Test accuracy reported after tuning on the test set.</li>
+          <li>A single run, presented as the result.</li>
+          <li>No baseline, so the number has no scale.</li>
+          <li>Accuracy on a 2% positive class.</li>
+          <li>"We used a 70/30 split" with no explanation of how leakage was prevented.</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:16px">
+      This checklist is not bureaucratic. Every item on it corresponds to a way published
+      results have been wrong, and most of them have been wrong in this decade.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s17">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>Training loss is not the objective.</strong><p>Generalization error is, and the gap has three sources.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Bias and variance are diagnosable.</strong><p>Two numbers — train and test — tell you which side of the U you are on.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Regularization is a hypothesis-class constraint.</strong><p>λ is chosen on validation, never on test.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>Pick the metric from the cost of error.</strong><p>Accuracy is a decision, and usually the wrong one.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Discrimination and calibration are different.</strong><p>Ranking can be excellent while the probabilities are meaningless.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s18">
+  <h2>This week's work</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA §19.1–19.5.</li>
+          <li>Find one published result with no baseline and describe the problem.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Reflection 6: design the evaluation for your capstone, before you have results.</li>
+          <li>Re-run one of your earlier labs with five seeds instead of one.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — reflection 6.</li>
+          <li>Friday class, 8:30–11:10 a.m. CT, MIC: evaluation clinic, bring your split; online students watch the recorded lecture.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next:</strong> module 12 keeps every rule from this week and adds
+        backpropagation, convolutions, and a million parameters.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 16 ─────────────────────────────── Python learning resources -->
+<section class="slide" id="s19">
+  <h2>Python for evaluation and your capstone</h2>
+  <div class="slide-main">
+    <p style="margin-bottom:14px">These tools make honest evaluation quicker. None is required; all are free.</p>
+    <ul class="resources">
+      <li><a href="https://scikit-learn.org/stable/getting_started.html">scikit-learn: Getting Started</a><span class="src">scikit-learn.org</span><p>Train, split and score models with one consistent interface.</p></li>
+      <li><a href="https://scikit-learn.org/stable/modules/calibration.html">scikit-learn: Probability calibration</a><span class="src">scikit-learn.org</span><p>Reliability diagrams and calibration, explained with examples.</p></li>
+      <li><a href="https://pandas.pydata.org/docs/user_guide/10min.html">10 minutes to pandas</a><span class="src">pandas.pydata.org</span><p>Tables of results, grouped by subgroup, in a few lines.</p></li>
+      <li><a href="https://numpy.org/doc/stable/reference/random/generator.html">NumPy random Generator</a><span class="src">numpy.org</span><p>Seeded splits and bootstraps, so your numbers can be reproduced.</p></li>
+      <li><a href="https://matplotlib.org/stable/tutorials/pyplot.html">Matplotlib pyplot tutorial</a><span class="src">matplotlib.org</span><p>The plots the capstone report needs.</p></li>
+      <li><a href="https://jakevdp.github.io/PythonDataScienceHandbook/">Python Data Science Handbook (free online book)</a><span class="src">jakevdp.github.io</span><p>Covers NumPy, pandas, Matplotlib and scikit-learn in one place.</p></li>
+    </ul>
+    <div class="callout" style="margin-top:20px">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>Bring your train, validation and test split to office hours, Tuesday and Wednesday 12:00–3:00 p.m., MIC room D159 if you want a second pair of eyes.</p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+{"name":"open6","note":"An open room. The shortest path is diagonal, but slippery moves make the safe route longer.","rows":6,"cols":6,"walls":[],"start":[5,0],"terminals":{"0,5":1.0},"step_reward":-0.04,"slip":0.1}

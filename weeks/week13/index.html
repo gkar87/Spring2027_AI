@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 13 — Transformers and Large Language Models · CS 5700</title>
+<meta name="description" content="CS 5700 Module 13: tokenization, self-attention, the transformer block, pretraining and scaling, instruction tuning and RLHF, decoding, retrieval-augmented generation, and honest evaluation of language models.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 13 lecture slides: Transformers and Large Language Models">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 13 of 15</p>
+  <h1>Transformers and Large Language Models</h1>
+  <p class="subtitle">
+    One mechanism — attention — plus scale, plus a post-training stage that
+    turns a text predictor into an assistant.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<g class="v-in" style="--d:0.20s"><rect class="dg-box-m" x="14" y="220" width="52" height="36" rx="4"/><text class="dg-xs" x="40" y="243" text-anchor="middle">the</text></g>
+<g class="v-in" style="--d:0.30s"><rect class="dg-box-m" x="74" y="220" width="52" height="36" rx="4"/><text class="dg-xs" x="100" y="243" text-anchor="middle">cat</text></g>
+<g class="v-in" style="--d:0.40s"><rect class="dg-box-m" x="134" y="220" width="52" height="36" rx="4"/><text class="dg-xs" x="160" y="243" text-anchor="middle">sat</text></g>
+<g class="v-in" style="--d:0.50s"><rect class="dg-box-m" x="194" y="220" width="52" height="36" rx="4"/><text class="dg-xs" x="220" y="243" text-anchor="middle">on</text></g>
+<g class="v-in" style="--d:0.60s"><rect class="dg-box-m" x="254" y="220" width="52" height="36" rx="4"/><text class="dg-xs" x="280" y="243" text-anchor="middle">the</text></g>
+<g class="v-in" style="--d:0.70s"><rect class="dg-box-m" x="314" y="220" width="52" height="36" rx="4"/><text class="dg-xs" x="340" y="243" text-anchor="middle">mat</text></g>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.00s" stroke-width="3.2" d="M160 216 C160 150.0 100 150.0 100 216"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.25s" stroke-width="1.4" d="M160 216 C160 114.0 40 114.0 40 216"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.50s" stroke-width="2.2" d="M160 216 C160 78.0 340 78.0 340 216"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.75s" stroke-width="1.4" d="M340 216 C340 150.0 280 150.0 280 216"/>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:2.00s" stroke-width="1.4" d="M340 216 C340 114.0 220 114.0 220 216"/>
+<g class="v-in" style="--d:2.60s"><text class="dg-xs dg-teal" x="190" y="300" text-anchor="middle">every token can read every other token</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>Explain self-attention and compute a single attention output by hand.</li>
+      <li>Describe the transformer block and why residuals and layer norm appear where they do.</li>
+      <li>Distinguish pretraining, instruction tuning, and preference optimization.</li>
+      <li>Explain what RLHF changes and what it does not.</li>
+      <li>Design an evaluation that would detect the failures you actually care about.</li>
+      <li>Recognise benchmark contamination and explain why it undermines a claim.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Before Friday's class, <strong>compute attention for three tokens with given
+        vectors</strong>. It is arithmetic, and it is the clearest test of your own
+        understanding in the course.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>Attention</h2>
+  <p>Every position reads every other position in one step.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>The problem attention solves</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Recurrent networks process a sequence one step at a time. Two consequences:
+          computation cannot be parallelized across positions, and information from far back
+          must survive many steps.
+        </p>
+        <p>
+          Convolutions parallelize but only see a local window, so long-range dependencies
+          need many layers.
+        </p>
+        <p>
+          Attention allows <strong>every position to read every other position in one
+          step</strong>. That removes both limits at the cost of quadratic work in sequence
+          length.
+        </p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>The trade, stated plainly</h3>
+        <table class="tbl tbl--compact" style="margin-top:6px">
+      <caption class="visually-hidden">The trade, stated plainly</caption>
+          <thead><tr><th scope="col">Architecture</th><th scope="col">Path length</th><th scope="col">Parallel</th></tr></thead>
+          <tbody>
+            <tr><td>Recurrent</td><td>O(n)</td><td>No</td></tr>
+            <tr><td>Convolutional</td><td>O(log n) layers</td><td>Yes</td></tr>
+            <tr><td>Attention</td><td>O(1)</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:10px">
+          Quadratic cost is why context windows are finite, and why efficient-attention
+          variants are an active research area.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 140" role="img" aria-labelledby="f13at f13ad">
+<title id="f13at">Path length between distant tokens: recurrence against attention</title>
+<desc id="f13ad">Left: six tokens in a recurrent chain; information from token 1 reaches token 6 only after five sequential steps. Right: the same six tokens with an arc between every pair; with attention any token reads any other in one step, at the cost of work for every pair.</desc>
+<defs><marker id="mk-f13a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9e1b32"/></marker></defs>
+<g class="v-in" style="--d:0.10s"><text class="dg-sm-b" x="20" y="16">Recurrent: token 1 reaches token 6 in five steps</text></g>
+<g class="v-in" style="--d:0.10s"><text class="dg-sm-b" x="560" y="16">Attention: any token to any other in one step</text></g>
+<g class="v-in" style="--d:0.30s"><rect class="dg-box-m" x="24" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="50" y="116" text-anchor="middle">t1</text></g>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:0.60s" d="M78 111 H100" marker-end="url(#mk-f13a)"/>
+<g class="v-in" style="--d:0.40s"><rect class="dg-box-m" x="104" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="130" y="116" text-anchor="middle">t2</text></g>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:0.80s" d="M158 111 H180" marker-end="url(#mk-f13a)"/>
+<g class="v-in" style="--d:0.50s"><rect class="dg-box-m" x="184" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="210" y="116" text-anchor="middle">t3</text></g>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.00s" d="M238 111 H260" marker-end="url(#mk-f13a)"/>
+<g class="v-in" style="--d:0.60s"><rect class="dg-box-m" x="264" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="290" y="116" text-anchor="middle">t4</text></g>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.20s" d="M318 111 H340" marker-end="url(#mk-f13a)"/>
+<g class="v-in" style="--d:0.70s"><rect class="dg-box-m" x="344" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="370" y="116" text-anchor="middle">t5</text></g>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.40s" d="M398 111 H420" marker-end="url(#mk-f13a)"/>
+<g class="v-in" style="--d:0.80s"><rect class="dg-box-m" x="424" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="450" y="116" text-anchor="middle">t6</text></g>
+<g class="v-in" style="--d:0.30s"><rect class="dg-box-m" x="574" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="600" y="116" text-anchor="middle">t1</text></g>
+<g class="v-in" style="--d:0.40s"><rect class="dg-box-m" x="649" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="675" y="116" text-anchor="middle">t2</text></g>
+<g class="v-in" style="--d:0.50s"><rect class="dg-box-m" x="724" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="750" y="116" text-anchor="middle">t3</text></g>
+<g class="v-in" style="--d:0.60s"><rect class="dg-box-m" x="799" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="825" y="116" text-anchor="middle">t4</text></g>
+<g class="v-in" style="--d:0.70s"><rect class="dg-box-m" x="874" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="900" y="116" text-anchor="middle">t5</text></g>
+<g class="v-in" style="--d:0.80s"><rect class="dg-box-m" x="949" y="96" width="52" height="30" rx="4"/><text class="dg-xs" x="975" y="116" text-anchor="middle">t6</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.80s" d="M600 94 C600 68 675 68 675 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.86s" d="M600 94 C600 56 750 56 750 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.92s" d="M600 94 C600 44 825 44 825 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.98s" d="M600 94 C600 32 900 32 900 94"/>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:2.04s" d="M600 94 C600 20 975 20 975 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:2.10s" d="M675 94 C675 68 750 68 750 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:2.16s" d="M675 94 C675 56 825 56 825 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:2.22s" d="M675 94 C675 44 900 44 900 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:2.28s" d="M675 94 C675 32 975 32 975 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:2.34s" d="M750 94 C750 68 825 68 825 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:2.40s" d="M750 94 C750 56 900 56 900 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:2.46s" d="M750 94 C750 44 975 44 975 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:2.52s" d="M825 94 C825 68 900 68 900 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:2.58s" d="M825 94 C825 56 975 56 975 94"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:2.64s" d="M900 94 C900 68 975 68 975 94"/>
+<g class="v-in" style="--d:3.00s"><text class="dg-xs dg-txt-bad" x="250" y="70" text-anchor="middle">path length grows with n</text></g>
+<g class="v-in" style="--d:3.00s"><text class="dg-xs dg-teal" x="1000" y="138" text-anchor="end">path length 1; work for every pair</text></g>
+</svg>
+<figcaption><strong>Figure 13.1.</strong> Attention trades sequential steps for work on every pair.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>Tokens and embeddings</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Text is split into subword tokens by an algorithm such as byte-pair encoding. Each
+          token becomes an integer id, and each id indexes a learned vector.
+        </p>
+        <ul>
+          <li>Common words become one token; rare words split into pieces.</li>
+          <li>Vocabularies of tens of thousands of tokens are typical; languages that are rare in the training data get split into more, shorter tokens.</li>
+          <li>Token counts differ from word counts, which is why pricing is per token.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="worked">
+          <span class="worked-label">Why tokenization matters</span>
+          <p>
+            "unbelievable" might be three tokens. Arithmetic on digits often fails because
+            "1234" is not one token and the model never sees the number as a unit.
+          </p>
+          <p>
+            This is a real capability limit with a mundane cause, and it is a good example of
+            how representation choices leak into behaviour.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>Self-attention, in one equation</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="eq" style="text-align:left">
+          Attention(Q, K, V) = softmax( QK<sup>⊤</sup> / √d<sub>k</sub> ) V
+        </div>
+        <p style="margin-top:14px">
+          Each token produces a <strong>query</strong>, a <strong>key</strong>, and a
+          <strong>value</strong>. The query is compared with every key to produce weights;
+          the weights average the values.
+        </p>
+        <p>
+          It is a soft, differentiable lookup: "what am I looking for, what do I have, and
+          what do I pass along?"
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Why divide by √d<sub>k</sub></h3>
+          <p>
+            Dot products of <var>d</var>-dimensional random vectors have variance growing
+            with <var>d</var>. Large scores push softmax into saturation, where gradients
+            vanish. Scaling by √<var>d</var> keeps the variance near 1.
+          </p>
+        </div>
+        <div class="panel panel--accent" style="margin-top:12px">
+          <h3>Causal masking</h3>
+          <p>
+            For generation, a token must not attend to future tokens. Set those scores to
+            −∞ before the softmax so their weights become zero.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s7">
+  <h2>Worked attention, three tokens</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+      <div class="worked">
+        <span class="worked-label">One head, d<sub>k</sub> = 2</span>
+        <p>
+          Query for token 1: <strong>q = [1, 0]</strong>. Keys:
+          <strong>k₁ = [1, 0]</strong>, <strong>k₂ = [0, 1]</strong>,
+          <strong>k₃ = [1, 1]</strong>. Values: <strong>v₁ = [1, 0]</strong>,
+          <strong>v₂ = [0, 1]</strong>, <strong>v₃ = [2, 2]</strong>.
+        </p>
+        <p class="eq" style="text-align:left">
+          scores = [1, 0, 1] / √2 ≈ [0.71, 0, 0.71]
+        </p>
+        <p class="eq" style="text-align:left">
+          softmax ≈ [0.40, 0.20, 0.40]
+        </p>
+        <p class="eq" style="text-align:left">
+          output = 0.40·[1,0] + 0.20·[0,1] + 0.40·[2,2]<br>
+          ≈ [1.20, 1.00]
+        </p>
+      </div>
+        <figure class="fig" style="margin-top:8px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 128" role="img" aria-labelledby="n13at n13ad">
+          <title id="n13at">Attention weights for token 1</title>
+          <desc id="n13ad">Three bars for the attention weights of token 1 over tokens 1, 2 and 3: 0.40, 0.20 and 0.40. They sum to 1. Under each bar is that token's value vector: [1, 0], [0, 1] and [2, 2].</desc>
+          
+          <path class="dg-line" d="M40 88 H 370"/>
+          <g class="dg-bars" style="--base:88px"><rect x="59.2" y="29.3" width="71.5" height="58.7" class="dg-card seq-bar" style="--d:0.10s"/><rect x="169.2" y="58.7" width="71.5" height="29.3" class="dg-gold seq-bar" style="--d:0.24s"/><rect x="279.2" y="29.3" width="71.5" height="58.7" class="dg-card seq-bar" style="--d:0.38s"/></g>
+          <text class="dg-txt-s" x="95" y="110" text-anchor="middle">token 1</text>
+          <text class="dg-txt-s" x="95" y="128" text-anchor="middle">v = [1, 0]</text>
+          <g class="v-in" style="--d:0.45s"><text class="dg-txt" x="95" y="21.3333" text-anchor="middle">0.40</text></g>
+          <text class="dg-txt-s" x="205" y="110" text-anchor="middle">token 2</text>
+          <text class="dg-txt-s" x="205" y="128" text-anchor="middle">v = [0, 1]</text>
+          <g class="v-in" style="--d:0.59s"><text class="dg-txt" x="205" y="50.6667" text-anchor="middle">0.20</text></g>
+          <text class="dg-txt-s" x="315" y="110" text-anchor="middle">token 3</text>
+          <text class="dg-txt-s" x="315" y="128" text-anchor="middle">v = [2, 2]</text>
+          <g class="v-in" style="--d:0.73s"><text class="dg-txt" x="315" y="21.3333" text-anchor="middle">0.40</text></g>
+          <g class="v-in" style="--d:0.90s"><text class="dg-txt-s" x="392" y="46">weights sum to 1</text><text class="dg-txt-b" x="392" y="74">output ≈ [1.20, 1.00]</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 13.2.</strong> The softmax output as a distribution over the three tokens.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <h3>Read the result</h3>
+        <p>
+          Token 1 attends mostly to itself and to token 3, because its query aligns with
+          both keys. Token 3's value dominates the output because its magnitude is larger.
+        </p>
+        <div class="panel panel--accent" style="margin-top:12px">
+          <h3>Two observations worth keeping</h3>
+          <ul>
+            <li>Attention weights are a <em>distribution</em>: they sum to 1 across positions.</li>
+            <li>Attention is not "understanding". It is a weighted average, and the weights are learned.</li>
+          </ul>
+        </div>
+        <p style="margin-top:12px; font-size:17px; color:var(--muted)">
+          One head captures one kind of relation. Multiple heads capture several in parallel.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s8">
+  <h2>The block: attention, feed-forward, and two shortcuts</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <div class="eq eq--tight" style="text-align:left">
+          x ← x + MultiHeadAttention(LN(x))<br>
+          x ← x + FFN(LN(x))
+        </div>
+        <p style="margin-top:14px">
+          Each sublayer is wrapped in a residual connection and preceded by layer
+          normalization (pre-LN). The feed-forward network is two linear layers with a
+          nonlinearity, applied identically to each position.
+        </p>
+        <p>
+          Most parameters live in the feed-forward layers, not in attention — typically about
+          two thirds.
+        </p>
+      </div>
+      <figure class="fig" style="max-width:80%">
+        <svg style="--dg-k:1.48" class="dg-seq" viewBox="64 10 294 279" role="img" aria-labelledby="f7t f7d">
+          <title id="f7t">A single transformer block</title>
+          <desc id="f7d">Input passes through layer normalization and multi-head attention, is added back to the input as a residual, then passes through layer normalization and a feed-forward network, added back again to produce the block output.</desc>
+          <defs>
+            <marker id="a13" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <g class="v-in" style="--d:0.00s">
+            <rect class="dg-box-m" x="120" y="10" width="160" height="34" rx="3"/>
+            <text class="dg-txt" x="200" y="32" text-anchor="middle">input x</text>
+          </g>
+          <g class="v-in" style="--d:0.13s">
+            <rect class="dg-box" x="120" y="60" width="160" height="30" rx="3"/>
+            <text class="dg-txt-s" x="200" y="80" text-anchor="middle">layer norm</text>
+          </g>          <g class="v-in" style="--d:0.26s">
+            <rect class="dg-box-a" x="120" y="104" width="160" height="36" rx="3"/>
+            <text class="dg-txt" x="200" y="127" text-anchor="middle">multi-head attention</text>
+          </g>
+          <path class="dg-line" d="M200 44 V 58" marker-end="url(#a13)"/>
+          <path class="dg-line" d="M200 90 V 102" marker-end="url(#a13)"/>
+          <path class="dg-line" d="M200 140 V 158" marker-end="url(#a13)"/>
+
+          <g class="v-in" style="--d:0.39s">
+            <circle cx="200" cy="168" r="9" class="dg-box-a"/>
+            <text class="dg-txt-b" x="200" y="172" text-anchor="middle">+</text>
+          </g>          <path class="dg-line" d="M120 27 H 64 V 168 H 189" marker-end="url(#a13)"/>
+
+          <g class="v-in" style="--d:0.52s">
+            <rect class="dg-box" x="120" y="186" width="160" height="30" rx="3"/>
+            <text class="dg-txt-s" x="200" y="206" text-anchor="middle">layer norm</text>
+          </g>          <g class="v-in" style="--d:0.65s">
+            <rect class="dg-box-t" x="120" y="230" width="160" height="36" rx="3"/>
+            <text class="dg-txt" x="200" y="253" text-anchor="middle">feed-forward</text>
+          </g>
+          <path class="dg-line" d="M200 177 V 184" marker-end="url(#a13)"/>
+          <path class="dg-line" d="M200 216 V 228" marker-end="url(#a13)"/>
+          <g class="v-in" style="--d:0.78s">
+            <circle cx="200" cy="280" r="9" class="dg-box-t"/>
+            <text class="dg-txt-b" x="200" y="284" text-anchor="middle">+</text>
+          </g>          <path class="dg-line" d="M200 266 V 271" marker-end="url(#a13)"/>
+          <path class="dg-line" d="M200 182 H 340 V 280 H 211" marker-end="url(#a13)"/>
+          <text class="dg-txt-s" x="356" y="240" text-anchor="middle" transform="rotate(-90 356 240)">residual</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 13.3.</strong> One block, top to bottom. A full model repeats it
+          dozens of times between an embedding layer and an output projection.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s9">
+  <h2>Position, and why attention needs it</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Attention is permutation-equivariant: shuffle the input tokens and the outputs
+          shuffle the same way. On its own it has no notion of order.
+        </p>
+        <p>
+          Position must therefore be injected — added to the embeddings, or encoded in the
+          attention scores (as in rotary position embeddings).
+        </p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Why this is not a minor detail</h3>
+        <p>
+          Without positional information, "dog bites man" and "man bites dog" are the same
+          input. The model can still learn a great deal — it becomes a bag-of-tokens — and
+          that is exactly the failure mode to watch for when debugging.
+        </p>
+        <p style="margin-top:8px">
+          Rotary embeddings are a common modern choice. On their own they do not make a
+          model reliable on sequences longer than it was trained on; that usually needs
+          extra techniques or further training.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 148" role="img" aria-labelledby="f13bt f13bd">
+<title id="f13bt">Why attention needs position information</title>
+<desc id="f13bd">Two sentences, dog bites man and man bites dog, each split into three tokens. Without position information both become the same set of tokens: bites, dog, man. With position added, dog at position 1 and dog at position 3 differ, so the inputs differ.</desc>
+<defs><marker id="mk-f13q" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#8b8f98"/></marker></defs>
+<g class="v-in" style="--d:0.20s"><text class="dg-sm-b" x="150" y="31" text-anchor="end">“dog bites man”</text></g>
+<g class="v-in" style="--d:0.30s"><rect class="dg-box-m" x="165" y="8" width="78" height="34" rx="4"/><text class="dg-xs" x="204" y="30" text-anchor="middle">dog</text></g>
+<g class="v-in" style="--d:0.40s"><rect class="dg-box-m" x="251" y="8" width="78" height="34" rx="4"/><text class="dg-xs" x="290" y="30" text-anchor="middle">bites</text></g>
+<g class="v-in" style="--d:0.50s"><rect class="dg-box-m" x="337" y="8" width="78" height="34" rx="4"/><text class="dg-xs" x="376" y="30" text-anchor="middle">man</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.00s" d="M430 25 H470" marker-end="url(#mk-f13q)"/>
+<g class="v-in" style="--d:1.20s"><text class="dg-xs dg-txt-bad" x="480" y="30">no position: {bites, dog, man}</text></g>
+<g class="v-in" style="--d:2.00s"><text class="dg-xs dg-teal" x="1000" y="30" text-anchor="end">with position: dog@1, bites@2, man@3</text></g>
+<g class="v-in" style="--d:0.50s"><text class="dg-sm-b" x="150" y="83" text-anchor="end">“man bites dog”</text></g>
+<g class="v-in" style="--d:0.60s"><rect class="dg-box-m" x="165" y="60" width="78" height="34" rx="4"/><text class="dg-xs" x="204" y="82" text-anchor="middle">man</text></g>
+<g class="v-in" style="--d:0.70s"><rect class="dg-box-m" x="251" y="60" width="78" height="34" rx="4"/><text class="dg-xs" x="290" y="82" text-anchor="middle">bites</text></g>
+<g class="v-in" style="--d:0.80s"><rect class="dg-box-m" x="337" y="60" width="78" height="34" rx="4"/><text class="dg-xs" x="376" y="82" text-anchor="middle">dog</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.30s" d="M430 77 H470" marker-end="url(#mk-f13q)"/>
+<g class="v-in" style="--d:1.50s"><text class="dg-xs dg-txt-bad" x="480" y="82">no position: {bites, dog, man}</text></g>
+<g class="v-in" style="--d:2.30s"><text class="dg-xs dg-teal" x="1000" y="82" text-anchor="end">with position: man@1, bites@2, dog@3</text></g>
+<g class="v-in" style="--d:2.80s"><text class="dg-xs" x="500" y="140" text-anchor="middle">without position the two inputs are identical; with it, they differ</text></g>
+</svg>
+<figcaption><strong>Figure 13.4.</strong> Without position, a transformer reads a bag of tokens.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s10">
+  <h2>From predictor to assistant</h2>
+  <p>Pretraining, post-training and RLHF.</p>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s11">
+  <h2>Pretraining: predict the next token, at scale</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          The objective is next-token prediction on a large corpus — self-supervised, so no
+          labels are needed beyond the text itself.
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          L = −Σ<sub>t</sub> log P(x<sub>t</sub> | x<sub>&lt;t</sub>)
+        </div>
+        <p style="margin-top:12px">
+          Everything the model knows about language, facts, and reasoning is a side effect of
+          getting very good at this. That is remarkable, and it is also why the model has no
+          explicit representation of truth.
+        </p>
+        <figure class="fig" style="margin-top:0">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 124" role="img" aria-labelledby="n13bt n13bd">
+          <title id="n13bt">Schematic scaling law</title>
+          <desc id="n13bd">A schematic plot with compute on a logarithmic horizontal axis and loss on a logarithmic vertical axis. Training runs fall along a straight downward line, so the loss of a larger run can be predicted before it starts. The plot does not show capabilities.</desc>
+          
+          <path class="dg-line" d="M50 22 V 96 H 450"/><text class="dg-txt-s" x="50" y="116" text-anchor="middle">10¹⁸</text><text class="dg-txt-s" x="450" y="116" text-anchor="middle">10²⁶</text><text class="dg-txt-s" x="250" y="116" text-anchor="middle">compute (log scale)</text><text class="dg-txt-s" x="50" y="10">loss (log scale)</text>
+          <path class="dg-plot-t draw" d="M58.0 33.1 L442.0 86.9" pathLength="1" style="--d:0.10s"/>
+          <g class="v-in" style="--d:0.30s"><circle class="dg-card" cx="74.0" cy="31.4" r="5"/></g>
+          <g class="v-in" style="--d:0.40s"><circle class="dg-card" cx="120.0" cy="45.8" r="5"/></g>
+          <g class="v-in" style="--d:0.50s"><circle class="dg-card" cx="166.0" cy="44.2" r="5"/></g>
+          <g class="v-in" style="--d:0.60s"><circle class="dg-card" cx="212.0" cy="58.7" r="5"/></g>
+          <g class="v-in" style="--d:0.70s"><circle class="dg-card" cx="258.0" cy="57.1" r="5"/></g>
+          <g class="v-in" style="--d:0.80s"><circle class="dg-card" cx="304.0" cy="71.6" r="5"/></g>
+          <g class="v-in" style="--d:0.90s"><circle class="dg-card" cx="350.0" cy="70.0" r="5"/></g>
+          <g class="v-in" style="--d:1.20s"><circle class="dg-box-a" cx="396.0" cy="80.4" r="7"/><text class="dg-lbl" x="396" y="64.44" text-anchor="middle">next run</text></g>
+          <g class="v-in" style="--d:0.90s"><text class="dg-txt-s" x="120" y="71.8">past runs</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 13.5.</strong> Schematic, not real data. The line forecasts loss, not abilities.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Scaling laws</h3>
+          <p>
+            Loss falls predictably as a power law in parameters, data, and compute. This
+            predictability is why labs can plan a training run before starting it — and why
+            "just make it bigger" was a rational strategy for several years.
+          </p>
+          <p style="margin-top:8px">
+            The caveat: the law predicts loss, not capability. Emergent behaviour at scale is
+            real but poorly predicted.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s12">
+  <h2>Post-training: from predictor to assistant</h2>
+  <div class="slide-main">
+    <div class="cols-3">
+      <div class="panel">
+        <h3>1 · Instruction tuning</h3>
+        <p>Fine-tune on demonstrations of instruction–response pairs. Teaches format and compliance, not new knowledge.</p>
+      </div>
+      <div class="panel">
+        <h3>2 · Preference model</h3>
+        <p>Humans rank pairs of responses. Train a reward model to predict the preferred one.</p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>3 · Preference optimization</h3>
+        <p>Optimize the policy against the reward model, with a penalty for drifting from the starting model.</p>
+      </div>
+    </div>
+    <div class="eq" style="margin-top:20px; text-align:left">
+      objective = E[ r<sub>φ</sub>(x, y) ] − β · KL( π<sub>θ</sub> ‖ π<sub>ref</sub> )
+    </div>
+    <p style="margin-top:14px">
+      The KL term is essential. Without it, the policy finds inputs where the reward model is
+      simply wrong — the reward-hacking failure from module 7, with a learned reward.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s13">
+  <h2>What RLHF does, and what it cannot do</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div class="panel panel--key">
+        <h3>It does</h3>
+        <ul>
+          <li>Align output style with annotator preference.</li>
+          <li>Reduce obviously unhelpful or hostile responses.</li>
+          <li>Make the model easier to steer with instructions.</li>
+        </ul>
+      </div>
+      <div class="panel panel--accent">
+        <h3>It does not</h3>
+        <ul>
+          <li>Add knowledge the pretraining data did not contain.</li>
+          <li>Make the model truthful in general — it makes it preferred.</li>
+          <li>Guarantee safety against a determined adversary.</li>
+          <li>Remove the annotator's biases from the objective.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        <strong>Preference is not truth.</strong> A model trained to be preferred learns what
+        annotators reward, which includes confidence, agreement, and fluency — the same
+        qualities that make a wrong answer persuasive.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s14">
+  <h2>Using language models</h2>
+  <p>Decoding, retrieval, evaluation and failure modes.</p>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s15">
+  <h2>Decoding: the same model, many behaviours</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption class="visually-hidden">Decoding: the same model, many behaviours</caption>
+      <thead>
+        <tr><th scope="col">Strategy</th><th scope="col">How</th><th scope="col">Effect</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Greedy</strong></td><td>Take the highest-probability token</td><td>Deterministic, repetitive</td></tr>
+        <tr><td><strong>Beam search</strong></td><td>Keep the <var>k</var> best sequences</td><td>Higher likelihood, often bland; bad for open-ended text</td></tr>
+        <tr><td><strong>Temperature</strong></td><td>Divide logits by <var>T</var></td><td>Low <var>T</var> sharpens, high <var>T</var> flattens</td></tr>
+        <tr><td><strong>Top-p (nucleus)</strong></td><td>Sample from the smallest set with cumulative probability <var>p</var></td><td>Adaptive truncation; the usual default</td></tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:16px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Decoding is a <strong>deployment decision, not a model property</strong>. Two systems
+        with identical weights behave differently, and an evaluation that does not fix the
+        decoder is not reproducible.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s16">
+  <h2>Retrieval: give the model the text it needs</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          A model cannot recall what it never stored reliably. Retrieval-augmented generation
+          adds a search step: embed the query, find relevant passages, and place them in the
+          context before generating.
+        </p>
+        <figure class="fig" style="margin-top:12px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 544 164" role="img" aria-labelledby="n13ct n13cd">
+          <title id="n13ct">Retrieval-augmented generation pipeline</title>
+          <desc id="n13cd">Offline, the corpus is chunked and embedded into a vector index. At question time, the top k chunks most similar to the question are retrieved from the index and given to the model, which answers with citations.</desc>
+          <defs><marker id="n13ca" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#16181d"/></marker></defs>
+          <g class="v-in" style="--d:0.00s"><rect class="dg-box-m" x="0" y="4" width="156" height="52" rx="3"/><text class="dg-txt-b" x="78" y="26" text-anchor="middle">corpus</text><text class="dg-txt-s" x="78" y="46" text-anchor="middle">documents</text></g>
+          <path class="dg-line v-draw" pathLength="1" style="--d:0.12s" d="M158 30 H 182" marker-end="url(#n13ca)"/>
+          <g class="v-in" style="--d:0.24s"><rect class="dg-box-t" x="186" y="4" width="170" height="52" rx="3"/><text class="dg-txt-b" x="271" y="26" text-anchor="middle">1 · index</text><text class="dg-txt-s" x="271" y="46" text-anchor="middle">chunk and embed</text></g>
+          <path class="dg-line v-draw" pathLength="1" style="--d:0.36s" d="M358 30 H 382" marker-end="url(#n13ca)"/>
+          <g class="v-in" style="--d:0.48s"><rect class="dg-box-m" x="386" y="4" width="156" height="52" rx="3"/><text class="dg-txt-b" x="464" y="26" text-anchor="middle">vector index</text><text class="dg-txt-s" x="464" y="46" text-anchor="middle">one per chunk</text></g>
+          <g class="v-in" style="--d:0.60s"><rect class="dg-box-m" x="0" y="110" width="156" height="52" rx="3"/><text class="dg-txt-b" x="78" y="132" text-anchor="middle">question</text><text class="dg-txt-s" x="78" y="152" text-anchor="middle">from the user</text></g>
+          <g class="v-in" style="--d:0.72s"><path class="dg-line" d="M158 136 H 182" marker-end="url(#n13ca)"/><path class="dg-line" d="M464 58 V 82 H 271 V 106" marker-end="url(#n13ca)"/></g>
+          <g class="v-in" style="--d:0.84s"><rect class="dg-box-t" x="186" y="110" width="170" height="52" rx="3"/><text class="dg-txt-b" x="271" y="132" text-anchor="middle">2 · retrieve</text><text class="dg-txt-s" x="271" y="152" text-anchor="middle">top-k by similarity</text></g>
+          <path class="dg-line v-draw" pathLength="1" style="--d:0.96s" d="M358 136 H 382" marker-end="url(#n13ca)"/>
+          <g class="v-in" style="--d:1.08s"><rect class="dg-box-a" x="386" y="110" width="156" height="52" rx="3"/><text class="dg-txt-b" x="464" y="132" text-anchor="middle">3 · generate</text><text class="dg-txt-s" x="464" y="152" text-anchor="middle">with citations</text></g>
+          <text class="dg-txt-s" x="0" y="90">offline, once</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 13.6.</strong> Index once, then retrieve and generate for every question. Each stage can fail on its own.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>RAG changes the failure mode</h3>
+          <p>
+            Instead of hallucinating from memory, the system now fails when retrieval fails —
+            wrong chunk, stale document, or a question that needs synthesis across many
+            passages.
+          </p>
+          <p style="margin-top:8px">
+            That is an improvement, because retrieval failures are inspectable. You can look
+            at what was retrieved.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            Evaluate retrieval and generation <strong>separately</strong>. A system that
+            answers well from bad context has hidden luck; one that answers badly from good
+            context has a generation problem.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s17">
+  <h2>Evaluation is the open problem</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <h3>Why it is hard</h3>
+        <ul>
+          <li>Open-ended outputs have no single correct answer.</li>
+          <li>Benchmarks saturate, then leak into pretraining data.</li>
+          <li>LLM-as-judge is cheap and biased toward fluent, long, agreeable answers.</li>
+          <li>Aggregate scores hide subgroup failures.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>What a defensible evaluation looks like</h3>
+        <ul>
+          <li>A held-out set you constructed, not one the model was trained on.</li>
+          <li>Task-specific metrics plus a small human audit.</li>
+          <li>Reported per subgroup, not only in aggregate.</li>
+          <li>Failure examples shown, not summarized away.</li>
+          <li>Decoder settings and prompt template reported.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        <strong>Contamination is the default assumption, not the exception.</strong> If a
+        benchmark has been public for years, assume the model has seen it unless you can show
+        otherwise.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s18">
+  <h2>Failure modes you will meet in practice</h2>
+  <div class="slide-main">
+    <table class="tbl tbl--compact">
+      <caption class="visually-hidden">Failure modes you will meet in practice</caption>
+      <thead>
+        <tr><th scope="col">Failure</th><th scope="col">Mechanism</th><th scope="col">Mitigation</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Hallucination</strong></td><td>Fluent continuation with no source; the objective rewards plausibility</td><td>Retrieval with citations; abstention training; verify claims</td></tr>
+        <tr><td><strong>Sycophancy</strong></td><td>Optimizing for human approval rewards agreement</td><td>Preference data that rewards correction; explicit disagreement tests</td></tr>
+        <tr><td><strong>Prompt injection</strong></td><td>Retrieved or user text is treated as instructions</td><td>Separate instruction and data channels; least privilege for tools</td></tr>
+        <tr><td><strong>Context dilution</strong></td><td>Relevant text is buried in a long prompt</td><td>Retrieve less, rank better, place evidence near the question</td></tr>
+        <tr><td><strong>Silent truncation</strong></td><td>Input exceeds the window and is cut</td><td>Count tokens; warn; chunk deliberately</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:14px">
+      Each row is a system property, not a model defect. That distinction matters: it means
+      the fix is usually in the architecture around the model, not in a bigger model.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 16 -->
+<section class="slide" id="s19">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>Attention is a learned weighted average.</strong><p>Query, key, value; softmax; scale by √d.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>The block is attention plus feed-forward, with residuals and layer norm.</strong><p>Most parameters live in the feed-forward layers.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Pretraining learns to predict, not to be truthful.</strong><p>Post-training shapes preference, not knowledge.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>RLHF aligns to annotators, including their biases.</strong><p>Preference is not truth, and the KL term exists for a reason.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Evaluation is the binding constraint.</strong><p>Assume contamination; build your own held-out set; report failures.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 17 -->
+<section class="slide" id="s20">
+  <h2>This week's work</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA chapters 23–24.</li>
+          <li>Vaswani et al. (2017), sections 1–3 only.</li>
+          <li>Ouyang et al. (2022), the RLHF pipeline section.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Reflection 7: what would you measure to detect sycophancy in a tutoring assistant?</li>
+          <li>Compute one attention output by hand before Friday's class.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — reflection 7.</li>
+          <li>Friday class, 8:30–11:10 a.m. CT, MIC: attention by hand, then failure modes; online students watch the recorded lecture.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next:</strong> module 14 puts perception and control around these models —
+        cameras, robots, and the systems engineering that keeps them working.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 18 ─────────────────────────────── Python learning resources -->
+<section class="slide" id="s21">
+  <h2>Python help for Lab 6</h2>
+  <div class="slide-main">
+    <p style="margin-bottom:14px">Lab 6 is a retriever, an answering stage and an evaluation harness. These cover the parts that are new.</p>
+    <ul class="resources">
+      <li><a href="https://huggingface.co/learn/llm-course/chapter1/1">Hugging Face LLM Course (free)</a><span class="src">huggingface.co</span><p>Tokenizers and transformer models in practice, chapter by chapter.</p></li>
+      <li><a href="https://sbert.net/docs/quickstart.html">Sentence Transformers quickstart</a><span class="src">sbert.net</span><p>Turn passages and questions into embeddings for the dense retriever.</p></li>
+      <li><a href="https://docs.python.org/3/library/collections.html">collections: Counter</a><span class="src">docs.python.org</span><p>Term counts for your own BM25 scoring.</p></li>
+      <li><a href="https://docs.python.org/3/library/json.html">json</a><span class="src">docs.python.org</span><p>corpus.jsonl and questions.jsonl hold one JSON object per line.</p></li>
+      <li><a href="https://numpy.org/doc/stable/user/basics.broadcasting.html">NumPy broadcasting</a><span class="src">numpy.org</span><p>Score one query against every passage at once.</p></li>
+      <li><a href="https://docs.python.org/3/library/dataclasses.html">dataclasses</a><span class="src">docs.python.org</span><p>One record per question: retrieved ids, answer, score and citation support.</p></li>
+    </ul>
+    <div class="callout" style="margin-top:20px">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>Get BM25 working and evaluated before you add the dense retriever.</p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 6 — Retrieval-augmented QA · CS 5700</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to lab content</a>
+
+<div class="doc">
+
+  <header class="doc-masthead">
+    <p class="inst">
+      <span>University of Central Missouri</span>
+      <span>CS 5700 Artificial Intelligence</span>
+      <span>Spring 2027</span>
+    </p>
+    <h1>Lab 6 — Retrieval-augmented question answering</h1>
+    <p class="tagline">
+      A system that answers from a fixed document collection and cites what it used — and
+      an evaluation that would catch it when it makes something up.
+    </p>
+    <p class="instructor">
+      <strong>Dr. Gorkem Kar</strong>
+      <span>Due: end of week 14</span>
+      <span>Weight: 4% of the course grade</span>
+      <span>Pairs permitted, with individual reports</span>
+    </p>
+  </header>
+
+  <main id="main">
+
+    <section>
+      <h2>What you are building</h2>
+      <p>
+        A grounded question-answering pipeline over the course's own reading notes — 252
+        short passages in <code>../data/lab6/corpus.jsonl</code>. Two stages: retrieve the
+        passages that could answer the question, then answer using only those passages and
+        cite them.
+      </p>
+      <p>
+        The corpus is small on purpose. With 252 passages, a lexical retriever is
+        competitive and cheap, and you can compare it honestly against a dense one instead
+        of assuming the embedding model wins.
+      </p>
+    </section>
+
+    <section>
+      <h2>Before you start</h2>
+      <ul>
+        <li>Module 13 (transformers and language models) and module 14 (perception, robotics, and systems that hold up).</li>
+        <li>AIMA 23–24 for the language-model background, and the evaluation slides from module 11 and module 13.</li>
+        <li>The provided corpus, the 73-question evaluation set (63 answerable, 10
+          deliberately not), and the answer key that ships with them — all documented in
+          <code>../data/README.md</code>.</li>
+        <li>Python help for this lab: <a href="https://huggingface.co/learn/llm-course/chapter1/1">Hugging Face LLM course</a> and the <a href="https://sbert.net/docs/quickstart.html">Sentence Transformers quickstart</a> for the dense retriever. More on the <a href="index.html">labs page</a>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Tasks</h2>
+
+      <h3>1. Two retrievers</h3>
+      <p>
+        Implement BM25 over the corpus with your own scoring, and build a dense retriever
+        using embeddings of your choice. The passages arrive already short, so the design
+        question is whether to leave them alone or to merge and re-split them into larger
+        windows — say which you chose and why, because that decision moves recall. Report
+        recall@1, recall@5 and MRR for both, on the evaluation set.
+      </p>
+
+      <h3>2. Grounded answering</h3>
+      <p>
+        Answer each question from the retrieved passages only, and return the source
+        identifiers you used. The system must be able to say <em>I cannot answer this from
+        the provided documents</em> — the evaluation set contains ten questions that the
+        corpus deliberately does not answer, and answering them anyway is the failure this
+        lab is built to detect.
+      </p>
+
+      <h3>3. Evaluate the answers, not just the retrieval</h3>
+      <p>
+        Score answers against the answer key on two axes: correctness, and whether every
+        claim is supported by a cited passage. Report the rate of unsupported claims, and
+        the false-answer rate on the ten unanswerable questions. Retrieval recall above
+        0.9 with a 30% unsupported-claim rate is a worse system than the reverse, and your
+        report should say so in those terms.
+      </p>
+
+      <h3>4. Failure analysis</h3>
+      <p>
+        Take five failures and classify each: retrieval miss, chunking error, correct
+        passage but wrong synthesis, or confident answer to an unanswerable question.
+        Propose the smallest change that would fix each, and say what that change would
+        cost elsewhere. One paragraph per failure.
+      </p>
+    </section>
+
+    <section>
+      <h2>Deliverables</h2>
+      <ul>
+        <li><strong>Code</strong> for both retrievers, the answering stage, and the evaluation harness.</li>
+        <li><strong>Results file</strong> with one row per question: retrieved ids, answer, score, citation support.</li>
+        <li><strong>Written report, 5–7 pages</strong>, including the failure taxonomy.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What the grader runs</h2>
+      <pre>python3 qa.py --questions ../data/lab6/questions.jsonl --out results.jsonl
+
+{"id": "q007", "answer": "A common mistake with breadth-first search: ...",
+ "citations": ["bfs-pitfall"], "refused": false}</pre>
+      <p>
+        One JSON object per line, in the order of the questions file. The grader scores
+        your file against <code>answers.json</code> on three axes:
+      </p>
+      <ul>
+        <li><strong>Answer correctness, 63 questions.</strong> A correct paraphrase earns
+          full credit. An answer is accepted when at least 60% of the key answer's content
+          words appear in yours, or when the character-trigram overlap passes 0.45 — so
+          rewording, reordering and light inflection are all fine. An answer that drops a
+          number from the key, or that flips a negation, is rejected however much it
+          overlaps.</li>
+        <li><strong>Refusal, 10 questions.</strong> At least 80% of the unanswerable
+          questions must be refused. Answering them is the failure this lab exists to
+          detect.</li>
+        <li><strong>Citation support.</strong> At least 70% of your answers must be backed
+          by a cited passage that actually contains the claim.</li>
+      </ul>
+      <p class="muted">
+        The matching is lexical, so it rewards using the corpus's own vocabulary — which is
+        what a grounded system should do anyway. It cannot tell a subtly wrong answer from a
+        right one when the words match; that is what the citation check and your own failure
+        analysis are for.
+      </p>
+      <p>
+        To check yourself before submitting, score your own <code>results.jsonl</code>
+        against <code>answers.json</code> with the three rules above. That is the evaluation
+        harness task 3 asks for, so you will have built it anyway.
+      </p>
+    </section>
+
+    <section>
+      <h2>How it is graded</h2>
+      <table class="tbl tbl--compact">
+        <thead><tr><th scope="col">Component</th><th scope="col" class="num">Weight</th><th scope="col">What earns full marks</th></tr></thead>
+        <tbody>
+          <tr><td>Retrieval</td><td class="num">25%</td><td>Both retrievers implemented; the comparison is measured, not assumed</td></tr>
+          <tr><td>Grounding</td><td class="num">30%</td><td>Answers cite real passages; unanswerable questions are refused</td></tr>
+          <tr><td>Evaluation design</td><td class="num">25%</td><td>Unsupported-claim rate and false-answer rate both reported and interpreted</td></tr>
+          <tr><td>Failure analysis</td><td class="num">20%</td><td>Correct classification, with a cost attached to each proposed fix</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Rules</h2>
+      <p>
+        Pairs may build the pipeline together but submit individual reports; both partners
+        must be able to explain the whole system. The syllabus late policy applies: 10% off per day for up to three days, then not accepted. Disclose
+        AI tool use — including whether the answering stage is a language model, and which
+        one, with its version recorded so the result can be reproduced.
+      </p>
+      <p>
+        Do not use the answer key to tune. It exists for scoring. If your reported numbers
+        cannot be regenerated from your code and the fixed evaluation set, they are not
+        accepted.
+      </p>
+    </section>
+
+    <section>
+      <h2>Check yourself before submitting</h2>
+      <ul class="objectives">
+        <li>Does your system refuse all ten unanswerable questions, or does it answer some?</li>
+        <li>Is every citation a passage that actually contains the claim?</li>
+        <li>Would a reader of your report know which retriever to use, and when?</li>
+        <li>Have you reported variance, or at least run the evaluation twice?</li>
+        <li>Does your failure taxonomy say what each fix would cost?</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CS 5700 · Lab 6 · University of Central Missouri · Spring 2027</p>
+  </footer>
+
+</div>
+</body>
+</html>

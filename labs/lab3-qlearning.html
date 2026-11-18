@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 3 — Q-learning · CS 5700</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to lab content</a>
+
+<div class="doc">
+
+  <header class="doc-masthead">
+    <p class="inst">
+      <span>University of Central Missouri</span>
+      <span>CS 5700 Artificial Intelligence</span>
+      <span>Spring 2027</span>
+    </p>
+    <h1>Lab 3 — Learning from experience</h1>
+    <p class="tagline">
+      Tabular Q-learning on the same gridworld you planned in, and an honest account of
+      what it costs to learn what you could have computed.
+    </p>
+    <p class="instructor">
+      <strong>Dr. Gorkem Kar</strong>
+      <span>Due: end of week 7</span>
+      <span>Weight: 4% of the course grade</span>
+      <span>Individual work</span>
+    </p>
+  </header>
+
+  <main id="main">
+
+    <section>
+      <h2>What you are building</h2>
+      <p>
+        An agent that does not know the transition model. It moves, observes rewards, and
+        updates a table. You will compare its learned policy with the optimal policy that
+        lab 2 computed, and you will report the gap rather than hiding it.
+      </p>
+      <p>
+        The environment is <code>../data/lab3/qenv.py</code> — a black box with a
+        <code>reset</code> method and a <code>step</code> method, running the worlds from
+        lab 2. You may read its rewards and its terminal flags; you may not read its
+        transition probabilities.
+        Any solution that inspects the model is worth zero regardless of the numbers it
+        produces.
+      </p>
+    </section>
+
+    <section>
+      <h2>Before you start</h2>
+      <ul>
+        <li>Module 7, especially TD learning, the Q-learning update, and the exploration/exploitation trade-off.</li>
+        <li>AIMA 22.1–22.4.</li>
+        <li>Your lab 2 planner, which you will use only as a source of ground truth for the comparison.</li>
+        <li>Python help for this lab: <a href="https://numpy.org/doc/stable/reference/random/generator.html">NumPy random generators</a> for seeding, and the <a href="https://matplotlib.org/stable/tutorials/pyplot.html">pyplot tutorial</a> for curves with a shaded band. More on the <a href="index.html">labs page</a>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Tasks</h2>
+
+      <h3>1. Q-learning</h3>
+      <p>
+        Implement tabular Q-learning with ε-greedy action selection. Every parameter —
+        learning rate, ε, decay, episode cap — must come from a configuration file. Log
+        the per-episode return and the number of steps, so the learning curve can be
+        plotted without re-running training.
+      </p>
+
+      <h3>2. Exploration schedules</h3>
+      <p>
+        Compare three schedules: constant ε = 0.1; ε decaying linearly to zero over the
+        first half of training; and ε decaying geometrically. Ten seeds each. Plot mean
+        return with a shaded band for one standard deviation — a single-seed curve is not
+        evidence, and the report will be read that way.
+      </p>
+
+      <h3>3. Compare with planning</h3>
+      <p>
+        After training, extract the greedy policy and compare it cell by cell with the
+        optimal policy from lab 2. Report the fraction of cells where they agree, and list
+        the cells where they differ. For each disagreement, say whether the difference is
+        a learning failure (the value estimate is wrong) or a tie (both actions are
+        optimal). Ties are not failures; conflating the two is the most common mistake in
+        this lab.
+      </p>
+
+      <h3>4. Cost of learning</h3>
+      <p>
+        Count the environment interactions your agent needed to reach 95% of the optimal
+        policy's return. Compare that with the number of transitions the planner needed
+        to read. State the ratio plainly. Then argue, in a paragraph, when learning is
+        worth that price — your argument should mention at least one situation where the
+        model is unavailable.
+      </p>
+    </section>
+
+    <section>
+      <h2>Deliverables</h2>
+      <ul>
+        <li><strong>Code</strong> for the agent, the schedules, and the experiment driver.</li>
+        <li><strong>Logs</strong> from the ten-seed runs, or a reproduction file that regenerates them.</li>
+        <li><strong>Written report, 4–6 pages</strong>, with the policy comparison and the
+          cost-of-learning argument.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What the grader runs</h2>
+      <pre>python3 qlearning.py --config config.json --world ../data/lab2/worlds/cliff.json \
+    --episodes 2000 --seed 3
+
+{"episodes": 2000, "seed": 3, "return_mean": 0.60,
+ "policy_agreement": 0.42, "interactions": 25547}</pre>
+      <p class="muted">
+        A real run: 2000 episodes on <code>cliff</code> with α = 0.1 and ε = 0.1 reaches a
+        mean return of about 0.60 over the last hundred episodes, agrees with the optimal
+        policy in roughly 42% of cells, and takes about 25 thousand steps. The low agreement
+        is not a bug to hide — most of the disagreements are cells the agent rarely visits,
+        and characterising them is task 3.
+      </p>
+      <p>
+        The configuration file holds α, ε and the schedule; flags on the command line
+        override it, so one config can serve several seeds. The grader reruns your command
+        with seeds 1, 2 and 3 and requires that the numbers you report fall inside the
+        spread of those runs — a single flattering seed is visible in that comparison,
+        which is the whole point of asking for ten.
+      </p>
+      <p>
+        Name your configuration file <code>config.json</code> in the submission root: the
+        grader passes <code>--config</code> only when that file exists, and the command-line
+        flags override whatever it contains.
+      </p>
+      <p>
+        To check yourself before submitting, run seeds 1, 2 and 3 with α = 0.1 and
+        ε = 0.1. A correct learner using <code>qenv.py</code> lands close to the numbers
+        above; the grader accepts a mean return within 0.15 of what real runs produce.
+      </p>
+    </section>
+
+    <section>
+      <h2>How it is graded</h2>
+      <table class="tbl tbl--compact">
+        <thead><tr><th scope="col">Component</th><th scope="col" class="num">Weight</th><th scope="col">What earns full marks</th></tr></thead>
+        <tbody>
+          <tr><td>Correctness</td><td class="num">30%</td><td>The update is the Q-learning update, and the agent never reads the model</td></tr>
+          <tr><td>Experimental honesty</td><td class="num">25%</td><td>Multiple seeds, variance shown, no cherry-picked curve</td></tr>
+          <tr><td>Policy comparison</td><td class="num">25%</td><td>Failures and ties are distinguished correctly</td></tr>
+          <tr><td>Written argument</td><td class="num">20%</td><td>The cost comparison is quantified and the conclusion is defended</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Rules</h2>
+      <p>
+        Individual work. The syllabus late policy applies: 10% off per day for up to three days, then not accepted. Disclose AI tool use. Reading
+        the environment's transition table, however convenient, invalidates the submission.
+      </p>
+    </section>
+
+    <section>
+      <h2>Check yourself before submitting</h2>
+      <ul class="objectives">
+        <li>Does your Q-table converge if you train for ten times longer, or does it oscillate?</li>
+        <li>Does the greedy policy visit the same cells as the planner's policy?</li>
+        <li>With ε fixed at 1.0, does the agent learn anything — and what does that tell you?</li>
+        <li>Are your curves the mean of ten seeds with a visible band?</li>
+        <li>Can you state the interaction count as a number, next to the planner's?</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CS 5700 · Lab 3 · University of Central Missouri · Spring 2027</p>
+  </footer>
+
+</div>
+</body>
+</html>

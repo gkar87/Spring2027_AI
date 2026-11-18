@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 2 — MDP planning · CS 5700</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to lab content</a>
+
+<div class="doc">
+
+  <header class="doc-masthead">
+    <p class="inst">
+      <span>University of Central Missouri</span>
+      <span>CS 5700 Artificial Intelligence</span>
+      <span>Spring 2027</span>
+    </p>
+    <h1>Lab 2 — Planning under uncertainty</h1>
+    <p class="tagline">
+      Value iteration and policy iteration on a slippery gridworld, and the argument for
+      choosing one over the other.
+    </p>
+    <p class="instructor">
+      <strong>Dr. Gorkem Kar</strong>
+      <span>Due: end of week 6</span>
+      <span>Weight: 4% of the course grade</span>
+      <span>Individual work</span>
+    </p>
+  </header>
+
+  <main id="main">
+
+    <section>
+      <h2>What you are building</h2>
+      <p>
+        A planner. Given a gridworld with stochastic transitions, a reward function, and a
+        discount factor, your program must produce an optimal value function and an
+        optimal policy — by both iteration methods — and report what each one cost.
+      </p>
+      <p>
+        The grid slips: with probability equal to the slip parameter, an intended move
+        goes perpendicular to the intended direction. Slip probability, discount, and grid
+        layout are all command-line parameters. Nothing may be hard-coded to one map.
+      </p>
+    </section>
+
+    <section>
+      <h2>Before you start</h2>
+      <ul>
+        <li>Module 6, especially the Bellman equations and the policy improvement theorem.</li>
+        <li>AIMA 17.1–17.2.</li>
+        <li>The four maps in <code>../data/lab2/worlds/</code> — <code>open6</code>,
+          <code>corridor</code>, <code>cliff</code> and <code>wall_adjacent</code>, the last
+          with its terminal in a walled corner. <code>../data/README.md</code> documents the
+          world format.</li>
+        <li>Python help for this lab: <a href="https://docs.python.org/3/library/json.html">json</a> to read the worlds, and <a href="https://numpy.org/doc/stable/user/absolute_beginners.html">NumPy for absolute beginners</a> if you solve the linear system with arrays. More on the <a href="index.html">labs page</a>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Tasks</h2>
+
+      <h3>1. Value iteration</h3>
+      <p>
+        Implement value iteration with a configurable convergence threshold. Report the
+        number of sweeps to convergence and the maximum Bellman residual at each sweep.
+        Convergence must be measured, not assumed: stop when the residual is below the
+        threshold, and record the sweep count.
+      </p>
+
+      <h3>2. Policy iteration</h3>
+      <p>
+        Implement policy evaluation (solving the linear system, or iterating to a tight
+        threshold — say which you did and why) followed by policy improvement, until the
+        policy stops changing. Report the number of improvement rounds and the number of
+        evaluation sweeps each round.
+      </p>
+
+      <h3>3. Compare</h3>
+      <p>
+        For each map, and for slip probabilities from 0.0 to 0.4 in steps of 0.1, record
+        iterations to convergence and wall-clock time for both methods. Produce a table
+        and one figure. Then answer, in prose: at what slip probability does the optimal
+        policy change, and which cells change first? That is the interesting question, and
+        it is worth more than the table.
+      </p>
+
+      <h3>4. Discount sensitivity</h3>
+      <p>
+        Fix one map. Vary the discount from 0.5 to 0.99. Show how the optimal policy and
+        the value scale change. Explain the effect in terms of the horizon the discount
+        implies — an effective horizon of roughly 1/(1 − γ) is a useful approximation to
+        state and then to justify.
+      </p>
+    </section>
+
+    <section>
+      <h2>Deliverables</h2>
+      <ul>
+        <li><strong>Code</strong> for both planners, plus the experiment driver.</li>
+        <li><strong>Reproduction file</strong> that regenerates every table and figure.</li>
+        <li><strong>Written report, 4–6 pages</strong>, including the policy-change analysis
+          and the discount discussion.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What the grader runs</h2>
+      <pre>python3 plan.py --world ../data/lab2/worlds/open6.json --method vi \
+    --gamma 0.9 --slip 0.1 --threshold 1e-6
+
+{"method": "vi", "sweeps": 24, "residual": 6.7e-07,
+ "values": [[0.45, 0.56, 0.68, 0.82, 0.98, 1.0], ...],
+ "policy": [["E", "E", "E", "E", "E", null], ...]}</pre>
+      <p class="muted">
+        Those are the real numbers for <code>open6</code> at γ = 0.9 with a 1e-6
+        threshold: 24 sweeps, a residual of 6.7 × 10⁻⁷, and the first row of the value
+        table above. A sweep count near 130 is what you would get if the threshold were
+        much tighter — report what you measured, not what you expected.
+      </p>
+      <p>
+        <code>--method</code> is <code>vi</code> or <code>pi</code>. Rather than compare
+        against one stored policy, the grader checks three properties on every map: both
+        methods return the same value function, your values satisfy the Bellman equation
+        to within 1e-4 when substituted back, and your policy is greedy with respect to
+        those values. A planner that passes all three is correct whatever its internals
+        look like — which also means you may choose how to solve the linear system.
+      </p>
+      <p>
+        <strong>Array convention.</strong> <code>values</code> is a
+        <code>rows × cols</code> array: <code>null</code> for a wall, the terminal's own
+        reward at a terminal cell, and the value everywhere else. <code>policy</code> is the
+        same shape with <code>"N"</code>, <code>"E"</code>, <code>"S"</code>,
+        <code>"W"</code> or <code>null</code>. Paths are passed to you absolute.
+      </p>
+      <p>
+        To check yourself before submitting, reproduce the <code>open6</code> numbers above,
+        then substitute your values back into the Bellman equation on every map: the largest
+        difference should be below 1e-4, and value and policy iteration should agree.
+      </p>
+    </section>
+
+    <section>
+      <h2>How it is graded</h2>
+      <table class="tbl tbl--compact">
+        <thead><tr><th scope="col">Component</th><th scope="col" class="num">Weight</th><th scope="col">What earns full marks</th></tr></thead>
+        <tbody>
+          <tr><td>Correctness</td><td class="num">35%</td><td>Both methods converge to the same optimal value function on every map</td></tr>
+          <tr><td>Measurement</td><td class="num">20%</td><td>Residuals and iteration counts are recorded, not estimated</td></tr>
+          <tr><td>Analysis</td><td class="num">30%</td><td>Correctly identifies where and why the policy changes with slip and with γ</td></tr>
+          <tr><td>Reproducibility</td><td class="num">15%</td><td>One command regenerates the report's numbers</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Rules</h2>
+      <p>
+        Individual work. The syllabus late policy applies: 10% off per day for up to three days, then not accepted. Disclose any AI tool use as the
+        syllabus requires; the analysis must be yours.
+      </p>
+    </section>
+
+    <section>
+      <h2>Check yourself before submitting</h2>
+      <ul class="objectives">
+        <li>Do both methods agree to within your threshold on all four maps?</li>
+        <li>Does value iteration converge faster in sweeps but slower in seconds, or the reverse — and can you say why?</li>
+        <li>With slip 0, does your policy match the shortest-path policy you would draw by hand?</li>
+        <li>As γ → 1, does the value function grow in the way the horizon argument predicts?</li>
+        <li>Does the planner handle a map where the greedy move is blocked by a wall?</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CS 5700 · Lab 2 · University of Central Missouri · Spring 2027</p>
+  </footer>
+
+</div>
+</body>
+</html>

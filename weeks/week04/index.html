@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 4 — Constraint Satisfaction and Local Search · CS 5700</title>
+<meta name="description" content="CS 5700 Module 4: constraint satisfaction problems, backtracking search, forward checking, arc consistency and AC-3, variable and value ordering, local search.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 4 lecture slides: Constraint Satisfaction">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 4 of 15</p>
+  <h1>Constraint Satisfaction and Local Search</h1>
+  <p class="subtitle">
+    When the problem is not a path to find but a set of variables that must agree.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.10s" d="M70 150 L160 70"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.20s" d="M70 150 L180 165"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.30s" d="M160 70 L180 165"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.40s" d="M160 70 L270 85"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.50s" d="M180 165 L270 85"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.60s" d="M180 165 L290 185"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.70s" d="M270 85 L290 185"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.80s" d="M180 165 L230 250"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.90s" d="M290 185 L230 250"/>
+<g class="v-in" style="--d:1.00s"><circle class="dg-box-a" cx="70" cy="150" r="22"/><text class="dg-xs" x="70" y="155" text-anchor="middle">WA</text></g>
+<g class="v-in" style="--d:1.20s"><circle class="dg-box-t" cx="160" cy="70" r="22"/><text class="dg-xs" x="160" y="75" text-anchor="middle">NT</text></g>
+<g class="v-in" style="--d:1.40s"><circle class="dg-box-m" cx="180" cy="165" r="22"/><text class="dg-xs" x="180" y="170" text-anchor="middle">SA</text></g>
+<g class="v-in" style="--d:1.60s"><circle class="dg-box-a" cx="270" cy="85" r="22"/><text class="dg-xs" x="270" y="90" text-anchor="middle">Q</text></g>
+<g class="v-in" style="--d:1.80s"><circle class="dg-box-t" cx="290" cy="185" r="22"/><text class="dg-xs" x="290" y="190" text-anchor="middle">NSW</text></g>
+<g class="v-in" style="--d:2.00s"><circle class="dg-box-a" cx="230" cy="250" r="22"/><text class="dg-xs" x="230" y="255" text-anchor="middle">V</text></g>
+<g class="v-in" style="--d:2.20s"><circle class="dg-box-t" cx="300" cy="280" r="22"/><text class="dg-xs" x="300" y="285" text-anchor="middle">T</text></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-sm dg-teal" x="190" y="320" text-anchor="middle">no two neighbours share a colour</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>Recognise when a problem is better modelled as a CSP than as a search problem, and say why.</li>
+      <li>Formalise a problem as variables, domains, and constraints, including global constraints.</li>
+      <li>Trace backtracking search with and without forward checking.</li>
+      <li>Define arc consistency, run AC-3 by hand, and say what it does and does not guarantee.</li>
+      <li>Apply MRV, degree, and least-constraining-value ordering, and predict their effect.</li>
+      <li>Choose between systematic search and local search for a given constraint problem.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        The midterm asks you to <strong>model a scheduling problem</strong> and then
+        defend an algorithm. Modelling earns more marks than the algorithm choice.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>Constraint satisfaction</h2>
+  <p>Change the representation and the algorithm changes with it.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>The representation changes the algorithm</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          In a search problem, a state is a complete world configuration and an action
+          changes it. In a CSP, a state is a <strong>partial assignment</strong> and an
+          action assigns a value to one variable.
+        </p>
+        <ul>
+          <li>The goal test is "all variables assigned and no constraint violated."</li>
+          <li>The path does not matter — only the final assignment does.</li>
+          <li>Therefore the order of assignment is irrelevant, and the branching factor collapses.</li>
+        </ul>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Commutativity is the whole advantage</h3>
+        <p>
+          Assigning Missouri first and Kansas second produces the same result as the
+          reverse. A search algorithm that treats them as different paths explores
+          <var>n</var>! orderings of the same assignment, for <var>n</var> variables.
+        </p>
+        <p>
+          For 25 variables that is 1.5 × 10²⁵ duplicate paths — thrown away by changing
+          the representation, not the hardware.
+        </p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        This is the same lesson as module 1: <strong>formulation is the decisive
+        step</strong>. Here it is worth a factor of 10²⁵.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>Formal definition</h2>
+  <div class="slide-main">
+    <div class="panel panel--definition">
+      <span class="term">Constraint satisfaction problem</span>
+      <p>
+        A set of variables <var>X</var> = {<var>X₁</var>, …, <var>X<sub>n</sub></var>},
+        a domain <var>D<sub>i</sub></var> for each, and a set of constraints
+        <var>C</var>. A solution is a complete assignment satisfying every constraint.
+      </p>
+    </div>
+    <div class="cols-2">
+      <div>
+        <h3>Constraint kinds</h3>
+        <ul>
+          <li><strong>Unary</strong> — restricts one variable (e.g. room capacity ≥ enrollment).</li>
+          <li><strong>Binary</strong> — relates two (e.g. <var>X</var> ≠ <var>Y</var>).</li>
+          <li><strong>Global</strong> — relates any number; <code>AllDifferent</code> is the workhorse.</li>
+          <li><strong>Soft</strong> — preferred but violable, which turns the problem into optimization.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>What counts as a solution</h3>
+        <p>
+          A <em>consistent</em> assignment violates no constraint. A <em>complete</em>
+          assignment covers every variable. A solution is both.
+        </p>
+        <p>
+          Many real problems have no solution at all, and the useful output is then a
+          minimal explanation of why — which is a different algorithm.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>Three formulations, one formalism</h2>
+  <div class="slide-main">
+    <table class="tbl tbl--compact">
+      <caption class="visually-hidden">Three formulations, one formalism</caption>
+      <thead>
+        <tr><th scope="col">Problem</th><th scope="col">Variables</th><th scope="col">Domains</th><th scope="col">Constraints</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Map colouring</strong></td>
+          <td>Regions</td>
+          <td>Three colours</td>
+          <td>Adjacent regions differ</td>
+        </tr>
+        <tr>
+          <td><strong>Sudoku</strong></td>
+          <td>81 cells</td>
+          <td>1–9</td>
+          <td>Rows, columns, boxes all different; givens are unary constraints</td>
+        </tr>
+        <tr>
+          <td><strong>Exam scheduling</strong></td>
+          <td>240 final exams</td>
+          <td>(day, slot, room) triples</td>
+          <td>No student conflict; room capacity; instructor availability; no two large exams in one slot</td>
+        </tr>
+        <tr>
+          <td><strong>Course timetabling</strong></td>
+          <td>Sections</td>
+          <td>(room, time)</td>
+          <td>Instructor availability; prerequisite chains; lab rooms only in the lab</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top:14px">
+      The fourth row is the kind of problem an AI team is asked to solve in a
+      university, and it is the reason this module exists in a graduate course: the
+      formulation work is the job, and the solver is a library.
+    </p>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        <strong>Note what changed in row 3:</strong> the domain is a triple, not a
+        single value. Choosing the right variable granularity is a modelling decision
+        with a large effect on runtime.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s7">
+  <h2>The constraint graph makes structure visible</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          Draw one node per variable and one edge per binary constraint. The graph's
+          shape tells you how hard the instance is, and it is the only picture that
+          makes the algorithms in this module intuitive.
+        </p>
+        <ul>
+          <li>A <strong>tree</strong> can be solved in time linear in the number of variables.</li>
+          <li>A <strong>dense</strong> graph is where backtracking struggles.</li>
+          <li><strong>Independent components</strong> can be solved separately and combined.</li>
+        </ul>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            Non-binary constraints are drawn as a hypergraph, or converted to binary with
+            auxiliary variables. The conversion is always possible and usually makes the
+            graph denser.
+          </p>
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.929" class="dg-seq" viewBox="74 44 282 182" role="img" aria-labelledby="f6t f6d">
+          <title id="f6t">Constraint graph for a small map-colouring problem</title>
+          <desc id="f6d">Six regions, A to F, as nodes, joined by undirected edges wherever two regions share a border. Edges: A–B, A–C, A–D, B–C, B–E, C–F, D–E and E–F. A, B and C form a triangle. The graph is sparse: each region touches at most three others. Colouring requires only local consistency checks.</desc>
+          <g class="v-in" style="--d:0.00s">
+            <circle cx="100" cy="96" r="26" class="dg-box-a"/>
+            <text class="dg-txt-b" x="100" y="101" text-anchor="middle">A</text>
+          </g>
+          <g class="v-in" style="--d:0.10s">
+            <circle cx="210" cy="70" r="26" class="dg-box-m"/>
+            <text class="dg-txt-b" x="210" y="75" text-anchor="middle">B</text>
+          </g>
+          <g class="v-in" style="--d:0.20s">
+            <circle cx="320" cy="104" r="26" class="dg-box-m"/>
+            <text class="dg-txt-b" x="320" y="109" text-anchor="middle">C</text>
+          </g>
+          <g class="v-in" style="--d:0.30s">
+            <circle cx="150" cy="190" r="26" class="dg-box-m"/>
+            <text class="dg-txt-b" x="150" y="195" text-anchor="middle">D</text>
+          </g>
+          <g class="v-in" style="--d:0.40s">
+            <circle cx="230" cy="180" r="26" class="dg-box-m"/>
+            <text class="dg-txt-b" x="230" y="185" text-anchor="middle">E</text>
+          </g>
+          <g class="v-in" style="--d:0.50s">
+            <circle cx="330" cy="200" r="26" class="dg-box-m"/>
+            <text class="dg-txt-b" x="330" y="205" text-anchor="middle">F</text>
+          </g>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:0.66s" d="M125 90 L185 76"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:0.74s" d="M235 78 L295 96"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:0.82s" d="M112 119 L138 167"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:0.90s" d="M215 96 L225 154"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:0.98s" d="M323 130 L327 174"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:1.06s" d="M176 187 L204 183"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:1.14s" d="M255 185 L305 195"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:1.22s" d="M126 100 Q210 128 294 108"/>
+        </svg>
+        <figcaption>
+          <strong>Figure 4.1.</strong> A sparse constraint graph; an edge means the two variables
+          must differ. A, B and C form a triangle, so three colours are needed. Degree matters: the most constrained variable is usually the one
+          with the most neighbours.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s8">
+  <h2>Search with inference</h2>
+  <p>Backtracking, forward checking, arc consistency and ordering.</p>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s9">
+  <h2>Backtracking search is depth-first search over assignments</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+<pre class="code"><span class="k">function</span> BACKTRACK(assignment, csp):
+  <span class="k">if</span> assignment is complete:
+    <span class="k">return</span> assignment          <span class="c"># solution</span>
+
+  var = SELECT-UNASSIGNED-VAR(csp, assignment)
+  <span class="k">for</span> value <span class="k">in</span> ORDER-DOMAIN-VALUES(var, assignment):
+    <span class="k">if</span> value is consistent with assignment:
+      assignment[var] = value
+      result = BACKTRACK(assignment, csp)
+      <span class="k">if</span> result is not failure:
+        <span class="k">return</span> result
+      <span class="k">del</span> assignment[var]        <span class="c"># undo</span>
+
+  <span class="k">return</span> failure</pre>
+      </div>
+      <div>
+        <p>
+          The two capitalised lines are the entire research area. <strong>Which variable
+          next, and which value next?</strong> Everything else is bookkeeping.
+        </p>
+        <p>
+          Three optional improvements, in increasing order of power:
+        </p>
+        <ol>
+          <li><strong>Forward checking</strong> — prune domains of neighbours when you assign.</li>
+          <li><strong>Constraint propagation</strong> — enforce arc consistency after each assignment.</li>
+          <li><strong>Intelligent backtracking</strong> — jump back to the variable that caused the conflict.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s10">
+  <h2>Forward checking: look one step ahead</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          When you assign <var>X</var> = <var>v</var>, remove from each unassigned
+          neighbour's domain every value inconsistent with <var>v</var>. If any domain
+          becomes empty, backtrack immediately.
+        </p>
+        <div class="worked">
+          <span class="worked-label">Worked example — colouring with three colours</span>
+          <p>
+            Assign A = red: B, C and D lose red. Assign B = green: C loses green, so
+            C = blue is forced, and E loses green. Assign D = blue: E loses blue, so
+            E = red is forced. Now try F = red: <strong>E's domain becomes empty</strong>,
+            so backtrack before expanding anything below.
+          </p>
+        </div>
+        <figure class="fig" style="margin-top:12px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 124" role="img" aria-labelledby="n4at n4ad">
+          <title id="n4at">Domains during forward checking</title>
+          <desc id="n4ad">A grid of the domains of variables A to F after each assignment. After A equals red, B, C and D keep green and blue. After B equals green, C has only blue and E has red and blue. After D equals blue, E has only red. After F equals red, E's domain is empty, so the search backtracks.</desc>
+          
+          <text class="dg-txt-b" x="106" y="14" text-anchor="middle">A</text><text class="dg-txt-b" x="184" y="14" text-anchor="middle">B</text><text class="dg-txt-b" x="262" y="14" text-anchor="middle">C</text><text class="dg-txt-b" x="340" y="14" text-anchor="middle">D</text><text class="dg-txt-b" x="418" y="14" text-anchor="middle">E</text><text class="dg-txt-b" x="496" y="14" text-anchor="middle">F</text>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt-s" x="0" y="41">A = r</text><rect class="dg-card" x="74" y="26" width="64" height="20" rx="2"/><text class="dg-txt-b" x="106" y="41" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">r</text><rect class="dg-box-t" x="174" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="184" y="41" text-anchor="middle">g</text><rect class="dg-box-t" x="196" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="206" y="41" text-anchor="middle">b</text><rect class="dg-box-t" x="252" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="262" y="41" text-anchor="middle">g</text><rect class="dg-box-t" x="274" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="284" y="41" text-anchor="middle">b</text><rect class="dg-box-t" x="330" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="340" y="41" text-anchor="middle">g</text><rect class="dg-box-t" x="352" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="362" y="41" text-anchor="middle">b</text><rect class="dg-box-t" x="386" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="396" y="41" text-anchor="middle">r</text><rect class="dg-box-t" x="408" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="418" y="41" text-anchor="middle">g</text><rect class="dg-box-t" x="430" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="440" y="41" text-anchor="middle">b</text><rect class="dg-box-t" x="464" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="474" y="41" text-anchor="middle">r</text><rect class="dg-box-t" x="486" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="496" y="41" text-anchor="middle">g</text><rect class="dg-box-t" x="508" y="26" width="20" height="20" rx="2"/><text class="dg-txt" x="518" y="41" text-anchor="middle">b</text></g>
+          <g class="v-in" style="--d:0.45s"><text class="dg-txt-s" x="0" y="66">B = g</text><rect class="dg-card" x="74" y="51" width="64" height="20" rx="2"/><text class="dg-txt-b" x="106" y="66" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">r</text><rect class="dg-card" x="152" y="51" width="64" height="20" rx="2"/><text class="dg-txt-b" x="184" y="66" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">g</text><rect class="dg-box-t" x="274" y="51" width="20" height="20" rx="2"/><text class="dg-txt" x="284" y="66" text-anchor="middle">b</text><rect class="dg-box-t" x="330" y="51" width="20" height="20" rx="2"/><text class="dg-txt" x="340" y="66" text-anchor="middle">g</text><rect class="dg-box-t" x="352" y="51" width="20" height="20" rx="2"/><text class="dg-txt" x="362" y="66" text-anchor="middle">b</text><rect class="dg-box-t" x="386" y="51" width="20" height="20" rx="2"/><text class="dg-txt" x="396" y="66" text-anchor="middle">r</text><rect class="dg-box-t" x="430" y="51" width="20" height="20" rx="2"/><text class="dg-txt" x="440" y="66" text-anchor="middle">b</text><rect class="dg-box-t" x="464" y="51" width="20" height="20" rx="2"/><text class="dg-txt" x="474" y="66" text-anchor="middle">r</text><rect class="dg-box-t" x="486" y="51" width="20" height="20" rx="2"/><text class="dg-txt" x="496" y="66" text-anchor="middle">g</text><rect class="dg-box-t" x="508" y="51" width="20" height="20" rx="2"/><text class="dg-txt" x="518" y="66" text-anchor="middle">b</text></g>
+          <g class="v-in" style="--d:0.80s"><text class="dg-txt-s" x="0" y="91">D = b</text><rect class="dg-card" x="74" y="76" width="64" height="20" rx="2"/><text class="dg-txt-b" x="106" y="91" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">r</text><rect class="dg-card" x="152" y="76" width="64" height="20" rx="2"/><text class="dg-txt-b" x="184" y="91" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">g</text><rect class="dg-box-t" x="274" y="76" width="20" height="20" rx="2"/><text class="dg-txt" x="284" y="91" text-anchor="middle">b</text><rect class="dg-card" x="308" y="76" width="64" height="20" rx="2"/><text class="dg-txt-b" x="340" y="91" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">b</text><rect class="dg-box-t" x="386" y="76" width="20" height="20" rx="2"/><text class="dg-txt" x="396" y="91" text-anchor="middle">r</text><rect class="dg-box-t" x="464" y="76" width="20" height="20" rx="2"/><text class="dg-txt" x="474" y="91" text-anchor="middle">r</text><rect class="dg-box-t" x="486" y="76" width="20" height="20" rx="2"/><text class="dg-txt" x="496" y="91" text-anchor="middle">g</text><rect class="dg-box-t" x="508" y="76" width="20" height="20" rx="2"/><text class="dg-txt" x="518" y="91" text-anchor="middle">b</text></g>
+          <g class="v-in" style="--d:1.15s"><text class="dg-txt-s" x="0" y="116">F = r</text><rect class="dg-card" x="74" y="101" width="64" height="20" rx="2"/><text class="dg-txt-b" x="106" y="116" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">r</text><rect class="dg-card" x="152" y="101" width="64" height="20" rx="2"/><text class="dg-txt-b" x="184" y="116" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">g</text><rect class="dg-box-t" x="274" y="101" width="20" height="20" rx="2"/><text class="dg-txt" x="284" y="116" text-anchor="middle">b</text><rect class="dg-card" x="308" y="101" width="64" height="20" rx="2"/><text class="dg-txt-b" x="340" y="116" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">b</text><rect class="dg-box-a" x="386" y="101" width="64" height="20" rx="2"/><text class="dg-lbl" x="418" y="116" text-anchor="middle">empty</text><rect class="dg-card" x="464" y="101" width="64" height="20" rx="2"/><text class="dg-txt-b" x="496" y="116" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">r</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 4.2.</strong> Domains after each assignment; filled cells are assigned values.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>What forward checking achieves</h3>
+          <p>
+            It detects failure as soon as a domain empties, rather than after assigning
+            every remaining variable and discovering the conflict at the leaf.
+          </p>
+        </div>
+        <div class="panel panel--accent" style="margin-top:14px">
+          <h3>What it does not achieve</h3>
+          <p>
+            It does not reason between two <em>unassigned</em> variables. After D = blue,
+            C can only be blue and E can only be red, which leaves F one safe value. Forward
+            checking does not work that out; it waits until F = red fails.
+          </p>
+        </div>
+        <p style="margin-top:14px; font-size:17px; color:var(--muted)">
+          That gap is exactly what arc consistency closes.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s11">
+  <h2>Arc consistency: every value must have a partner</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="panel panel--definition">
+          <span class="term">Arc consistency</span>
+          <p>
+            A binary constraint between <var>X</var> and <var>Y</var> is consistent
+            (the arc <var>X</var> → <var>Y</var> is satisfied) if for every value in
+            <var>D<sub>X</sub></var> there exists some value in
+            <var>D<sub>Y</sub></var> that satisfies the constraint.
+          </p>
+        </div>
+        <p style="margin-top:14px">
+          Note the direction. Arc consistency is checked per directed arc, and
+          <var>X</var> → <var>Y</var> can hold while <var>Y</var> → <var>X</var> fails.
+        </p>
+        <p>
+          Enforcing it means deleting values that have no support. Deleting a value can
+          break a neighbouring arc, so the process must repeat to a fixed point.
+        </p>
+      </div>
+      <div>
+        <h3>What it guarantees, and what it does not</h3>
+        <ul>
+          <li><strong>Guarantees:</strong> no domain is empty, and every remaining value can be extended one step.</li>
+          <li><strong>Does not guarantee:</strong> a solution exists. A network can be arc-consistent and still unsatisfiable.</li>
+        </ul>
+        <div class="callout" style="margin-top:14px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            Arc consistency is <strong>sound pruning, not a decision procedure</strong>.
+            On tree-structured graphs it becomes one, which is why slide 18 matters.
+          </p>
+        </div>
+        <figure class="fig" style="margin-top:10px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 132" role="img" aria-labelledby="n4bt n4bd">
+          <title id="n4bt">Making the arc from X to Y consistent</title>
+          <desc id="n4bd">Constraint X less than Y. X's domain is 1, 2, 3 and Y's domain is 1, 2. X equals 1 is supported by Y equals 2. X equals 2 and X equals 3 have no partner in Y, so they are deleted from X.</desc>
+          
+          <g class="v-in" style="--d:0.10s"><ellipse class="dg-box-t" cx="120" cy="66" rx="44" ry="64"/><text class="dg-txt-b" x="120" y="34" text-anchor="middle">1</text><text class="dg-txt-b" x="120" y="72" text-anchor="middle">2</text><text class="dg-txt-b" x="120" y="110" text-anchor="middle">3</text><text class="dg-txt-b" x="60" y="72" text-anchor="middle">X</text></g>
+          <g class="v-in" style="--d:0.20s"><ellipse class="dg-box-m" cx="420" cy="66" rx="44" ry="52"/><text class="dg-txt-b" x="420" y="52" text-anchor="middle">1</text><text class="dg-txt-b" x="420" y="92" text-anchor="middle">2</text><text class="dg-txt-b" x="482" y="72" text-anchor="middle">Y</text></g>
+          <g class="v-in" style="--d:0.30s"><text class="dg-txt-s" x="270" y="14" text-anchor="middle">constraint: X &lt; Y</text></g>
+          <g class="v-in" style="--d:0.60s"><path class="dg-line" d="M134 28 L 406 82"/><text class="dg-txt-s" x="270" y="40" text-anchor="middle">1 &lt; 2: supported</text></g>
+          <g class="v-in" style="--d:1.00s"><path class="dg-plot-a" d="M110 58 L 130 74 M130 58 L110 74 M110 96 L 130 112 M130 96 L110 112"/><text class="dg-lbl" x="176" y="100">2 and 3 have no partner:</text><text class="dg-lbl" x="176" y="120">deleted from X</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 4.3.</strong> Checking X → Y deletes values of X with no partner in Y.
+        </figcaption>
+      </figure>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s12">
+  <h2>The AC-3 algorithm</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+<pre class="code"><span class="k">function</span> AC-3(csp):
+  queue = all arcs in csp        <span class="c"># both directions</span>
+
+  <span class="k">while</span> queue not empty:
+    (X, Y) = queue.pop()
+    <span class="k">if</span> REVISE(csp, X, Y):       <span class="c"># domain of X changed</span>
+      <span class="k">if</span> D[X] is empty:
+        <span class="k">return</span> false                <span class="c"># inconsistent</span>
+      <span class="k">for</span> Z <span class="k">in</span> neighbours(X) − {Y}:
+        queue.push((Z, X))    <span class="c"># recheck arcs into X</span>
+
+  <span class="k">return</span> true</pre>
+      </div>
+      <div>
+        <h3>Trace on the colouring example</h3>
+        <table class="tbl tbl--compact">
+          <caption>State after A = red, B = green, D = blue: C {blue}, E {red}, F {red, green, blue}. REVISE(X, Y) prunes X.</caption>
+          <thead><tr><th scope="col">Step</th><th scope="col">Arc</th><th scope="col">Effect</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>C → A</td><td>No change (blue is supported)</td></tr>
+            <tr><td>2</td><td>E → D</td><td>No change (red is supported)</td></tr>
+            <tr><td>3</td><td>F → C</td><td>F loses blue → F {red, green}</td></tr>
+            <tr><td>4</td><td>F → E</td><td>F loses red → <strong>F {green}</strong></td></tr>
+            <tr><td>5</td><td>C → F, E → F</td><td>Re-queued; no change → return true</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:12px; font-size:17px">
+          Propagation alone forces F = green, so the F = red dead end from forward
+          checking never happens. That is the difference between checking and reasoning.
+        </p>
+      </div>
+    </div>
+    <div class="eq eq--tight" style="margin-top:18px">
+      O(e · d³)
+      <span class="cond">e arcs, domain size d. Each arc may be revised at most d times, each revision costs d².</span>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s13">
+  <h2>Variable ordering: fail first, fail fast</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="panel panel--definition">
+          <span class="term">Minimum remaining values (MRV)</span>
+          <p>
+            Choose the unassigned variable with the fewest legal values left. Also
+            called the "most constrained variable" heuristic.
+          </p>
+        </div>
+        <p style="margin-top:14px">
+          The reasoning is a chess principle: if a branch is going to fail, you want to
+          know now, while the tree above it is small. MRV picks the variable most likely
+          to fail immediately.
+        </p>
+        <div class="panel panel--definition" style="margin-top:14px">
+          <span class="term">Degree heuristic</span>
+          <p>
+            Break ties by choosing the variable involved in the most constraints with
+            other unassigned variables. It is a tie-breaker, not a primary rule.
+          </p>
+        </div>
+      </div>
+      <div>
+        <h3>Value ordering: succeed first</h3>
+        <div class="panel panel--definition">
+          <span class="term">Least constraining value (LCV)</span>
+          <p>
+            Among the values for the chosen variable, try first the one that rules out
+            the fewest values in neighbouring domains.
+          </p>
+        </div>
+        <p style="margin-top:14px">
+          MRV asks "which variable is most likely to fail?" LCV asks "which value is
+          least likely to cause failure?" The first reduces the tree; the second hopes
+          to find a solution on the first branch, which matters when you need only one
+          solution.
+        </p>
+        <p style="font-size:17px; color:var(--muted)">
+          If you needed <em>all</em> solutions, LCV would be pointless: you must explore
+          everything anyway.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s14">
+  <h2>What ordering is actually worth</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <table class="tbl tbl--compact">
+          <caption>Indicative node counts for random CSP instances near the phase transition.</caption>
+          <thead><tr><th scope="col">Configuration</th><th scope="col" class="num">Nodes</th></tr></thead>
+          <tbody>
+            <tr><td>Backtracking, arbitrary order</td><td class="num">~10⁶</td></tr>
+            <tr><td>+ MRV</td><td class="num">~10⁴</td></tr>
+            <tr><td>+ forward checking</td><td class="num">~10³</td></tr>
+            <tr><td>+ AC-3 at every node</td><td class="num">~10²</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:12px">
+          Each row is a change of one line in the same forty-line algorithm. This is
+          where CSP work actually happens in practice.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>The phase transition</h3>
+          <p>
+            Random CSPs are easy when constraints are sparse (many solutions) and easy
+            when they are dense (fail fast), and hardest near the ratio where
+            satisfiability flips.
+          </p>
+          <p>
+            That peak is where benchmark instances live, and it is why published node
+            counts differ by orders of magnitude between papers that look similar.
+          </p>
+        </div>
+        <p style="margin-top:14px; font-size:17px; color:var(--muted)">
+          When you read a solver benchmark, ask where on this curve the instances sit.
+          A method that wins at the peak may lose everywhere else.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 112" role="img" aria-labelledby="f4at f4ad">
+<title id="f4at">Search work against constraint density for random CSPs</title>
+<desc id="f4ad">A curve of search work against the number of constraints per variable. Work is low on the left, where problems have many solutions, rises to a sharp peak in the middle, where satisfiability flips, and falls again on the right, where search fails fast. The peak region is shaded.</desc>
+<path class="dg-line-q" d="M60 92 H940 M60 92 V6"/>
+<text class="dg-xs" x="940" y="108" text-anchor="end">constraints per variable →</text>
+<text class="dg-xs" x="52" y="14" text-anchor="end">work</text>
+<g class="v-in" style="--d:0.20s"><rect class="dg-band-a" x="456" y="6" width="176" height="86"/></g>
+<path class="dg-plot-a v-draw" pathLength="1" style="--d:0.40s" d="M60.0 90.0 L68.8 90.0 L77.6 90.0 L86.4 90.0 L95.2 90.0 L104.0 90.0 L112.8 90.0 L121.6 90.0 L130.4 90.0 L139.2 90.0 L148.0 90.0 L156.8 90.0 L165.6 90.0 L174.4 90.0 L183.2 90.0 L192.0 90.0 L200.8 90.0 L209.6 90.0 L218.4 90.0 L227.2 90.0 L236.0 90.0 L244.8 90.0 L253.6 90.0 L262.4 90.0 L271.2 90.0 L280.0 90.0 L288.8 90.0 L297.6 90.0 L306.4 90.0 L315.2 90.0 L324.0 90.0 L332.8 90.0 L341.6 90.0 L350.4 90.0 L359.2 89.9 L368.0 89.9 L376.8 89.8 L385.6 89.6 L394.4 89.4 L403.2 88.9 L412.0 88.1 L420.8 86.9 L429.6 85.2 L438.4 82.7 L447.2 79.4 L456.0 74.9 L464.8 69.3 L473.6 62.5 L482.4 54.6 L491.2 46.1 L500.0 37.3 L508.8 28.7 L517.6 21.1 L526.4 15.2 L535.2 11.3 L544.0 10.0 L552.8 11.3 L561.6 15.2 L570.4 21.1 L579.2 28.7 L588.0 37.3 L596.8 46.1 L605.6 54.6 L614.4 62.5 L623.2 69.3 L632.0 74.9 L640.8 79.4 L649.6 82.7 L658.4 85.2 L667.2 86.9 L676.0 88.1 L684.8 88.9 L693.6 89.4 L702.4 89.6 L711.2 89.8 L720.0 89.9 L728.8 89.9 L737.6 90.0 L746.4 90.0 L755.2 90.0 L764.0 90.0 L772.8 90.0 L781.6 90.0 L790.4 90.0 L799.2 90.0 L808.0 90.0 L816.8 90.0 L825.6 90.0 L834.4 90.0 L843.2 90.0 L852.0 90.0 L860.8 90.0 L869.6 90.0 L878.4 90.0 L887.2 90.0 L896.0 90.0 L904.8 90.0 L913.6 90.0 L922.4 90.0 L931.2 90.0 L940.0 90.0"/>
+<g class="v-in" style="--d:1.40s"><text class="dg-xs dg-teal" x="200" y="72" text-anchor="middle">easy: many solutions</text></g>
+<g class="v-in" style="--d:1.80s"><text class="dg-xs dg-txt-bad" x="610" y="22">hard: satisfiability flips here</text></g>
+<g class="v-in" style="--d:2.20s"><text class="dg-xs dg-teal" x="820" y="72" text-anchor="middle">easy: fails fast</text></g>
+</svg>
+<figcaption><strong>Figure 4.4.</strong> Benchmark instances sit under the peak.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s15">
+  <h2>Local search and structure</h2>
+  <p>Repair a complete answer, and use the shape of the problem.</p>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s16">
+  <h2>Local search: stop building a tree, start repairing an answer</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Keep a complete assignment and change one variable at a time to reduce the
+          number of violated constraints. No backtracking, no tree, constant memory.
+        </p>
+        <div class="worked">
+          <span class="worked-label">Min-conflicts on 8-queens</span>
+          <p>
+            Place eight queens randomly. Repeatedly pick a queen in conflict and move it
+            to the row in its column that minimizes conflicts.
+          </p>
+          <p class="eq">Average work: about 50 steps, for a space of 8⁸ = 16.7 million</p>
+        </div>
+        <p style="margin-top:10px">
+          The same method solves million-queens instances in about the same number of
+          steps. That is not a constant-factor improvement; it is a different scaling
+          law.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Why it works so well on n-queens</h3>
+          <p>
+            A random complete assignment has very few conflicts, and each move fixes
+            local trouble. The solution density is high enough that hill climbing finds
+            one quickly.
+          </p>
+        </div>
+        <div class="panel panel--accent" style="margin-top:14px">
+          <h3>Why it fails elsewhere</h3>
+          <p>
+            If solutions are rare, or the constraints are tight enough that any single
+            move creates new conflicts, min-conflicts wanders. It also cannot prove
+            unsatisfiability — it can only fail to find a solution.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s17">
+  <h2>Hill climbing, and the landscape it climbs</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          Hill climbing moves to the best neighbour; it stops at a local maximum. Three
+          standard escapes:
+        </p>
+        <ul>
+          <li><strong>Random restart</strong> — begin again elsewhere; effective when restarts are cheap.</li>
+          <li><strong>Stochastic hill climbing</strong> — pick randomly among uphill moves, biased by steepness.</li>
+          <li><strong>Simulated annealing</strong> — accept downhill moves with probability <var>e</var><sup>−Δ/T</sup>, lowering <var>T</var> over time.</li>
+        </ul>
+        <div class="eq eq--tight" style="margin-top:12px">
+          P(accept) = e<sup>−ΔE / T</sup>
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.36" viewBox="20 31.7 400 246.5" role="img" aria-labelledby="f14t f14d">
+          <title id="f14t">A search landscape with a local and a global maximum</title>
+          <desc id="f14d">A curve with two peaks and a flat plateau. A ball starting on the left climbs to the smaller peak and stops, never reaching the taller peak on the right.</desc>
+          <path d="M20 240 Q 70 120 120 160 T 220 130 T 320 60 T 420 220"
+                fill="none" stroke="#16181d" stroke-width="2"/>
+          <circle cx="120" cy="160" r="7" class="dg-card"/>
+          <text class="dg-txt-s" x="120" y="186" text-anchor="middle">local max</text>
+          <circle cx="320" cy="60" r="7" class="dg-box-t"/>
+          <text class="dg-txt-s" x="320" y="42" text-anchor="middle">global max</text>
+          <path class="dg-dash" d="M186 150 L 176 150"/>
+          <text class="dg-txt-s" x="186" y="168" text-anchor="middle">plateau</text>
+          <text class="dg-txt-s" x="220" y="276" text-anchor="middle">state space</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 4.5.</strong> Hill climbing from the left stops at the local
+          maximum. Restarts sample the landscape; annealing can cross a valley.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s18">
+  <h2>Structure: the only reliable way to make hard problems easy</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <h3>Independent subproblems</h3>
+        <p>
+          If the constraint graph splits into components with no edges between them,
+          solve each separately and combine. A problem that looks like
+          <var>O</var>(<var>d<sup>n</sup></var>) becomes <var>O</var>(<var>d<sup>c</sup></var>)
+          per component of size <var>c</var>.
+        </p>
+        <p>
+          Tasmania and the Australian mainland are the textbook example; the UCM example
+          is a set of courses that share no students.
+        </p>
+      </div>
+      <div>
+        <h3>Tree-structured constraints</h3>
+        <p>
+          If the constraint graph is a tree, arc consistency is enough: run AC-3, then do
+          a linear pass assigning values that keep each arc satisfied. Time is
+          <var>O</var>(<var>nd²</var>), with no backtracking at all.
+        </p>
+        <div class="panel panel--accent" style="margin-top:12px">
+          <h3>Cutset conditioning</h3>
+          <p>
+            For a graph that is nearly a tree, assign a small set of variables, simplify
+            to a tree, and solve the tree. Exponential only in the cutset size.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        <strong>Find the structure before you find a faster solver.</strong> A factor of
+        <var>d</var> from better ordering is nice; a factor of
+        <var>d</var><sup>(n−c)</sup> from decomposition is a different problem.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 16 -->
+<section class="slide" id="s19">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>Representation beats search.</strong><p>Commutativity removes n! duplicate orders before any optimization.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Prune with reasoning, not with luck.</strong><p>Forward checking looks one step ahead; arc consistency looks at every remaining value.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Arc consistency is sound but incomplete.</strong><p>It prunes, it does not decide — except on trees.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>MRV for variables, LCV for values.</strong><p>Fail first for the tree; succeed first for a single solution.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Local search is a different scaling law.</strong><p>Fifty steps for 8-queens, and the same fifty for a million — when it works.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 17 -->
+<section class="slide" id="s20">
+  <h2>This week's work</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA §6.1–6.5 and §4.1.</li>
+          <li>Trace AC-3 by hand on a three-variable chain.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Lab 1: search, due this week. It compares BFS, UCS, and A* expansion counts.</li>
+          <li>Model a real scheduling problem as a CSP; state whether it is a tree.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — Lab 1.</li>
+          <li>Friday class, 8:30–11:10 a.m. CT, MIC: modelling clinic; online students watch the recorded lecture.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next:</strong> an opponent who is actively trying to make your search
+        fail. Module 5 adds an adversary.
+      </p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

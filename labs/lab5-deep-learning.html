@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 5 — Deep learning · CS 5700</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to lab content</a>
+
+<div class="doc">
+
+  <header class="doc-masthead">
+    <p class="inst">
+      <span>University of Central Missouri</span>
+      <span>CS 5700 Artificial Intelligence</span>
+      <span>Spring 2027</span>
+    </p>
+    <h1>Lab 5 — Deep learning</h1>
+    <p class="tagline">
+      A small convolutional network trained honestly: baseline first, overfit on purpose,
+      then earn your way back to generalisation.
+    </p>
+    <p class="instructor">
+      <strong>Dr. Gorkem Kar</strong>
+      <span>Due: end of week 12</span>
+      <span>Weight: 4% of the course grade</span>
+      <span>Individual work</span>
+    </p>
+  </header>
+
+  <main id="main">
+
+    <section>
+      <h2>What you are building</h2>
+      <p>
+        An image classifier on <code>../data/lab5/dataset.bin</code> — ten thousand 28 × 28
+        images in ten classes, with the fixed train/validation/test split recorded in
+        <code>dataset_meta.json</code>. The split is fixed because the moment you tune
+        against the test set, the test set stops measuring anything.
+      </p>
+      <p>
+        The course download leaves this file out to stay small. Make it once,
+        before you start: in <code>labs/data/lab5</code>, run
+        <code>python3 make_dataset.py</code>. It takes a few seconds, needs only the
+        Python standard library, and builds exactly the same file for everyone.
+      </p>
+      <p>
+        The network must be small enough to train on a laptop CPU or a single modest GPU
+        in minutes, not hours. This is deliberate: the lab is about the method, not about
+        the hardware.
+      </p>
+    </section>
+
+    <section>
+      <h2>Before you start</h2>
+      <ul>
+        <li>Module 12, especially backpropagation, convolutional layers, and regularization.</li>
+        <li>AIMA 19.6–19.7 and 21.1–21.6.</li>
+        <li>A framework of your choice. You may use its layers and optimizers; you may not
+          use a pretrained backbone. This is a from-scratch exercise.</li>
+        <li>Python help for this lab: <a href="https://docs.pytorch.org/tutorials/beginner/basics/intro.html">Learn the basics (PyTorch)</a>, and <a href="https://scikit-learn.org/stable/modules/calibration.html">probability calibration (scikit-learn)</a> for the reliability diagram. More on the <a href="index.html">labs page</a>.</li>
+      </ul>
+      <p>
+        The binary layout and the split file are documented in <code>../data/README.md</code>,
+        and the generator that produced the images ships beside the data, so you can check
+        that you are reading the format the way it was written.
+      </p>
+    </section>
+
+    <section>
+      <h2>Tasks</h2>
+
+      <h3>1. Baselines before models</h3>
+      <p>
+        Report the accuracy of two trivial baselines: always predicting the majority class,
+        and a nearest-centroid classifier. Everything you build afterwards must be
+        compared against these, and the report must show them on the same axes as your
+        network. Beating chance is not a result; beating both baselines by a stated margin
+        is.
+      </p>
+
+      <h3>2. Overfit a single batch</h3>
+      <p>
+        Before training on the full set, take one batch of 32 examples and train until the
+        loss is essentially zero. If you cannot overfit 32 examples, your code is wrong —
+        this is the cheapest debugging check in deep learning and it is worth doing
+        first. Report the loss curve.
+      </p>
+
+      <h3>3. Train properly</h3>
+      <p>
+        Train a convolutional network with a sensible schedule. Report training and
+        validation loss per epoch on one figure, and accuracy on another. Then vary three
+        things one at a time — learning rate, weight decay, and augmentation or dropout —
+        and report the effect of each. One variable at a time; an ablation table is not a
+        grid search's leftovers.
+      </p>
+
+      <h3>4. Calibration and errors</h3>
+      <p>
+        Plot a reliability diagram for your best model on the validation set. Report the
+        expected calibration error. Then examine the twenty highest-confidence errors:
+        for each, say whether the image is genuinely ambiguous or the model is simply
+        wrong, and what in the image likely caused it. This section is where most of the
+        marks are, because it is where the thinking is.
+      </p>
+    </section>
+
+    <section>
+      <h2>Deliverables</h2>
+      <ul>
+        <li><strong>Code</strong> and the trained weights of your best model.</li>
+        <li><strong>Reproduction file</strong> that trains and evaluates from a clean checkout, with a fixed seed.</li>
+        <li><strong>Written report, 5–7 pages</strong>: baselines, ablations, reliability
+          diagram, and the error analysis.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What the grader runs</h2>
+      <pre># the shape of the output — these numbers are placeholders, not targets
+python3 train.py --data ../data/lab5 --epochs 20 --seed 0
+
+{"val_acc": 0.00, "test_acc": 0.00, "ece": 0.00, "seed": 0}</pre>
+      <p>
+        Fill in your own numbers. Ship <code>predictions.txt</code> in your submission root
+        — 1500 lines, one predicted class per test index in the order given by
+        <code>dataset_meta.json</code> — and the grader finds it on its own; pass
+        <code>--predictions</code> only if you put it somewhere else. It scores that file
+        itself, so the reported accuracy is checked against your model rather than trusted.
+      </p>
+      <p>
+        The pass mark is 0.78 test accuracy on that file, set above the 0.52
+        nearest-centroid baseline rather than at it, since beating a trivial predictor is
+        the minimum a network must earn. Your reported figure must match the file within
+        0.01. Below the baseline is not partial credit: it is a bug somewhere.
+      </p>
+      <p>
+        To check yourself before submitting, compute accuracy from your own
+        <code>predictions.txt</code> and the test labels, the way the grader does, and make
+        sure it matches the number your program prints.
+      </p>
+    </section>
+
+    <section>
+      <h2>How it is graded</h2>
+      <table class="tbl tbl--compact">
+        <thead><tr><th scope="col">Component</th><th scope="col" class="num">Weight</th><th scope="col">What earns full marks</th></tr></thead>
+        <tbody>
+          <tr><td>Method</td><td class="num">30%</td><td>Baselines first, one-variable ablations, no tuning against test</td></tr>
+          <tr><td>Results</td><td class="num">25%</td><td>Beats the baselines by a clear margin, with variance across seeds reported</td></tr>
+          <tr><td>Calibration</td><td class="num">15%</td><td>Reliability diagram is correct and interpreted, not just plotted</td></tr>
+          <tr><td>Error analysis</td><td class="num">30%</td><td>Specific, honest explanations of individual failures</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Rules</h2>
+      <p>
+        Individual work. The syllabus late policy applies: 10% off per day for up to three days, then not accepted. Disclose AI tool use. No
+        pretrained weights, no external labelled data, no test-set tuning. Report the seed
+        and the exact command that produced your headline number.
+      </p>
+    </section>
+
+    <section>
+      <h2>Check yourself before submitting</h2>
+      <ul class="objectives">
+        <li>Can you overfit 32 examples to near-zero loss?</li>
+        <li>Are both trivial baselines on your results figure?</li>
+        <li>Does validation loss ever rise while training loss falls — and did you say so?</li>
+        <li>Is your model's confidence better than its accuracy, or worse?</li>
+        <li>For your top-confidence error, can you describe what the model likely keyed on?</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CS 5700 · Lab 5 · University of Central Missouri · Spring 2027</p>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paper critiques — CS 5700</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="doc">
+
+  <header class="doc-masthead">
+    <p class="inst">
+      <span>University of Central Missouri</span>
+      <span>CS 5700 Artificial Intelligence</span>
+      <span>Spring 2027</span>
+    </p>
+    <h1>Paper critiques</h1>
+    <p class="tagline">
+      Two papers, one two-page critique each. Ten percent of the course, and the only place
+      where you are asked to decide whether a published result deserves to be believed.
+    </p>
+    <p class="instructor">
+      <strong>Dr. Gorkem Kar</strong>
+      <span>Two submissions · 5% each · 10% total</span>
+      <span>Critique 1 due week 9 · Critique 2 due week 14</span>
+      <span>Individual</span>
+    </p>
+  </header>
+
+  <main id="main">
+
+    <section>
+      <h2>The two papers</h2>
+      <table class="tbl">
+        <thead>
+          <tr><th scope="col">#</th><th scope="col">Paper</th><th scope="col">Due</th><th scope="col">Why this one</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="num">1</td>
+            <td>
+              <strong>Vaswani et al. (2017), "Attention Is All You Need."</strong>
+              <br><span class="muted">NeurIPS 2017. arXiv:1706.03762 — download the
+              proceedings version, not a preprint draft.</span>
+            </td>
+            <td class="date">Week 9</td>
+            <td>An architecture paper whose ablations are famous for being fewer than its
+              claims. You will meet the transformer properly in week 13; reading it early
+              is deliberate, so that the lecture explains a paper you have already
+              interrogated rather than introducing one.</td>
+          </tr>
+          <tr>
+            <td class="num">2</td>
+            <td>
+              <strong>Ouyang et al. (2022), "Training language models to follow
+              instructions with human feedback."</strong>
+              <br><span class="muted">NeurIPS 2022. arXiv:2203.02155.</span>
+            </td>
+            <td class="date">Week 14</td>
+            <td>A training paper whose central evidence is human preference, which raises
+              the question this course cares about most: what exactly did the evaluation
+              measure?</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Both are long. Read them the way the method below describes, and do not read them
+        twice — the critique is about judgement, not coverage.
+      </p>
+    </section>
+
+    <section>
+      <h2>How to read a paper in ninety minutes</h2>
+      <ol>
+        <li><strong>Ten minutes: the frame.</strong> Title, abstract, figures, conclusion.
+          Write the claim in one sentence before reading anything else.</li>
+        <li><strong>Twenty minutes: the evidence.</strong> Which table or figure would be
+          the problem if the claim were false? Read only those, and check what is being
+          compared with what.</li>
+        <li><strong>Thirty minutes: the method.</strong> Enough to know what was held
+          constant. Note every choice a reader could dispute — dataset, baseline, metric,
+          hyperparameters, evaluation protocol.</li>
+        <li><strong>Twenty minutes: the related work and the claims.</strong> What does the
+          paper say others failed to do, and is that characterisation fair?</li>
+        <li><strong>Ten minutes: your objection.</strong> Write the strongest objection you
+          can, then write the response the authors would give.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>What a critique contains</h2>
+      <p>Two pages, five sections, in this order. The word counts are guidance.</p>
+      <table class="tbl">
+        <thead><tr><th scope="col">Section</th><th scope="col" class="num">Words</th><th scope="col">What it must do</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>1. The claim</strong></td><td class="num">100</td>
+            <td>State the paper's central claim precisely, and the claim it argues against.
+              Not the topic — the claim.</td>
+          </tr>
+          <tr>
+            <td><strong>2. The evidence</strong></td><td class="num">250</td>
+            <td>Name the specific experiment, table or figure that carries the claim, and
+              say what it establishes and what it does not.</td>
+          </tr>
+          <tr>
+            <td><strong>3. The load-bearing assumption</strong></td><td class="num">200</td>
+            <td>The assumption that, if wrong, collapses the result. Say why it is
+              plausible or not, using something you know.</td>
+          </tr>
+          <tr>
+            <td><strong>4. The experiment that would settle it</strong></td><td class="num">150</td>
+            <td>One experiment the authors did not run, with what it would show either way.
+              It must be feasible — not "train a bigger model".</td>
+          </tr>
+          <tr>
+            <td><strong>5. What the paper does not establish</strong></td><td class="num">100</td>
+            <td>One sentence a careless reader would take away that the paper does not
+              support.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Critique 1 — questions for Vaswani et al.</h2>
+      <p>Answer these inside the five sections; they are the ones I will mark against.</p>
+      <ol class="qs">
+        <li>
+          <p>The paper's title is a claim of sufficiency, not just of performance. What does
+            the ablation table actually show about recurrence being unnecessary?</p>
+        </li>
+        <li>
+          <p>Self-attention has no notion of order. How is position supplied, and what
+            evidence is offered that the choice of positional encoding does not matter?
+            Is that evidence adequate?</p>
+        </li>
+        <li>
+          <p>The complexity comparison in the paper's Table 1 is asymptotic. What would a
+            fair comparison at the sequence lengths in the experiments look like, and does
+            the paper's own data support the asymptotic argument at those lengths?</p>
+        </li>
+        <li>
+          <p>Which baseline is the fairest one in the translation results, and what
+            happens to the headline improvement when you compare against it rather than
+            against the paper's own previous system?</p>
+        </li>
+        <li>
+          <p>Name the one experiment you would run to test whether the gain comes from
+            attention itself or from the training regime that became possible with it.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Critique 2 — questions for Ouyang et al.</h2>
+      <ol class="qs">
+        <li>
+          <p>The headline evaluation is human preference between two outputs. What exactly
+            does a preference rate measure, and what does it fail to measure?</p>
+        </li>
+        <li>
+          <p>The reward model is trained on labels from the same pool of labellers who
+            later judge the outputs. What does that shared provenance do to the
+            interpretation of the result?</p>
+        </li>
+        <li>
+          <p>The paper reports both an automated metric and human preference on the same
+            task. Where do they disagree, and what does the disagreement tell you about
+            which one to trust?</p>
+        </li>
+        <li>
+          <p>The alignment tax — capability lost to the preference training — is reported
+            on a limited set of tasks. How would you measure it more convincingly?</p>
+        </li>
+        <li>
+          <p>What does the paper establish about safety, as distinct from helpfulness, and
+            what does it explicitly leave open?</p>
+        </li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>How critiques are marked</h2>
+      <table class="tbl">
+        <caption>Each critique is worth 5%. Sections 3 and 4 carry half of it.</caption>
+        <thead>
+          <tr><th scope="col">Criterion</th><th scope="col" class="num">Weight</th><th scope="col">Full marks</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Accuracy of the claim</strong></td><td class="num">25%</td>
+            <td>The claim is stated as the paper states it, including its scope, and the
+              target of the argument is named</td>
+          </tr>
+          <tr>
+            <td><strong>Reading of the evidence</strong></td><td class="num">25%</td>
+            <td>Points at the specific experiment that carries the claim, and separates what
+              it shows from what it is taken to show</td>
+          </tr>
+          <tr>
+            <td><strong>The assumption</strong></td><td class="num">25%</td>
+            <td>Identifies an assumption that genuinely bears the weight, and argues about
+              it rather than gesturing</td>
+          </tr>
+          <tr>
+            <td><strong>The proposed experiment</strong></td><td class="num">25%</td>
+            <td>Feasible, specific, and its possible outcomes are stated in advance</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        A critique that dislikes the paper without engaging its evidence scores lower than
+        one that accepts the result and shows precisely where it stops being supported.
+        Being right is not required; being specific is.
+      </p>
+    </section>
+
+    <section>
+      <h2>Rules</h2>
+      <p>
+        Two pages, single-spaced, your own words, submitted as PDF. Cite the paper by
+        section, table or figure number — "the paper says" is not a citation. The syllabus
+        late policy applies: 10% off per day for up to three days, then not accepted. AI assistants may help you find background or check a
+        definition; they may not summarise the paper for you, and a critique of a summary
+        you did not read is usually detectable and always worthless.
+      </p>
+      <p>
+        Discussion with classmates is encouraged before you write. Critique 1 is returned
+        with comments in week 11; use them. Critique 2 is marked against the same rubric
+        and students who act on the first set of comments reliably score higher.
+      </p>
+    </section>
+
+    <section>
+      <h2>Check yourself before submitting</h2>
+      <ul class="objectives">
+        <li>Have you named the claim, rather than the topic?</li>
+        <li>Does your evidence section point at one specific table or figure?</li>
+        <li>If your load-bearing assumption were false, would the result actually collapse?</li>
+        <li>Is your proposed experiment one a graduate student could run in a week?</li>
+        <li>Does your last section name something a careless reader would wrongly conclude?</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CS 5700 · Paper critiques · Two submissions, 10% of the course grade · Spring 2027</p>
+  </footer>
+
+</div>
+</body>
+</html>

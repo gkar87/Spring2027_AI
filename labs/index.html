@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Labs · CS 5700</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="doc">
+
+  <header class="doc-masthead">
+    <p class="inst">
+      <span>University of Central Missouri</span>
+      <span>CS 5700 Artificial Intelligence</span>
+      <span>Spring 2027</span>
+    </p>
+    <h1>Laboratories</h1>
+    <p class="tagline">
+      Six labs, six ideas you cannot learn by reading. Each is worth 4% of the course
+      grade, and each has a written report that carries a fifth to a third of the marks.
+    </p>
+  </header>
+
+  <main id="main">
+
+    <section>
+      <h2>The sequence</h2>
+      <p>
+        The labs follow the lecture order deliberately. Each one reuses code from the last:
+        lab 3 learns the policy lab 2 computed, lab 6 evaluates the kind of system lab 5
+        taught you to judge. Keep your code in a state you would be willing to open again.
+      </p>
+      <table class="tbl">
+        <caption>Lab schedule. Each lab is due Sunday at 11:59 p.m. CT at the end of the week shown.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Lab</th>
+            <th scope="col">Topic</th>
+            <th scope="col">Due</th>
+            <th scope="col" class="num">Weight</th>
+            <th scope="col">Pairs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="lab1-search.html">Lab 1 — Search</a></td>
+            <td>BFS, DFS, uniform cost, A*, and admissibility</td>
+            <td>End of week 4</td>
+            <td class="num">4%</td>
+            <td>Individual</td>
+          </tr>
+          <tr>
+            <td><a href="lab2-mdp.html">Lab 2 — Planning under uncertainty</a></td>
+            <td>Value iteration and policy iteration on a stochastic grid</td>
+            <td>End of week 6</td>
+            <td class="num">4%</td>
+            <td>Individual</td>
+          </tr>
+          <tr>
+            <td><a href="lab3-qlearning.html">Lab 3 — Learning from experience</a></td>
+            <td>Q-learning, exploration schedules, and the cost of learning</td>
+            <td>End of week 7</td>
+            <td class="num">4%</td>
+            <td>Individual</td>
+          </tr>
+          <tr>
+            <td><a href="lab4-inference.html">Lab 4 — Inference</a></td>
+            <td>Enumeration, elimination, sampling, and filtering</td>
+            <td>End of week 10</td>
+            <td class="num">4%</td>
+            <td>Individual</td>
+          </tr>
+          <tr>
+            <td><a href="lab5-deep-learning.html">Lab 5 — Deep learning</a></td>
+            <td>A small CNN, baselines, ablations, and calibration</td>
+            <td>End of week 12</td>
+            <td class="num">4%</td>
+            <td>Individual</td>
+          </tr>
+          <tr>
+            <td><a href="lab6-rag.html">Lab 6 — Retrieval-augmented QA</a></td>
+            <td>Retrieval, grounded answering, and evaluation that catches invention</td>
+            <td>End of week 14</td>
+            <td class="num">4%</td>
+            <td>Pairs, individual reports</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Every dataset, map, network and corpus these sheets refer to is in
+        <a href="data/README.md">labs/data</a>. The files are fixed for the semester, so
+        any number you report can be regenerated from them.
+      </p>
+      <p>
+        Together the labs are 24% of the grade. The written part of each — a fifth to a
+        third of that lab's marks — is not optional
+        padding: an implementation that works and a report that says nothing earns a C.
+      </p>
+    </section>
+
+    <section>
+      <h2>What every lab asks for</h2>
+      <ul>
+        <li><strong>A reproduction command.</strong> One command, from a clean checkout,
+          that regenerates every number in your report. Numbers without this are not
+          believed.</li>
+        <li><strong>Numbers, not adjectives.</strong> "Faster" is not a result; "expanded
+          412 nodes instead of 1,180" is.</li>
+        <li><strong>Honest comparisons.</strong> Baselines first, more than one seed where
+          randomness is involved, and no tuning against the data you report on.</li>
+        <li><strong>A written report.</strong> Four to seven pages, written for a colleague
+          who has to make the same decision you made.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>How the labs are graded</h2>
+      <p>
+        Each lab sheet ends with a <em>what the grader runs</em> section: the exact
+        command the grader calls, and the one JSON object it expects on stdout. Match
+        that interface exactly, and print nothing else to stdout.
+      </p>
+      <p>
+        The grader checks outputs, never your source: lab 1 against the reference table
+        in <code>data/lab1</code>, lab 2 by checking that your values satisfy the Bellman
+        equation, lab 3 against the range real runs produce, lab 4 against exact
+        inference, lab 5 by scoring your predictions file, and lab 6 by scoring your
+        answers against the key. Each sheet tells you how to make the same check
+        yourself before you submit.
+      </p>
+      <p>
+        Submissions are also compared with each other for similarity. That comparison is
+        triage, not a verdict: a flag means two submissions get read side by side, and you
+        will be asked about your code rather than accused by a script.
+      </p>
+    </section>
+
+
+    <section>
+      <h2>New to Python? Start here</h2>
+      <p>
+        The labs assume you can read and write short Python programs. If that is new,
+        spend an hour or two on the first two links before lab 1, and keep the rest open
+        while you work. Each lab sheet also says which of these it leans on.
+      </p>
+      <ul>
+        <li><a href="https://docs.python.org/3/tutorial/index.html">The official Python tutorial</a>:
+          variables, lists, dictionaries, functions and classes, chapters 3 to 9.</li>
+        <li><a href="https://www.py4e.com/">Python for Everybody</a>: a free beginner course
+          with short videos and exercises.</li>
+        <li><a href="https://docs.python.org/3/tutorial/datastructures.html">Lists, dictionaries and sets</a>,
+          the structures every lab uses.</li>
+        <li><a href="https://docs.python.org/3/library/heapq.html">heapq</a> and
+          <a href="https://docs.python.org/3/library/collections.html">collections</a>:
+          priority queues and deques for lab 1.</li>
+        <li><a href="https://docs.python.org/3/library/json.html">json</a> and
+          <a href="https://docs.python.org/3/howto/argparse.html">argparse</a>: reading the data
+          files and building the command line every grader calls.</li>
+        <li><a href="https://numpy.org/doc/stable/user/absolute_beginners.html">NumPy for absolute beginners</a>:
+          arrays, for labs 2 to 5.</li>
+        <li><a href="https://cs231n.github.io/python-numpy-tutorial/">Python and NumPy tutorial (Stanford CS231n)</a>:
+          a fast refresher that covers both.</li>
+        <li><a href="https://matplotlib.org/stable/tutorials/pyplot.html">Pyplot tutorial</a>:
+          the figures every report needs.</li>
+        <li><a href="https://docs.pytorch.org/tutorials/beginner/basics/intro.html">Learn the basics (PyTorch)</a>:
+          for lab 5.</li>
+        <li><a href="https://huggingface.co/learn/llm-course/chapter1/1">Hugging Face LLM course</a> and
+          <a href="https://sbert.net/docs/quickstart.html">Sentence Transformers quickstart</a>:
+          for the dense retriever in lab 6.</li>
+      </ul>
+      <p>
+        Office hours are for exactly this kind of question: Tuesday and Wednesday,
+        12 to 3 p.m., MIC D159.
+      </p>
+    </section>
+
+    <section>
+      <h2>Policies that apply to all six</h2>
+      <p>
+        The syllabus late policy applies throughout: 10% off for each day late, for up to
+        three days. After three days a lab is not accepted. AI assistants are permitted for boilerplate, plotting and debugging, and must
+        be disclosed — the analysis and the writing are yours. Undisclosed generated work
+        is an academic integrity matter under the university policy referenced in the
+        syllabus.
+      </p>
+      <p>
+        Every lab has a check-yourself list at the end. It is not a rubric, but if you
+        cannot answer those questions about your own submission, neither can the grader.
+      </p>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CS 5700 · Labs · University of Central Missouri · Spring 2027</p>
+  </footer>
+
+</div>
+</body>
+</html>

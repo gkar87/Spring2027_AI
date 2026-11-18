@@ -1,0 +1,566 @@
+{
+  "q001": {
+    "answerable": true,
+    "docs": [
+      "bfs-overview"
+    ],
+    "answer": "Breadth-first search is a search that expands the frontier in order of depth; it is used because it guarantees the shallowest goal when every step costs the same.",
+    "topic": "bfs"
+  },
+  "q002": {
+    "answerable": true,
+    "docs": [
+      "dfs-pitfall"
+    ],
+    "answer": "A common mistake with depth-first search: assuming it will find a short path.",
+    "topic": "dfs"
+  },
+  "q003": {
+    "answerable": true,
+    "docs": [
+      "ucs-practice"
+    ],
+    "answer": "Uniform-cost search in practice: route planning where some roads are slower than others.",
+    "topic": "ucs"
+  },
+  "q004": {
+    "answerable": true,
+    "docs": [
+      "astar-overview"
+    ],
+    "answer": "A* search is a best-first search ordered by cost so far plus an admissible heuristic; it is used because it is optimal and expands fewer nodes than uniform cost.",
+    "topic": "astar"
+  },
+  "q005": {
+    "answerable": true,
+    "docs": [
+      "heuristic-pitfall"
+    ],
+    "answer": "A common mistake with a heuristic function: confusing admissibility with consistency.",
+    "topic": "heuristic"
+  },
+  "q006": {
+    "answerable": true,
+    "docs": [
+      "admissible-practice"
+    ],
+    "answer": "An admissible heuristic in practice: straight-line distance for road routing.",
+    "topic": "admissible"
+  },
+  "q007": {
+    "answerable": true,
+    "docs": [
+      "consistent-overview"
+    ],
+    "answer": "A consistent heuristic is a heuristic satisfying the triangle inequality on every edge; it is used because consistency keeps A* optimal even when it ignores re-expansions.",
+    "topic": "consistent"
+  },
+  "q008": {
+    "answerable": true,
+    "docs": [
+      "ids-pitfall"
+    ],
+    "answer": "A common mistake with iterative deepening: repeating work without accounting for its cost.",
+    "topic": "ids"
+  },
+  "q009": {
+    "answerable": true,
+    "docs": [
+      "bidirectional-practice"
+    ],
+    "answer": "Bidirectional search in practice: route planning between two known coordinates.",
+    "topic": "bidirectional"
+  },
+  "q010": {
+    "answerable": true,
+    "docs": [
+      "csp-overview"
+    ],
+    "answer": "A constraint satisfaction problem is a set of variables, their domains, and the constraints between them; it is used because constraints prune the space before search touches it.",
+    "topic": "csp"
+  },
+  "q011": {
+    "answerable": true,
+    "docs": [
+      "backtracking-pitfall"
+    ],
+    "answer": "A common mistake with backtracking search: choosing the next variable in an arbitrary order.",
+    "topic": "backtracking"
+  },
+  "q012": {
+    "answerable": true,
+    "docs": [
+      "forwardcheck-practice"
+    ],
+    "answer": "Forward checking in practice: scheduling with tight resource constraints.",
+    "topic": "forwardcheck"
+  },
+  "q013": {
+    "answerable": true,
+    "docs": [
+      "ac3-overview"
+    ],
+    "answer": "The AC-3 algorithm is an arc-consistency algorithm that propagates domain reductions to a queue; it is used because it shrinks domains before search begins.",
+    "topic": "ac3"
+  },
+  "q014": {
+    "answerable": true,
+    "docs": [
+      "minimax-pitfall"
+    ],
+    "answer": "A common mistake with the minimax algorithm: forgetting that the guarantee is only as good as the evaluation function.",
+    "topic": "minimax"
+  },
+  "q015": {
+    "answerable": true,
+    "docs": [
+      "alphabeta-practice"
+    ],
+    "answer": "Alpha-beta pruning in practice: any competitive game-playing engine.",
+    "topic": "alphabeta"
+  },
+  "q016": {
+    "answerable": true,
+    "docs": [
+      "expectimax-overview"
+    ],
+    "answer": "Expectimax is a search that averages over outcomes of chance nodes; it is used because it handles dice and randomness without an adversarial assumption.",
+    "topic": "expectimax"
+  },
+  "q017": {
+    "answerable": true,
+    "docs": [
+      "mcts-pitfall"
+    ],
+    "answer": "A common mistake with Monte Carlo tree search: believing it needs no evaluation function at all.",
+    "topic": "mcts"
+  },
+  "q018": {
+    "answerable": true,
+    "docs": [
+      "mdp-practice"
+    ],
+    "answer": "A Markov decision process in practice: inventory control under stochastic demand.",
+    "topic": "mdp"
+  },
+  "q019": {
+    "answerable": true,
+    "docs": [
+      "bellman-overview"
+    ],
+    "answer": "The Bellman equation is a recursive relationship between the value of a state and its successors; it is used because it turns a planning problem into an equation that can be solved iteratively.",
+    "topic": "bellman"
+  },
+  "q020": {
+    "answerable": true,
+    "docs": [
+      "valueiteration-pitfall"
+    ],
+    "answer": "A common mistake with value iteration: stopping when values look stable rather than measuring the residual.",
+    "topic": "valueiteration"
+  },
+  "q021": {
+    "answerable": true,
+    "docs": [
+      "policyiteration-practice"
+    ],
+    "answer": "Policy iteration in practice: control problems with few states.",
+    "topic": "policyiteration"
+  },
+  "q022": {
+    "answerable": true,
+    "docs": [
+      "discount-overview"
+    ],
+    "answer": "The discount factor is a multiplier on future rewards; it is used because it makes an infinite-horizon sum finite and encodes time preference.",
+    "topic": "discount"
+  },
+  "q023": {
+    "answerable": true,
+    "docs": [
+      "qlearning-pitfall"
+    ],
+    "answer": "A common mistake with Q-learning: believing it works well with a fixed unvisited-state policy.",
+    "topic": "qlearning"
+  },
+  "q024": {
+    "answerable": true,
+    "docs": [
+      "td-practice"
+    ],
+    "answer": "Temporal-difference learning in practice: value prediction from a stream of observations.",
+    "topic": "td"
+  },
+  "q025": {
+    "answerable": true,
+    "docs": [
+      "sarsa-overview"
+    ],
+    "answer": "SARSA is an on-policy temporal-difference control method; it is used because it learns the value of the policy actually being followed.",
+    "topic": "sarsa"
+  },
+  "q026": {
+    "answerable": true,
+    "docs": [
+      "exploration-pitfall"
+    ],
+    "answer": "A common mistake with the exploration-exploitation trade-off: annealing epsilon to zero too early.",
+    "topic": "exploration"
+  },
+  "q027": {
+    "answerable": true,
+    "docs": [
+      "replay-practice"
+    ],
+    "answer": "Experience replay in practice: training a value function from a long log.",
+    "topic": "replay"
+  },
+  "q028": {
+    "answerable": true,
+    "docs": [
+      "policygradient-overview"
+    ],
+    "answer": "Policy gradient methods is methods that adjust the policy parameters directly in the direction of higher expected return; it is used because they handle continuous actions naturally.",
+    "topic": "policygradient"
+  },
+  "q029": {
+    "answerable": true,
+    "docs": [
+      "ppo-pitfall"
+    ],
+    "answer": "A common mistake with proximal policy optimisation: ignoring the clipping range's effect on learning speed.",
+    "topic": "ppo"
+  },
+  "q030": {
+    "answerable": true,
+    "docs": [
+      "dqn-practice"
+    ],
+    "answer": "Deep Q-networks in practice: learning from pixels.",
+    "topic": "dqn"
+  },
+  "q031": {
+    "answerable": true,
+    "docs": [
+      "bayesnet-overview"
+    ],
+    "answer": "A Bayesian network is a directed acyclic graph of variables with conditional probability tables; it is used because it states the independence assumptions explicitly.",
+    "topic": "bayesnet"
+  },
+  "q032": {
+    "answerable": true,
+    "docs": [
+      "dsep-pitfall"
+    ],
+    "answer": "A common mistake with d-separation: forgetting that conditioning on a collider creates dependence.",
+    "topic": "dsep"
+  },
+  "q033": {
+    "answerable": true,
+    "docs": [
+      "enumeration-practice"
+    ],
+    "answer": "Inference by enumeration in practice: a five-node network in a textbook exercise.",
+    "topic": "enumeration"
+  },
+  "q034": {
+    "answerable": true,
+    "docs": [
+      "variableelim-overview"
+    ],
+    "answer": "Variable elimination is summing out variables one at a time while multiplying factors; it is used because it avoids recomputing shared subexpressions.",
+    "topic": "variableelim"
+  },
+  "q035": {
+    "answerable": true,
+    "docs": [
+      "rejection-pitfall"
+    ],
+    "answer": "A common mistake with rejection sampling: using it when the evidence is unlikely.",
+    "topic": "rejection"
+  },
+  "q036": {
+    "answerable": true,
+    "docs": [
+      "likelihood-practice"
+    ],
+    "answer": "Likelihood weighting in practice: inference with strong evidence.",
+    "topic": "likelihood"
+  },
+  "q037": {
+    "answerable": true,
+    "docs": [
+      "hmm-overview"
+    ],
+    "answer": "A hidden Markov model is a chain of hidden states with observations that depend on each state; it is used because it models a sequence with uncertainty about what generated it.",
+    "topic": "hmm"
+  },
+  "q038": {
+    "answerable": true,
+    "docs": [
+      "forward-pitfall"
+    ],
+    "answer": "A common mistake with the forward algorithm: forgetting to normalise at each step.",
+    "topic": "forward"
+  },
+  "q039": {
+    "answerable": true,
+    "docs": [
+      "particle-practice"
+    ],
+    "answer": "Particle filtering in practice: tracking with a non-Gaussian belief.",
+    "topic": "particle"
+  },
+  "q040": {
+    "answerable": true,
+    "docs": [
+      "ml-overview"
+    ],
+    "answer": "Supervised machine learning is fitting a function from inputs to labels using examples; it is used because it generalises to inputs it has not seen.",
+    "topic": "ml"
+  },
+  "q041": {
+    "answerable": true,
+    "docs": [
+      "generalisation-pitfall"
+    ],
+    "answer": "A common mistake with generalisation: assuming the test set is representative.",
+    "topic": "generalisation"
+  },
+  "q042": {
+    "answerable": true,
+    "docs": [
+      "baseline-practice"
+    ],
+    "answer": "A baseline in practice: predicting the majority class.",
+    "topic": "baseline"
+  },
+  "q043": {
+    "answerable": true,
+    "docs": [
+      "overfit-overview"
+    ],
+    "answer": "Overfitting is fitting noise in the training data rather than the signal; it is used because recognising it tells you whether regularisation is needed.",
+    "topic": "overfit"
+  },
+  "q044": {
+    "answerable": true,
+    "docs": [
+      "regularisation-pitfall"
+    ],
+    "answer": "A common mistake with regularisation: tuning the strength on the test set.",
+    "topic": "regularisation"
+  },
+  "q045": {
+    "answerable": true,
+    "docs": [
+      "crossvalidation-practice"
+    ],
+    "answer": "Cross-validation in practice: choosing a hyperparameter with little data.",
+    "topic": "crossvalidation"
+  },
+  "q046": {
+    "answerable": true,
+    "docs": [
+      "calibration-overview"
+    ],
+    "answer": "Calibration is agreement between predicted probabilities and observed frequencies; it is used because a confident model that is wrong is worse than an uncertain one.",
+    "topic": "calibration"
+  },
+  "q047": {
+    "answerable": true,
+    "docs": [
+      "backprop-pitfall"
+    ],
+    "answer": "A common mistake with backpropagation: forgetting to zero the gradients between steps.",
+    "topic": "backprop"
+  },
+  "q048": {
+    "answerable": true,
+    "docs": [
+      "cnn-practice"
+    ],
+    "answer": "A convolutional network in practice: image classification.",
+    "topic": "cnn"
+  },
+  "q049": {
+    "answerable": true,
+    "docs": [
+      "dropout-overview"
+    ],
+    "answer": "Dropout is randomly zeroing activations during training; it is used because it discourages co-adaptation of features.",
+    "topic": "dropout"
+  },
+  "q050": {
+    "answerable": true,
+    "docs": [
+      "transformer-pitfall"
+    ],
+    "answer": "A common mistake with the transformer: forgetting that attention has no inherent notion of order.",
+    "topic": "transformer"
+  },
+  "q051": {
+    "answerable": true,
+    "docs": [
+      "attention-practice"
+    ],
+    "answer": "Self-attention in practice: modelling long-range dependencies.",
+    "topic": "attention"
+  },
+  "q052": {
+    "answerable": true,
+    "docs": [
+      "rlhf-overview"
+    ],
+    "answer": "Reinforcement learning from human feedback is training a reward model on human comparisons, then optimising a policy against it; it is used because it aligns behaviour with preferences that are hard to write as a rule.",
+    "topic": "rlhf"
+  },
+  "q053": {
+    "answerable": true,
+    "docs": [
+      "rag-pitfall"
+    ],
+    "answer": "A common mistake with retrieval-augmented generation: measuring retrieval and generation separately and never together.",
+    "topic": "rag"
+  },
+  "q054": {
+    "answerable": true,
+    "docs": [
+      "bm25-practice"
+    ],
+    "answer": "BM25 in practice: a first-pass retriever over a small corpus.",
+    "topic": "bm25"
+  },
+  "q055": {
+    "answerable": true,
+    "docs": [
+      "embedding-overview"
+    ],
+    "answer": "A dense retriever is a retriever that ranks by similarity in a learned vector space; it is used because it matches paraphrases that share no words.",
+    "topic": "embedding"
+  },
+  "q056": {
+    "answerable": true,
+    "docs": [
+      "recall-pitfall"
+    ],
+    "answer": "A common mistake with recall at k: reporting mean reciprocal rank when recall is what matters.",
+    "topic": "recall"
+  },
+  "q057": {
+    "answerable": true,
+    "docs": [
+      "hallucination-practice"
+    ],
+    "answer": "Hallucination in practice: a system that cites a passage that does not contain the claim.",
+    "topic": "hallucination"
+  },
+  "q058": {
+    "answerable": true,
+    "docs": [
+      "ethics-overview"
+    ],
+    "answer": "Algorithmic fairness is the study of how a model's errors and benefits distribute across groups; it is used because aggregate accuracy can hide harm to a subgroup.",
+    "topic": "ethics"
+  },
+  "q059": {
+    "answerable": true,
+    "docs": [
+      "privacy-pitfall"
+    ],
+    "answer": "A common mistake with differential privacy: treating a large epsilon as privacy.",
+    "topic": "privacy"
+  },
+  "q060": {
+    "answerable": true,
+    "docs": [
+      "risk-practice"
+    ],
+    "answer": "A risk management framework in practice: assessing a model before deployment.",
+    "topic": "risk"
+  },
+  "q061": {
+    "answerable": true,
+    "docs": [
+      "robotics-overview"
+    ],
+    "answer": "Robot localisation is estimating a robot's pose from noisy sensors and a map; it is used because a robot that knows where it is can plan.",
+    "topic": "robotics"
+  },
+  "q062": {
+    "answerable": true,
+    "docs": [
+      "perception-pitfall"
+    ],
+    "answer": "A common mistake with perception: evaluating perception in isolation from the task.",
+    "topic": "perception"
+  },
+  "q063": {
+    "answerable": true,
+    "docs": [
+      "planning-practice"
+    ],
+    "answer": "Automated planning in practice: planning a delivery route that minimises total distance.",
+    "topic": "planning"
+  },
+  "q064": {
+    "answerable": false,
+    "docs": [],
+    "answer": "The corpus does not contain this information. A correct system refuses.",
+    "note": "The corpus does not state model sizes for any closed model."
+  },
+  "q065": {
+    "answerable": false,
+    "docs": [],
+    "answer": "The corpus does not contain this information. A correct system refuses.",
+    "note": "The corpus discusses transformers but not BERT pretraining details."
+  },
+  "q066": {
+    "answerable": false,
+    "docs": [],
+    "answer": "The corpus does not contain this information. A correct system refuses.",
+    "note": "Hardware is not discussed anywhere in these notes."
+  },
+  "q067": {
+    "answerable": false,
+    "docs": [],
+    "answer": "The corpus does not contain this information. A correct system refuses.",
+    "note": "Training time is not reported in these notes."
+  },
+  "q068": {
+    "answerable": false,
+    "docs": [],
+    "answer": "The corpus does not contain this information. A correct system refuses.",
+    "note": "The corpus does not cover continuous-action MCTS."
+  },
+  "q069": {
+    "answerable": false,
+    "docs": [],
+    "answer": "The corpus does not contain this information. A correct system refuses.",
+    "note": "Library defaults are not covered."
+  },
+  "q070": {
+    "answerable": false,
+    "docs": [],
+    "answer": "The corpus does not contain this information. A correct system refuses.",
+    "note": "Vision-language pretraining datasets are not covered."
+  },
+  "q071": {
+    "answerable": false,
+    "docs": [],
+    "answer": "The corpus does not contain this information. A correct system refuses.",
+    "note": "The corpus is technical material; it contains no salary data."
+  },
+  "q072": {
+    "answerable": false,
+    "docs": [],
+    "answer": "The corpus does not contain this information. A correct system refuses.",
+    "note": "Model configuration details are not given."
+  },
+  "q073": {
+    "answerable": false,
+    "docs": [],
+    "answer": "The corpus does not contain this information. A correct system refuses.",
+    "note": "The corpus does not give the transformer's hyperparameters."
+  }
+}

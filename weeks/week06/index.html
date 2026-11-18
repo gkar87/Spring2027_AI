@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 6 — Markov Decision Processes · CS 5700</title>
+<meta name="description" content="CS 5700 Module 6: Markov decision processes, discounted return, Bellman expectation and optimality equations, value iteration, policy iteration, convergence and POMDPs.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 6 lecture slides: Markov Decision Processes">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 6 of 15</p>
+  <h1>Markov Decision Processes</h1>
+  <p class="subtitle">
+    How to act well when your actions have uncertain consequences and the
+    consequences accumulate.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<defs><marker id="mk-ta6" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker><marker id="mk-ta6q" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#8b8f98"/></marker><marker id="mk-ta6a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9e1b32"/></marker></defs>
+<g class="v-in" style="--d:0.20s"><circle class="dg-box-t" cx="90" cy="110" r="34"/><text class="dg-sm-b" x="90" y="115" text-anchor="middle">s₁</text></g>
+<g class="v-in" style="--d:0.50s"><circle class="dg-box-t" cx="290" cy="110" r="34"/><text class="dg-sm-b" x="290" y="115" text-anchor="middle">s₂</text></g>
+<g class="v-in" style="--d:0.80s"><circle class="dg-box-a" cx="190" cy="240" r="34"/><text class="dg-xs" x="190" y="245" text-anchor="middle">goal</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.10s" d="M124 98 Q190 60 256 98" marker-end="url(#mk-ta6)"/>
+<g class="v-in" style="--d:1.30s"><text class="dg-xs" x="190" y="66" text-anchor="middle">0.8</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.50s" d="M256 124 Q190 160 124 124" marker-end="url(#mk-ta6q)"/>
+<g class="v-in" style="--d:1.70s"><text class="dg-xs" x="190" y="158" text-anchor="middle">0.2</text></g>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:1.90s" d="M282 143 L218 214" marker-end="url(#mk-ta6a)"/>
+<g class="v-in" style="--d:2.10s"><text class="dg-xs dg-txt-bad" x="268" y="190">+10</text></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-sm dg-teal dg-mono" x="190" y="310" text-anchor="middle">V(s) = maxₐ Σ T·[R + γV]</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>Write down an MDP for a concrete decision problem: states, actions, transitions, rewards, discount.</li>
+      <li>Explain what the Markov property assumes and what breaks when it fails.</li>
+      <li>Derive the Bellman expectation and optimality equations from the definition of return.</li>
+      <li>Run value iteration and policy iteration by hand on a small MDP.</li>
+      <li>Argue why value iteration converges, using the contraction property.</li>
+      <li>Recognise when the problem is actually a POMDP, and say what that costs.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        If you remember one equation from this course, remember
+        <strong>V(s) = max<sub>a</sub> Σ P(s′|s,a)[R + γV(s′)]</strong>. Every
+        reinforcement-learning algorithm in module 7 is an approximation of it.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>Decisions under uncertainty</h2>
+  <p>From plans to policies: the MDP and the Markov property.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>Why we need probability in the decision, not after it</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          In module 2 we assumed actions have single outcomes. Real actions do not: a
+          robot's wheel slips, a treatment works for some patients, a delivery arrives
+          late.
+        </p>
+        <p>
+          The naive fix is to plan for the most likely outcome. That is wrong whenever
+          the unlikely outcome is catastrophic — a plan that is 95% likely to succeed and
+          5% likely to destroy the payload has a very different value from one that
+          always returns safely.
+        </p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>The distinction that matters</h3>
+        <p>
+          <strong>Uncertainty is not ignorance.</strong> A coin is uncertain and we know
+          its distribution exactly. An MDP encodes what we know about the distribution;
+          it does not require us to be uninformed.
+        </p>
+        <p>
+          Confusing the two leads to either false confidence or unnecessary paralysis.
+        </p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Expectimax from module 5 was already an MDP with one decision. Module 6 makes
+        the decisions recursive.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>The definition</h2>
+  <div class="slide-main">
+    <div class="panel panel--definition">
+      <span class="term">Markov decision process</span>
+      <p>
+        A tuple (<var>S</var>, <var>A</var>, <var>T</var>, <var>R</var>, <var>γ</var>):
+        states, actions, a transition distribution
+        <var>T</var>(<var>s′</var> | <var>s</var>, <var>a</var>), a reward function, and
+        a discount factor <var>γ</var> ∈ [0, 1).
+      </p>
+    </div>
+    <div class="cols-2">
+      <div>
+        <h3>What each piece means</h3>
+        <ul>
+          <li><strong>S</strong> — everything that affects future rewards. Nothing else is allowed in.</li>
+          <li><strong>A</strong> — the choices available in each state; may differ by state.</li>
+          <li><strong>T</strong> — the dynamics; usually the hard part to obtain.</li>
+          <li><strong>R</strong> — a scalar per transition; the only place preferences enter.</li>
+          <li><strong>γ</strong> — how much the future counts relative to now.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>The reward is the specification</h3>
+          <p>
+            An MDP does not know what you want. It knows what you wrote down. Every
+            failure of an RL system to do the right thing is, at root, a mismatch between
+            the reward and the intention.
+          </p>
+          <p>
+            This is why reward design is a research topic and not a detail — module 7
+            returns to it.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>The Markov property is a claim about sufficiency</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p class="eq" style="text-align:left">
+          P(S<sub>t+1</sub> | S<sub>t</sub>, A<sub>t</sub>) =
+          P(S<sub>t+1</sub> | S<sub>1</sub>, …, S<sub>t</sub>, A<sub>1</sub>, …, A<sub>t</sub>)
+        </p>
+        <p style="margin-top:16px">
+          The current state makes the history irrelevant. This is not a claim that the
+          past does not matter — it is a claim that the past is <em>summarized</em> in the
+          present state.
+        </p>
+        <p>
+          If your state does not summarize the past, the process is not Markov, and value
+          iteration will converge to the wrong answer — quietly.
+        </p>
+      </div>
+      <div>
+        <h3>When it fails, and what to do</h3>
+        <ul>
+          <li><strong>Velocity missing</strong> from a robot's state — add it.</li>
+          <li><strong>Time or deadline</strong> matters — add a clock to the state.</li>
+          <li><strong>Hidden variables</strong> — you have a POMDP (slide 17).</li>
+          <li><strong>Long histories matter</strong> — use a frame stack, which is the Atari trick.</li>
+        </ul>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            "Make it Markov" almost always means <strong>add to the state</strong>, which
+            multiplies the state space. That trade is the central engineering tension of
+            this module.
+          </p>
+        </div>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 124" role="img" aria-labelledby="f6at f6ad">
+<title id="f6at">The Markov property: the next state depends on the history only through the current state</title>
+<desc id="f6ad">A chain of states S1, S2, and so on up to S t minus 1, then S t and S t plus 1. The earlier states are shaded as history. An arrow labelled action A t runs from S t to S t plus 1: given S t and the action, the history adds no information about the next state.</desc>
+<defs><marker id="mk-f6m" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#8b8f98"/></marker><marker id="mk-f6t" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker></defs>
+<g class="v-in" style="--d:0.10s"><rect class="dg-band-t" x="20" y="16" width="440" height="84" rx="8"/></g>
+<g class="v-in" style="--d:0.20s"><circle class="dg-box-m" cx="60" cy="58" r="30"/><text class="dg-sm-b" x="60" y="64" text-anchor="middle">S₁</text></g>
+<g class="v-in" style="--d:0.35s"><circle class="dg-box-m" cx="190" cy="58" r="30"/><text class="dg-sm-b" x="190" y="64" text-anchor="middle">S₂</text></g>
+<g class="v-in" style="--d:0.50s"><text class="dg-sm-b" x="300" y="64" text-anchor="middle">…</text></g>
+<g class="v-in" style="--d:0.65s"><circle class="dg-box-m" cx="410" cy="58" r="30"/><text class="dg-sm-b" x="410" y="64" text-anchor="middle">Sₜ₋₁</text></g>
+<g class="v-in" style="--d:0.80s"><circle class="dg-box-t" cx="620" cy="58" r="30"/><text class="dg-sm-b" x="620" y="64" text-anchor="middle">Sₜ</text></g>
+<g class="v-in" style="--d:0.95s"><circle class="dg-box-a" cx="860" cy="58" r="30"/><text class="dg-sm-b" x="860" y="64" text-anchor="middle">Sₜ₊₁</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.50s" d="M92 58 H156" marker-end="url(#mk-f6m)"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.60s" d="M222 58 H282" marker-end="url(#mk-f6m)"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.70s" d="M318 58 H376" marker-end="url(#mk-f6m)"/>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:0.80s" d="M442 58 H586" marker-end="url(#mk-f6m)"/>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:1.60s" d="M652 58 H826" marker-end="url(#mk-f6t)"/>
+<g class="v-in" style="--d:1.90s"><text class="dg-xs dg-teal" x="740" y="46" text-anchor="middle">action Aₜ</text></g>
+<g class="v-in" style="--d:2.40s"><text class="dg-xs" x="240" y="120" text-anchor="middle">the history: already summarized in Sₜ</text></g>
+<g class="v-in" style="--d:2.80s"><text class="dg-xs dg-teal" x="740" y="120" text-anchor="middle">only Sₜ and Aₜ predict Sₜ₊₁</text></g>
+</svg>
+<figcaption><strong>Figure 6.1.</strong> If the history adds anything, the state is missing a variable.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s7">
+  <h2>Return, discounting, and why γ is not a detail</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="eq" style="text-align:left">
+          G<sub>t</sub> = R<sub>t+1</sub> + γR<sub>t+2</sub> + γ²R<sub>t+3</sub> + ⋯
+          <span class="cond">the discounted sum of rewards from time t onward</span>
+        </div>
+        <p style="margin-top:16px">
+          A policy <var>π</var> maps states to actions (or to distributions over actions).
+          The value of a state under a policy is the expected return:
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          V<sup>π</sup>(s) = E<sub>π</sub>[ G<sub>t</sub> | S<sub>t</sub> = s ]
+        </div>
+      </div>
+      <div>
+        <h3>Three reasons for γ &lt; 1</h3>
+        <ol>
+          <li><strong>Convergence.</strong> The sum is finite even on infinite horizons, so values are well defined.</li>
+          <li><strong>Preference.</strong> Earlier reward is worth more, which matches most economic and biological behaviour.</li>
+          <li><strong>Uncertainty.</strong> A reward far in the future is less likely to be collected.</li>
+        </ol>
+        <figure class="fig" style="margin-top:12px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 150" role="img" aria-labelledby="n6at n6ad">
+          <title id="n6at">How much a future reward counts under two discount factors</title>
+          <desc id="n6ad">Weight gamma to the power t for t from 0 to 100 steps. With gamma 0.9 the weight falls to almost zero within about 20 steps. With gamma 0.99 it is still above one third at step 100.</desc>
+          
+          <path class="dg-line-q" d="M50 114 H 410"/><path class="dg-line-q" d="M50 69 H 410"/><path class="dg-line-q" d="M50 24 H 410"/><path class="dg-line" d="M50 24 V 114 H 410"/><text class="dg-txt-s" x="50" y="134" text-anchor="middle">0</text><text class="dg-txt-s" x="86" y="134" text-anchor="middle">10</text><text class="dg-txt-s" x="230" y="134" text-anchor="middle">50</text><text class="dg-txt-s" x="410" y="134" text-anchor="middle">100</text><text class="dg-txt-s" x="42" y="119" text-anchor="end">0</text><text class="dg-txt-s" x="42" y="74" text-anchor="end">0.5</text><text class="dg-txt-s" x="42" y="29" text-anchor="end">1</text><text class="dg-txt-s" x="50" y="12">weight γᵗ</text>
+          <path class="dg-plot-a draw" d="M50.0 24.0 L53.6 33.0 L57.2 41.1 L60.8 48.4 L64.4 55.0 L71.6 66.2 L78.8 75.3 L86.0 82.6 L96.8 91.1 L107.6 97.3 L122.0 103.1 L140.0 107.5 L158.0 110.2 L194.0 112.7 L230.0 113.5 L266.0 113.8 L302.0 113.9 L338.0 114.0 L374.0 114.0 L410.0 114.0" pathLength="1" style="--d:0.20s"/>
+          <path class="dg-plot-t draw" d="M50.0 24.0 L53.6 24.9 L57.2 25.8 L60.8 26.7 L64.4 27.5 L71.6 29.3 L78.8 31.0 L86.0 32.6 L96.8 35.0 L107.6 37.4 L122.0 40.4 L140.0 44.0 L158.0 47.4 L194.0 53.8 L230.0 59.5 L266.0 64.8 L302.0 69.5 L338.0 73.7 L374.0 77.6 L410.0 81.1" pathLength="1" style="--d:0.70s"/>
+          <g class="v-in" style="--d:1.40s"><text class="dg-txt-b" x="424" y="44">γ = 0.99</text></g>
+          <g class="v-in" style="--d:1.50s"><text class="dg-txt-s" x="424" y="66">about 100</text><text class="dg-txt-s" x="424" y="84">steps ahead</text></g>
+          <g class="v-in" style="--d:0.90s"><text class="dg-lbl" x="104" y="60">γ = 0.9</text></g>
+          <text class="dg-txt-s" x="432" y="136">steps, t</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 6.2.</strong> <strong>γ is a policy decision.</strong> Change γ and you change the optimal behaviour: an agent plans about 1/(1 − γ) steps ahead, ten at γ = 0.9 and a hundred at γ = 0.99.
+        </figcaption>
+      </figure>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s8">
+  <h2>The Bellman equations</h2>
+  <p>One equation for a fixed policy, one for the best policy.</p>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s9">
+  <h2>The Bellman expectation equation</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          The value of a state under a fixed policy decomposes into the immediate reward
+          plus the discounted value of where you land:
+        </p>
+        <div class="eq">
+          V<sup>π</sup>(s) = Σ<sub>s′</sub> T(s′|s, π(s)) · [ R(s, π(s), s′) + γV<sup>π</sup>(s′) ]
+        </div>
+        <p style="margin-top:16px">
+          This is a <strong>linear system</strong> in |<var>S</var>| unknowns. For a fixed
+          policy it can be solved exactly by matrix inversion — and that is exactly what
+          policy evaluation does.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Why this is the key move</h3>
+          <p>
+            The equation converts an infinite sum over time into a relationship between
+            neighbouring states. It is the same trick as a recursive definition, and it is
+            what makes dynamic programming possible at all.
+          </p>
+        </div>
+        <p style="margin-top:14px">
+          Everything else in this module is a way of solving this equation — exactly,
+          iteratively, or approximately.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 152" role="img" aria-labelledby="f6bt f6bd">
+<title id="f6bt">A one-step backup diagram for the Bellman expectation equation</title>
+<desc id="f6bd">State s at the top. The policy picks one action, shown as a small filled dot. From the action, three branches lead to possible next states s prime, with transition probabilities 0.7, 0.2 and 0.1. Each branch contributes its reward plus gamma times the value of where it lands, and V of s is the probability-weighted sum of the branches.</desc>
+<defs><marker id="mk-f6b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker></defs>
+<g class="v-in" style="--d:0.20s"><circle class="dg-box-t" cx="500" cy="26" r="22"/><text class="dg-sm-b" x="500" y="31" text-anchor="middle">s</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.60s" d="M500 48 V68"/>
+<g class="v-in" style="--d:0.80s"><circle class="dg-card" cx="500" cy="75" r="7"/></g>
+<g class="v-in" style="--d:0.90s"><text class="dg-xs" x="514" y="72">action π(s)</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.20s" d="M500 82 L300 108" marker-end="url(#mk-f6b)"/>
+<g class="v-in" style="--d:1.50s"><circle class="dg-box" cx="300" cy="128" r="18"/><text class="dg-xs" x="300" y="133" text-anchor="middle">s′</text><text class="dg-xs" x="405" y="90" text-anchor="end">T = 0.7</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.45s" d="M500 82 L500 106" marker-end="url(#mk-f6b)"/>
+<g class="v-in" style="--d:1.75s"><circle class="dg-box" cx="500" cy="128" r="18"/><text class="dg-xs" x="500" y="133" text-anchor="middle">s′</text><text class="dg-xs" x="508" y="102">T = 0.2</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.70s" d="M500 82 L700 108" marker-end="url(#mk-f6b)"/>
+<g class="v-in" style="--d:2.00s"><circle class="dg-box" cx="700" cy="128" r="18"/><text class="dg-xs" x="700" y="133" text-anchor="middle">s′</text><text class="dg-xs" x="595" y="90">T = 0.1</text></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-xs dg-teal" x="735" y="133">each branch adds R + γ V(s′)</text></g>
+<g class="v-in" style="--d:3.00s"><text class="dg-xs" x="265" y="133" text-anchor="end">V(s) = the T-weighted sum</text></g>
+</svg>
+<figcaption><strong>Figure 6.3.</strong> One step down, weighted by T, and back up.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s10">
+  <h2>The optimality equation, and the two algorithms it implies</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="eq">
+          V*(s) = max<sub>a</sub> Σ<sub>s′</sub> T(s′|s,a) · [ R(s,a,s′) + γV*(s′) ]
+        </div>
+        <p style="margin-top:16px">
+          The only change from the previous slide is <code>max</code> instead of a fixed
+          action. That single change makes the equation <strong>nonlinear</strong>, so
+          matrix inversion no longer applies.
+        </p>
+        <p>
+          Two ways forward: iterate the equation until it stops changing (value
+          iteration), or alternate evaluation and greedy improvement (policy iteration).
+        </p>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.704" class="dg-seq" viewBox="20 28 324 213.8" role="img" aria-labelledby="f8t f8d">
+          <title id="f8t">Backup diagram for the Bellman optimality equation</title>
+          <desc id="f8d">A state node branches to actions, each action branches to possible next states with probabilities, and each next state carries its value. The maximum over actions of the expected value is taken.</desc>
+          <defs>
+            <marker id="a8" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <g class="v-in" style="--d:0.0s">
+          <rect class="dg-box-a" x="20" y="112" width="84" height="50" rx="3"/>
+          </g>
+          <g class="v-in" style="--d:0.07s">
+          <text class="dg-txt-b" x="62" y="142" text-anchor="middle">state s</text>
+          </g>
+
+          <g class="v-in" style="--d:0.13s">
+          <circle cx="152" cy="70"  r="10" class="dg-box-m"/>
+          </g>
+          <g class="v-in" style="--d:0.2s">
+          <circle cx="152" cy="112" r="10" class="dg-box-m"/>
+          </g>
+          <g class="v-in" style="--d:0.26s">
+          <circle cx="152" cy="154" r="10" class="dg-box-m"/>
+          </g>
+          <g class="v-in" style="--d:0.33s">
+          <text class="dg-txt-s" x="152" y="42" text-anchor="middle">a₁</text>
+          </g>
+          <g class="v-in" style="--d:0.39s">
+          <text class="dg-txt-s" x="152" y="196" text-anchor="middle">a₂ …</text>
+          </g>
+
+          <path class="dg-line v-draw" pathLength="1" style="--d:0.46s" d="M106 130 L 138 76" marker-end="url(#a8)"/>
+          <path class="dg-line v-draw" pathLength="1" style="--d:0.52s" d="M106 137 H 140" marker-end="url(#a8)"/>
+          <path class="dg-line v-draw" pathLength="1" style="--d:0.59s" d="M106 146 L 138 148" marker-end="url(#a8)"/>
+
+          <g class="v-in" style="--d:0.65s">
+          <circle cx="262" cy="40"  r="12" class="dg-box-t"/>
+          </g>
+          <g class="v-in" style="--d:0.72s">
+          <circle cx="262" cy="86"  r="12" class="dg-box-t"/>
+          </g>
+          <g class="v-in" style="--d:0.78s">
+          <circle cx="262" cy="146" r="12" class="dg-box-t"/>
+          </g>
+          <g class="v-in" style="--d:0.85s">
+          <circle cx="262" cy="192" r="12" class="dg-box-t"/>
+          </g>
+
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:0.91s" d="M162 66 L 248 42" marker-end="url(#a8)"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:0.98s" d="M162 72 L 248 84" marker-end="url(#a8)"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:1.04s" d="M162 116 L 248 144" marker-end="url(#a8)"/>
+          <path class="dg-line-q v-draw" pathLength="1" style="--d:1.11s" d="M162 152 L 248 190" marker-end="url(#a8)"/>
+
+          <g class="v-in" style="--d:1.17s">
+          <text class="dg-txt-s" x="320" y="44" text-anchor="middle">s′ with P(·)</text>
+          </g>
+          <g class="v-in" style="--d:1.24s">
+          <text class="dg-txt-s" x="320" y="90" text-anchor="middle">s″ with P(·)</text>
+          </g>
+          <g class="v-in" style="--d:1.3s">
+          <text class="dg-txt-s" x="320" y="150" text-anchor="middle">V(s′)</text>
+          </g>
+          <g class="v-in" style="--d:1.37s">
+          <text class="dg-txt-s" x="320" y="196" text-anchor="middle">V(s″)</text>
+          </g>
+
+          <g class="v-in" style="--d:1.43s">
+          <text class="dg-lbl" x="62" y="222" text-anchor="middle">max over a,</text>
+          </g>
+          <g class="v-in" style="--d:1.5s">
+          <text class="dg-lbl" x="62" y="240" text-anchor="middle">expectation over s′</text>
+          </g>
+        </svg>
+        <figcaption>
+          <strong>Figure 6.4.</strong> The backup: take an action, average over where you
+          land, add the reward, discount the future, and take the best action. Every
+          algorithm in modules 6 and 7 is a way of computing this diagram.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s11">
+  <h2>Solving and using MDPs</h2>
+  <p>Value iteration, policy iteration, and when the state is hidden.</p>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s12">
+  <h2>Value iteration: apply the equation until nothing changes</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+<pre class="code"><span class="k">function</span> VALUE-ITERATION(mdp, ε):
+  V = {s: 0 <span class="k">for</span> s <span class="k">in</span> mdp.states}
+
+  <span class="k">repeat</span>:
+    Δ = 0
+    <span class="k">for</span> s <span class="k">in</span> mdp.states:
+      v = V[s]
+      V[s] = max over a of
+               Σ T(s′|s,a) · (R + γ · V[s′])
+      Δ = max(Δ, |v − V[s]|)
+  <span class="k">until</span> Δ &lt; ε(1−γ)/(2γ)
+
+  <span class="k">return</span> V, greedy-policy(V)</pre>
+      </div>
+      <div>
+        <h3>Why it converges</h3>
+        <p>
+          Define the Bellman operator <var>B</var>. For any two value functions,
+        </p>
+        <div class="eq eq--tight">
+          ‖BV − BU‖<sub>∞</sub> ≤ γ‖V − U‖<sub>∞</sub>
+        </div>
+        <p style="margin-top:12px">
+          <var>B</var> is a <strong>γ-contraction</strong> in the max norm, so it has a
+          unique fixed point, and iterating from any starting point reaches it. With
+          γ &lt; 1 the error shrinks by a factor of γ per sweep.
+        </p>
+        <div class="panel panel--accent" style="margin-top:12px">
+          <h3>The stopping rule is not arbitrary</h3>
+          <p>
+            Stopping at Δ &lt; ε(1−γ)/(2γ) guarantees the resulting policy is within ε of
+            optimal. Stopping at "Δ looks small" guarantees nothing.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s13">
+  <h2>Worked value iteration: two states and a slippery action</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          States <strong>A</strong> and <strong>B</strong>, plus a terminal <strong>T</strong>.
+          From A, the only action moves to B with probability 1, reward 0. From B, the
+          action reaches T with probability 0.8 (reward +1), and stays in B with
+          probability 0.2 (reward 0). Let γ = 0.5 and initialize all values at 0.
+        </p>
+        <table class="tbl tbl--compact" style="margin-top:10px">
+      <caption class="visually-hidden">Worked value iteration: two states and a slippery action</caption>
+          <thead><tr><th scope="col">Sweep</th><th scope="col" class="num">V(A)</th><th scope="col" class="num">V(B)</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td class="num">0</td><td class="num">0</td></tr>
+            <tr><td>1</td><td class="num">0</td><td class="num">0.8</td></tr>
+            <tr><td>2</td><td class="num">0.4</td><td class="num">0.88</td></tr>
+            <tr><td>3</td><td class="num">0.44</td><td class="num">0.888</td></tr>
+            <tr><td>4</td><td class="num">0.444</td><td class="num">0.8888</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Check it by hand</h3>
+        <p>
+          In the limit, B satisfies its own equation:
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          V(B) = 0.8(1 + 0.5·0) + 0.2(0 + 0.5·V(B))<br>
+          V(B) = 0.8 + 0.1·V(B) ⟹ V(B) = 0.8/0.9 = 0.888…
+        </div>
+        <p style="margin-top:10px">
+          And A is one deterministic step away: V(A) = 0.5 · V(B) = 0.444…
+        </p>
+        <div class="panel panel--key" style="margin-top:12px">
+          <h3>Two things to notice</h3>
+          <ul>
+            <li>Information propagates backward one state per sweep. Long chains converge slowly.</li>
+            <li>The 0.2 self-loop <em>raises</em> the value of B, because staying there is not a loss — it is another chance.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s14">
+  <h2>Policy iteration: evaluate, then improve, repeat</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <ol class="steps">
+          <li><span class="n" aria-hidden="true">1</span><div><strong>Initialize</strong><p>Start with any policy, even a bad one.</p></div></li>
+          <li><span class="n" aria-hidden="true">2</span><div><strong>Evaluate</strong><p>Solve the linear system for V<sup>π</sup> exactly.</p></div></li>
+          <li><span class="n" aria-hidden="true">3</span><div><strong>Improve</strong><p>Set π′(s) = argmax<sub>a</sub> Σ T(s′|s,a)[R + γV<sup>π</sup>(s′)].</p></div></li>
+          <li><span class="n" aria-hidden="true">4</span><div><strong>Stop</strong><p>When π′ = π, the policy is optimal.</p></div></li>
+        </ol>
+        <figure class="fig" style="margin-top:-6px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 118" role="img" aria-labelledby="n6ct n6cd">
+          <title id="n6ct">The policy iteration loop</title>
+          <desc id="n6cd">Two boxes in a cycle. Evaluate turns a policy pi into its value function. Improve turns that value function into a greedy policy pi prime. The loop exits when pi prime equals pi, which is optimal.</desc>
+          <defs><marker id="n6ca" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#16181d"/></marker></defs>
+          <g class="v-in" style="--d:0.00s"><rect class="dg-box-t" x="10" y="42" width="200" height="56" rx="3"/><text class="dg-txt-b" x="110" y="66" text-anchor="middle">evaluate</text><text class="dg-txt-s" x="110" y="86" text-anchor="middle">π → Vπ</text></g>
+          <g class="v-in" style="--d:0.12s"><path class="dg-line" d="M110 40 C 110 18, 340 18, 340 38" marker-end="url(#n6ca)"/><text class="dg-txt-s" x="225" y="14" text-anchor="middle">Vπ</text></g>
+          <g class="v-in" style="--d:0.24s"><rect class="dg-box-a" x="240" y="42" width="200" height="56" rx="3"/><text class="dg-txt-b" x="340" y="66" text-anchor="middle">improve</text><text class="dg-txt-s" x="340" y="86" text-anchor="middle">π′ = greedy on Vπ</text></g>
+          <path class="dg-line v-draw" pathLength="1" style="--d:0.36s" d="M340 100 C 340 120, 110 120, 110 102" marker-end="url(#n6ca)"/>
+          <g class="v-in" style="--d:0.48s"><path class="dg-line" d="M442 70 H 466" marker-end="url(#n6ca)"/><text class="dg-txt-s" x="472" y="64">stop when</text><text class="dg-txt-b" x="472" y="84">π′ = π</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 6.5.</strong> The same four steps as a loop.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="panel panel--definition">
+          <span class="term">Policy improvement theorem</span>
+          <p>
+            If π′ is greedy with respect to V<sup>π</sup>, then
+            V<sup>π′</sup>(s) ≥ V<sup>π</sup>(s) for all states s, with strict inequality
+            somewhere unless π is already optimal.
+          </p>
+        </div>
+        <p style="margin-top:14px">
+          Because there are finitely many deterministic policies, monotone improvement
+          must terminate — and it terminates at a policy that satisfies the optimality
+          equation, hence at an optimal policy.
+        </p>
+        <p style="font-size:17px; color:var(--muted)">
+          No ε, no tolerance, no approximation: policy iteration either stops at the
+          exact optimum or does not stop.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s15">
+  <h2>Which one to use</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption class="visually-hidden">Which one to use</caption>
+      <thead>
+        <tr><td></td><th scope="col">Value iteration</th><th scope="col">Policy iteration</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Per iteration</th><td>One sweep, O(|S|²|A|)</td><td>Linear solve, O(|S|³) plus O(|S|²|A|)</td></tr>
+        <tr><th scope="row">Iterations</th><td>Many; grows with 1/(1−γ)</td><td>Few; often under 10 in practice</td></tr>
+        <tr><th scope="row">Result</th><td>Approximate, within ε</td><td>Exact optimal policy</td></tr>
+        <tr><th scope="row">Simplest to code</th><td>Yes</td><td>No, needs a solver or many evaluation sweeps</td></tr>
+        <tr><th scope="row">Scales to large |S|</th><td>Better</td><td>Worse without approximation</td></tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:16px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Modified policy iteration sits between them: evaluate with a few sweeps instead
+        of solving exactly. <strong>In practice this is usually the right answer</strong>,
+        and it is what many libraries implement without saying so.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s16">
+  <h2>A decision you could actually face</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A graduate program has one server for student projects. Each week it can either
+          <strong>upgrade</strong> (costs 2 units, reduces failure probability for three
+          weeks) or <strong>wait</strong> (free, but a failure costs 10 units).
+        </p>
+        <p>
+          States: weeks-since-upgrade (0–3) and server health. Actions: upgrade, wait.
+          Transitions: failure probability depends on both. Reward: negative cost.
+        </p>
+      </div>
+      <div class="panel panel--key">
+        <h3>What the MDP buys you</h3>
+        <ul>
+          <li>A policy <em>per state</em>, not a fixed schedule — so the timing of the upgrade adapts.</li>
+          <li>An explicit value of the trade: 2 units now versus 10 units × failure probability.</li>
+          <li>A way to test a proposed policy before deploying it, by evaluating it offline.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        This is what "AI for operations" actually looks like: a small, well-specified
+        MDP, solved exactly, with the value of the solution stated in the same units as
+        the budget.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s17">
+  <h2>When the state is not visible, an MDP is not enough</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          If the agent cannot observe the state, it must act on a
+          <strong>belief</strong> — a distribution over states. The correct formalism is a
+          partially observable MDP.
+        </p>
+        <ul>
+          <li>The belief is updated by Bayes' rule after each observation.</li>
+          <li>The belief space is continuous, even when the state space is discrete.</li>
+          <li>Optimal policies can be arbitrarily complex; exact solutions are intractable in general.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Why this matters practically</h3>
+          <p>
+            Most deployed systems are partially observable: a support chatbot does not
+            know the user's actual problem, a doctor does not know the true disease.
+          </p>
+          <p>
+            The usual engineering move is to treat the belief as the state and use
+            approximate methods — or to pretend the problem is an MDP and accept the
+            error. Module 10 gives you the belief update, and lab 4 makes you implement it.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        A POMDP is not a harder MDP. It is a different problem class, and the difference
+        is <strong>informational</strong>: actions change what you will know, not only
+        where you will be.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s18">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>An MDP is a specification, and the reward is the specification.</strong><p>Everything the agent does follows from what you wrote down.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Markov means the state summarizes the past.</strong><p>If it does not, add to the state — and pay in state-space size.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Bellman turns an infinite sum into a local equation.</strong><p>That is what makes the problem solvable at all.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>γ is a contraction factor, not a footnote.</strong><p>It guarantees convergence and sets the planning horizon at about 1/(1−γ).</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Partial observability changes the problem class.</strong><p>Beliefs, not states, and actions that gather information.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 16 -->
+<section class="slide" id="s19">
+  <h2>This week's work</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA §17.1–17.2.</li>
+          <li>Reproduce the two-state worked example without notes.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Lab 2: solve a small MDP by value iteration and policy iteration; compare.</li>
+          <li>Capstone proposal due this Sunday — two pages with an evaluation plan.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — Lab 2 and the capstone proposal.</li>
+          <li>Friday class, 8:30–11:10 a.m. CT, MIC: Bellman backups by hand; online students watch the recorded lecture.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next:</strong> module 7 deletes the transition table and asks the agent to
+        learn behaviour from experience alone.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 17 ─────────────────────────────── Python learning resources -->
+<section class="slide" id="s20">
+  <h2>Python help for Lab 2</h2>
+  <div class="slide-main">
+    <p style="margin-bottom:14px">Lab 2 runs value and policy iteration on small grid worlds. Most of the work is arrays and loops.</p>
+    <ul class="resources">
+      <li><a href="https://numpy.org/doc/stable/user/absolute_beginners.html">NumPy: the absolute basics for beginners</a><span class="src">numpy.org</span><p>Store the value function as an array indexed by state.</p></li>
+      <li><a href="https://numpy.org/doc/stable/user/basics.broadcasting.html">NumPy broadcasting</a><span class="src">numpy.org</span><p>Back up every state at once instead of writing nested loops.</p></li>
+      <li><a href="https://docs.python.org/3/library/json.html">json</a><span class="src">docs.python.org</span><p>The world files in the lab's data folder are JSON.</p></li>
+      <li><a href="https://docs.python.org/3/tutorial/datastructures.html">Data structures (tutorial, chapter 5)</a><span class="src">docs.python.org</span><p>Dictionaries for transition models, such as P[s][a] → list of (probability, next state).</p></li>
+      <li><a href="https://matplotlib.org/stable/tutorials/pyplot.html">Matplotlib pyplot tutorial</a><span class="src">matplotlib.org</span><p>Plot how much the values change on each sweep to show convergence.</p></li>
+      <li><a href="https://numpy.org/learn/">NumPy learning resources</a><span class="src">numpy.org</span><p>The NumPy project's own list of tutorials and videos, if you want more practice.</p></li>
+    </ul>
+    <div class="callout" style="margin-top:20px">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>Write the Bellman backup for one state by hand first, then turn it into code.</p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

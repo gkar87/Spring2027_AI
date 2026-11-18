@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 14 — Perception, Robotics, and Dependable Systems · CS 5700</title>
+<meta name="description" content="CS 5700 Module 14: vision pipelines, detection metrics, robotics and SLAM, motion planning, sim-to-real transfer, the ML lifecycle, monitoring, robustness, and uncertainty.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 14 lecture slides: Perception, Robotics, and Dependable Systems">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 14 of 15</p>
+  <h1>Perception, Robotics, and Dependable Systems</h1>
+  <p class="subtitle">
+    A model that works on a benchmark has not yet met the world.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<defs><marker id="mk-ta14" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker></defs>
+<g class="v-in" style="--d:0.20s"><rect class="dg-box-t" x="138" y="18" width="104" height="44" rx="22"/><text class="dg-sm-b" x="190" y="45" text-anchor="middle">Sense</text></g>
+<g class="v-in" style="--d:0.60s"><rect class="dg-box-t" x="268" y="128" width="104" height="44" rx="22"/><text class="dg-sm-b" x="320" y="155" text-anchor="middle">Estimate</text></g>
+<g class="v-in" style="--d:1.00s"><rect class="dg-box-t" x="138" y="238" width="104" height="44" rx="22"/><text class="dg-sm-b" x="190" y="265" text-anchor="middle">Plan</text></g>
+<g class="v-in" style="--d:1.40s"><rect class="dg-box-a" x="8" y="128" width="104" height="44" rx="22"/><text class="dg-sm-b" x="60" y="155" text-anchor="middle">Act</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.50s" d="M246 50 Q300 70 316 124" marker-end="url(#mk-ta14)"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.90s" d="M316 176 Q300 230 246 252" marker-end="url(#mk-ta14)"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.30s" d="M134 252 Q80 230 64 176" marker-end="url(#mk-ta14)"/>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.70s" d="M64 124 Q80 70 134 50" marker-end="url(#mk-ta14)"/>
+<g class="v-in" style="--d:2.40s"><text class="dg-xs" x="190" y="155" text-anchor="middle">a loop,</text><text class="dg-xs" x="190" y="173" text-anchor="middle">not a pipeline</text></g>
+<g class="v-in" style="--d:2.80s"><text class="dg-sm dg-teal" x="190" y="320" text-anchor="middle">every step can be wrong</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>Describe the vision pipeline from pixels to a decision, and where it can break.</li>
+      <li>Explain the perception–planning–control loop and why it is a loop.</li>
+      <li>Describe how a Bayes filter localizes a robot, and what SLAM adds.</li>
+      <li>Name the three sources of distribution shift and how each is detected.</li>
+      <li>Distinguish aleatoric from epistemic uncertainty and say why the distinction matters operationally.</li>
+      <li>Design a monitoring plan for a deployed model, including what would trigger a rollback.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        The design question that matters most for your capstone is about deployment:
+        <strong>what would you monitor, and what would make you turn it off?</strong>
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>Perception</h2>
+  <p>Vision as inference from incomplete evidence.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>Vision is an inverse problem</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A camera measures light intensity on a grid. The scene — objects, depth, materials,
+          lighting — is not directly observed. Recovering it is inference from incomplete
+          evidence, and it is ill-posed: many scenes produce the same image.
+        </p>
+        <p>
+          This is why vision needs priors. A convolutional network's locality, a
+          transformer's attention, and a dataset's statistics are all priors, and they are
+          all assumptions about what the world is like.
+        </p>
+      </div>
+      <div class="panel panel--key">
+        <h3>Three tasks, increasing structure</h3>
+        <ul>
+          <li><strong>Classification</strong> — one label per image.</li>
+          <li><strong>Detection</strong> — labels plus bounding boxes.</li>
+          <li><strong>Segmentation</strong> — a label per pixel.</li>
+        </ul>
+        <p style="margin-top:10px">
+          Each adds output structure, and each adds a new way to be wrong.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 158" role="img" aria-labelledby="f14at f14ad">
+<title id="f14at">The same scene under classification, detection and segmentation</title>
+<desc id="f14ad">Three copies of a simple scene with a cat and a ball. Classification gives one label for the whole image. Detection adds a box around each object. Segmentation marks every pixel of the cat and of the ball with its label.</desc>
+<g class="v-in" style="--d:0.20s"><text class="dg-sm-b" x="165" y="14" text-anchor="middle">Classification</text><rect class="dg-box" x="20" y="24" width="290" height="110" rx="4"/></g>
+<g class="v-in" style="--d:0.30s"><circle class="dg-box-m" cx="120" cy="86" r="30"/><polygon class="dg-box-m" points="96,68 102,44 116,60"/><polygon class="dg-box-m" points="124,60 138,44 144,68"/><circle class="dg-box-m" cx="240" cy="104" r="16"/></g>
+<g class="v-in" style="--d:0.50s"><text class="dg-xs" x="165" y="154" text-anchor="middle">one label: “cat”</text></g>
+<g class="v-in" style="--d:0.80s"><text class="dg-sm-b" x="495" y="14" text-anchor="middle">Detection</text><rect class="dg-box" x="350" y="24" width="290" height="110" rx="4"/></g>
+<g class="v-in" style="--d:0.90s"><circle class="dg-box-m" cx="450" cy="86" r="30"/><polygon class="dg-box-m" points="426,68 432,44 446,60"/><polygon class="dg-box-m" points="454,60 468,44 474,68"/><circle class="dg-box-m" cx="570" cy="104" r="16"/></g>
+<g class="v-in" style="--d:1.10s"><rect class="dg-hl" x="412" y="36" width="76" height="84" rx="0"/><rect class="dg-hl-t" x="548" y="82" width="44" height="44" rx="0"/></g>
+<g class="v-in" style="--d:1.10s"><text class="dg-xs" x="495" y="154" text-anchor="middle">labels + boxes</text></g>
+<g class="v-in" style="--d:1.40s"><text class="dg-sm-b" x="825" y="14" text-anchor="middle">Segmentation</text><rect class="dg-box" x="680" y="24" width="290" height="110" rx="4"/></g>
+<g class="v-in" style="--d:1.50s"><circle class="dg-box-m" cx="780" cy="86" r="30"/><polygon class="dg-box-m" points="756,68 762,44 776,60"/><polygon class="dg-box-m" points="784,60 798,44 804,68"/><circle class="dg-box-m" cx="900" cy="104" r="16"/></g>
+<g class="v-in" style="--d:1.70s"><circle class="dg-hl" cx="780" cy="86" r="30"/><polygon class="dg-hl" points="756,68 762,44 776,60"/><polygon class="dg-hl" points="784,60 798,44 804,68"/><circle class="dg-hl-t" cx="900" cy="104" r="16"/></g>
+<g class="v-in" style="--d:1.70s"><text class="dg-xs" x="825" y="154" text-anchor="middle">a label per pixel</text></g>
+</svg>
+<figcaption><strong>Figure 14.1.</strong> Each step adds output structure, and a way to be wrong.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>Detection metrics measure agreement, not usefulness</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="eq eq--tight" style="text-align:left">
+          IoU = area(box ∩ truth) / area(box ∪ truth)
+        </div>
+        <p style="margin-top:10px">
+          A detection counts as correct when its IoU with a ground-truth box exceeds a
+          threshold. Average precision summarizes the precision–recall curve across
+          thresholds; mAP averages over classes.
+        </p>
+        <figure class="fig">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 152" role="img" aria-labelledby="n14at n14ad">
+          <title id="n14at">Two detections with different IoU</title>
+          <desc id="n14ad">Two panels. In each, a dashed ground-truth box and a solid predicted box of the same size overlap, with the overlap shaded. On the left the predicted box is shifted a third of its width, giving IoU of about 0.50. On the right it is shifted a seventh of its width, giving IoU of about 0.75.</desc>
+          
+          <g class="v-in" style="--d:0.10s"><rect class="dg-band-a" x="56" y="8" width="100" height="90" rx="0"/><rect class="dg-plot-t" x="6" y="8" width="150" height="90" style="stroke-dasharray:6 4"/><rect class="dg-plot-a" x="56" y="8" width="150" height="90"/><text class="dg-txt-b" x="106" y="122" text-anchor="middle">IoU ≈ 0.50</text><text class="dg-txt-s" x="106" y="142" text-anchor="middle">correct at 0.5, not at 0.75</text></g>
+          <g class="v-in" style="--d:0.60s"><rect class="dg-band-a" x="339" y="8" width="129" height="90" rx="0"/><rect class="dg-plot-t" x="318" y="8" width="150" height="90" style="stroke-dasharray:6 4"/><rect class="dg-plot-a" x="339" y="8" width="150" height="90"/><text class="dg-txt-b" x="403.5" y="122" text-anchor="middle">IoU ≈ 0.75</text><text class="dg-txt-s" x="403.5" y="142" text-anchor="middle">correct at both</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 14.2.</strong> Dashed: truth. Solid: prediction. The threshold is a choice, and a model can look excellent at 0.5 and mediocre at 0.75.
+        </figcaption>
+      </figure>
+      </div>
+      <div class="panel panel--accent">
+        <h3>What mAP does not tell you</h3>
+        <ul>
+          <li>Whether the missed detections are the dangerous ones.</li>
+          <li>Whether boxes are stable frame to frame.</li>
+          <li>Whether performance holds at night, in rain, or at a different camera angle.</li>
+          <li>Whether a downstream planner can act on the output.</li>
+        </ul>
+        <p style="margin-top:10px">
+          All four matter more than a two-point mAP difference.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>Why vision models fail in the world</h2>
+  <div class="slide-main">
+    <div class="cols-3">
+      <div class="panel">
+        <h3>Covariate shift</h3>
+        <p>The input distribution changes: new camera, new lighting, new season. The label function is unchanged.</p>
+      </div>
+      <div class="panel">
+        <h3>Spurious correlation</h3>
+        <p>The model learned a shortcut — snow predicts a wolf, a hospital logo predicts pneumonia. It works until the shortcut is absent.</p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Label shift</h3>
+        <p>The class balance changes: a rare defect becomes common after a process change. Accuracy collapses even though the model is unchanged.</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        The three are distinguished by what changed — <strong>inputs, the input–label
+        relationship, or the label distribution</strong> — and each needs a different
+        response. Diagnosing which one you have is the first step of any fix.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s7">
+  <h2>Robotics</h2>
+  <p>Sensing, estimating, planning and acting in a loop.</p>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s8">
+  <h2>Robotics is a loop, not a pipeline</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          Sense, plan, act — then sense again. The loop matters because the world changes
+          while you plan, and because actions change what you will observe next.
+        </p>
+        <p>
+          Planning happens in <strong>configuration space</strong>: the space of robot poses,
+          where obstacles become forbidden regions. A path in configuration space is a motion
+          the robot can execute.
+        </p>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.36" class="dg-seq" viewBox="20 40 400 192" role="img" aria-labelledby="f6t f6d">
+          <title id="f6t">The sense-plan-act control loop</title>
+          <desc id="f6d">Perception produces a belief about the world, planning produces a trajectory, control produces motor commands, and the resulting motion changes what perception observes next.</desc>
+          <defs>
+            <marker id="a14" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <g class="v-in" style="--d:0.0s">
+          <rect class="dg-box-m" x="20" y="40" width="120" height="52" rx="3"/>
+          </g>
+          <g class="v-in" style="--d:0.1s">
+          <text class="dg-txt-b" x="80" y="64" text-anchor="middle">perception</text>
+          </g>
+          <g class="v-in" style="--d:0.2s">
+          <text class="dg-txt-s" x="80" y="82" text-anchor="middle">sensors → belief</text>
+          </g>
+
+          <g class="v-in" style="--d:0.3s">
+          <rect class="dg-box-t" x="170" y="40" width="110" height="52" rx="3"/>
+          </g>
+          <g class="v-in" style="--d:0.4s">
+          <text class="dg-txt-b" x="225" y="64" text-anchor="middle">planning</text>
+          </g>
+          <g class="v-in" style="--d:0.5s">
+          <text class="dg-txt-s" x="225" y="82" text-anchor="middle">belief → path</text>
+          </g>
+
+          <g class="v-in" style="--d:0.6s">
+          <rect class="dg-box-a" x="310" y="40" width="110" height="52" rx="3"/>
+          </g>
+          <g class="v-in" style="--d:0.7s">
+          <text class="dg-txt-b" x="365" y="64" text-anchor="middle">control</text>
+          </g>
+          <g class="v-in" style="--d:0.8s">
+          <text class="dg-txt-s" x="365" y="82" text-anchor="middle">path → motors</text>
+          </g>
+
+          <g class="v-in" style="--d:0.9s">
+          <rect class="dg-box-m" x="170" y="180" width="250" height="52" rx="3"/>
+          </g>
+          <g class="v-in" style="--d:1.0s">
+          <text class="dg-txt-b" x="295" y="204" text-anchor="middle">the world</text>
+          </g>
+          <g class="v-in" style="--d:1.1s">
+          <text class="dg-txt-s" x="295" y="222" text-anchor="middle">motion changes the next observation</text>
+          </g>
+
+          <path class="dg-line v-draw" pathLength="1" style="--d:1.2s" d="M142 66 H 168" marker-end="url(#a14)"/>
+          <path class="dg-line v-draw" pathLength="1" style="--d:1.3s" d="M282 66 H 308" marker-end="url(#a14)"/>
+          <path class="dg-line v-draw" pathLength="1" style="--d:1.4s" d="M365 94 V 178" marker-end="url(#a14)"/>
+          <path class="dg-line v-draw" pathLength="1" style="--d:1.5s" d="M170 206 H 80 V 94" marker-end="url(#a14)"/>
+        </svg>
+        <figcaption>
+          <strong>Figure 14.3.</strong> The loop. Every arrow is a place where a
+          latency budget and an error model have to be justified.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s9">
+  <h2>Localization is filtering, and SLAM is localization plus mapping</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A robot does not know where it is. It has odometry, which drifts, and range
+          sensors, which are noisy. Belief over pose is updated exactly as in module 10:
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          bel(x<sub>t</sub>) = α · P(z<sub>t</sub> | x<sub>t</sub>) ·
+          Σ<sub>x<sub>t−1</sub></sub> P(x<sub>t</sub> | x<sub>t−1</sub>, u<sub>t</sub>) · bel(x<sub>t−1</sub>)
+        </div>
+        <p style="margin-top:12px">
+          This is the forward recursion from module 10, with a motion model and a sensor model.
+          The particle filter is the standard implementation.
+        </p>
+        <figure class="fig" style="margin-top:14px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 138" role="img" aria-labelledby="n14bt n14bd">
+          <title id="n14bt">A pose graph for SLAM</title>
+          <desc id="n14bd">Four robot poses in a row, x1 to x4, joined by solid odometry edges. Two landmarks, L1 and L2, sit above them. Dashed edges link each landmark to the poses that observed it.</desc>
+          
+          <g class="v-in" style="--d:0.10s"><path class="dg-line" d="M60 120 L200 120"/><path class="dg-line" d="M200 120 L340 120"/><path class="dg-line" d="M340 120 L480 120"/></g>
+          <g class="v-in" style="--d:0.20s"><circle class="dg-teal" cx="60" cy="120" r="16"/><text class="dg-txt-b" x="60" y="126" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">x1</text></g>
+          <g class="v-in" style="--d:0.32s"><circle class="dg-teal" cx="200" cy="120" r="16"/><text class="dg-txt-b" x="200" y="126" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">x2</text></g>
+          <g class="v-in" style="--d:0.44s"><circle class="dg-teal" cx="340" cy="120" r="16"/><text class="dg-txt-b" x="340" y="126" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">x3</text></g>
+          <g class="v-in" style="--d:0.56s"><circle class="dg-teal" cx="480" cy="120" r="16"/><text class="dg-txt-b" x="480" y="126" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">x4</text></g>
+          <g class="v-in" style="--d:0.80s"><path class="dg-dash" d="M60 104 L150 40"/></g>
+          <g class="v-in" style="--d:0.88s"><path class="dg-dash" d="M200 104 L150 40"/></g>
+          <g class="v-in" style="--d:0.96s"><path class="dg-dash" d="M200 104 L350 40"/></g>
+          <g class="v-in" style="--d:1.04s"><path class="dg-dash" d="M340 104 L350 40"/></g>
+          <g class="v-in" style="--d:1.12s"><path class="dg-dash" d="M480 104 L350 40"/></g>
+          <g class="v-in" style="--d:0.60s"><rect class="dg-card" x="132" y="12" width="36" height="28" rx="3"/><text class="dg-txt-b" x="150" y="32" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">L1</text></g>
+          <g class="v-in" style="--d:0.70s"><rect class="dg-card" x="332" y="12" width="36" height="28" rx="3"/><text class="dg-txt-b" x="350" y="32" text-anchor="middle" style="fill:#ffffff" fill="#ffffff">L2</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 14.4.</strong> Solid edges: odometry. Dashed edges: observations.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>SLAM: a chicken-and-egg problem</h3>
+          <p>
+            To localize you need a map; to build a map you need to know where you are. SLAM
+            solves both jointly, which is why it is harder than either.
+          </p>
+          <p style="margin-top:8px">
+            Practical systems use graph-based formulations: poses and landmarks are nodes, and
+            constraints from observations are edges. Optimization finds the configuration that
+            best satisfies all constraints at once.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            Note the pattern: a hard sequential problem becomes tractable when you stop solving
+            it sequentially. That is the same move as module 10's variable elimination.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s10">
+  <h2>Planning in continuous space</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A* needs a discrete graph. In continuous configuration space you either discretize
+          (a grid, which explodes in high dimensions) or sample.
+        </p>
+        <ul>
+          <li><strong>Grid A*</strong> — optimal on the grid, expensive in 6+ dimensions.</li>
+          <li><strong>RRT</strong> — grow a tree of random samples toward free space; fast, not optimal.</li>
+          <li><strong>RRT*</strong> — rewires to improve, asymptotically optimal.</li>
+          <li><strong>Trajectory optimization</strong> — solve for a smooth path directly, subject to dynamics.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>The dimension argument</h3>
+          <p>
+            A 7-joint arm has a 7-dimensional configuration space. A grid with 20 cells per
+            dimension has 20⁷ ≈ 1.3 billion cells. Sampling does not care about dimension in
+            the same way, which is why it dominates.
+          </p>
+        </div>
+        <p style="margin-top:14px">
+          This is the same lesson as module 2: <strong>the state space decides which algorithm
+          class is viable</strong>, and the answer changes with dimension.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s11">
+  <h2>Sim-to-real: the gap is the problem</h2>
+  <div class="slide-main">
+    <div class="cols-2-1">
+      <div>
+        <p>
+          Training in simulation is cheap, safe, and fast. Deploying a simulation-trained
+          policy fails because simulation is wrong about friction, lighting, latency, sensor
+          noise, and contact dynamics.
+        </p>
+        <p>
+          Three standard responses:
+        </p>
+        <ol>
+          <li><strong>Domain randomization</strong> — vary physics and appearance during training so the policy cannot rely on simulator quirks.</li>
+          <li><strong>System identification</strong> — measure the real system and match the simulator to it.</li>
+          <li><strong>Fine-tuning on real data</strong> — small amounts of real experience after simulated pretraining.</li>
+        </ol>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>The honest framing</h3>
+          <p>
+            Sim-to-real is a distribution-shift problem, identical in structure to the vision
+            failures earlier in this module. The "reality gap" is not mysterious; it is
+            covariate shift in the dynamics.
+          </p>
+          <p style="margin-top:8px">
+            Which means the diagnostic tools are the same: measure where the real distribution
+            differs, and check performance there.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s12">
+  <h2>Dependable systems</h2>
+  <p>Lifecycle, monitoring, uncertainty and a case study.</p>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s13">
+  <h2>The lifecycle nobody teaches</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+        <ol class="steps">
+          <li><span class="n" aria-hidden="true">1</span><div><strong>Frame</strong><p>What decision does this support, and what is the cost of each error?</p></div></li>
+          <li><span class="n" aria-hidden="true">2</span><div><strong>Collect</strong><p>Who is in the data, who is missing, and what consent covers it?</p></div></li>
+          <li><span class="n" aria-hidden="true">3</span><div><strong>Evaluate</strong><p>Held-out, per subgroup, with baselines and intervals.</p></div></li>
+        </ol>
+        <ol class="steps" start="4">
+          <li><span class="n" aria-hidden="true">4</span><div><strong>Deploy</strong><p>Shadow mode first; human review where errors are expensive.</p></div></li>
+          <li><span class="n" aria-hidden="true">5</span><div><strong>Monitor</strong><p>Inputs, outputs, and outcomes — with a rollback trigger.</p></div></li>
+          <li><span class="n" aria-hidden="true">6</span><div><strong>Retire</strong><p>Models decay; a plan for replacement is part of the design.</p></div></li>
+        </ol>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 62" role="img" aria-labelledby="f14bt f14bd">
+<title id="f14bt">The six-step lifecycle, split where courses usually stop</title>
+<desc id="f14bd">Six arrow-shaped steps in a row: frame, collect, evaluate, deploy, monitor and retire. A dashed line after evaluate marks where most courses stop; deploy, monitor and retire, where most real failures happen, are on the other side.</desc>
+<g class="v-in" style="--d:0.20s"><polygon class="dg-box-t" points="6,4 146,4 164,23 146,42 6,42 24,23"/><text class="dg-sm-b" x="85" y="28" text-anchor="middle">1  Frame</text></g>
+<g class="v-in" style="--d:0.45s"><polygon class="dg-box-t" points="170,4 310,4 328,23 310,42 170,42 188,23"/><text class="dg-sm-b" x="249" y="28" text-anchor="middle">2  Collect</text></g>
+<g class="v-in" style="--d:0.70s"><polygon class="dg-box-t" points="334,4 474,4 492,23 474,42 334,42 352,23"/><text class="dg-sm-b" x="413" y="28" text-anchor="middle">3  Evaluate</text></g>
+<g class="v-in" style="--d:0.95s"><polygon class="dg-box-a" points="498,4 638,4 656,23 638,42 498,42 516,23"/><text class="dg-sm-b" x="577" y="28" text-anchor="middle">4  Deploy</text></g>
+<g class="v-in" style="--d:1.20s"><polygon class="dg-box-a" points="662,4 802,4 820,23 802,42 662,42 680,23"/><text class="dg-sm-b" x="741" y="28" text-anchor="middle">5  Monitor</text></g>
+<g class="v-in" style="--d:1.45s"><polygon class="dg-box-a" points="826,4 966,4 984,23 966,42 826,42 844,23"/><text class="dg-sm-b" x="905" y="28" text-anchor="middle">6  Retire</text></g>
+<g class="v-in" style="--d:2.00s"><path class="dg-dash" d="M496 0 V60"/><text class="dg-xs" x="484" y="60" text-anchor="end">most courses stop here</text><text class="dg-xs dg-txt-bad" x="510" y="60">most failures happen here</text></g>
+</svg>
+<figcaption><strong>Figure 14.5.</strong> Steps 4 to 6 are where an engineer earns their salary.</figcaption>
+</figure>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Most courses stop at step 3. <strong>Most real failures happen at steps 4 through
+        6</strong> — which is where an engineer earns their salary.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s14">
+  <h2>Monitoring: what to watch and what to do</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption class="visually-hidden">Monitoring: what to watch and what to do</caption>
+      <thead>
+        <tr><th scope="col">Signal</th><th scope="col">Detects</th><th scope="col">Action</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Input distribution drift</td><td>New camera, new user population, new season</td><td>Alert; evaluate on a fresh labelled sample</td></tr>
+        <tr><td>Prediction distribution drift</td><td>Model behaviour changing before labels arrive</td><td>Investigate; compare to expected base rate</td></tr>
+        <tr><td>Delayed outcome accuracy</td><td>Real error rate, once labels exist</td><td>Retrain or roll back</td></tr>
+        <tr><td>Calibration drift</td><td>Confidence no longer matches accuracy</td><td>Recalibrate before it feeds a decision</td></tr>
+        <tr><td>Subgroup performance</td><td>Harm concentrated in one population</td><td>Treat as an incident, not a metric</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:14px">
+      A drift detector without a labelled refresh sample tells you something changed but not
+      whether it matters. Plan the labelling pipeline before you need it.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s15">
+  <h2>Uncertainty: two kinds, two responses</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="panel panel--definition">
+          <span class="term">Aleatoric</span>
+          <p>
+            Irreducible randomness in the data — a blurry image, an ambiguous label. More data
+            does not help. Response: report it, and design the decision to tolerate it.
+          </p>
+        </div>
+        <div class="panel panel--definition" style="margin-top:12px">
+          <span class="term">Epistemic</span>
+          <p>
+            Uncertainty from not having seen enough — an unfamiliar input. More data helps.
+            Response: abstain, escalate to a human, or collect data there.
+          </p>
+        </div>
+        <figure class="fig" style="margin-top:0">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 104" role="img" aria-labelledby="n14ct n14cd">
+          <title id="n14ct">Aleatoric and epistemic uncertainty in one model</title>
+          <desc id="n14cd">A curve fitted to two clusters of data points with a gap between them. Over the data, a narrow band of constant width shows aleatoric noise. In the gap with no data, a wider band shows epistemic uncertainty, which more data there would shrink.</desc>
+          
+          <g class="v-in" style="--d:0.50s"><path class="dg-band-a" d="M10.0 35.0 L23.3 32.8 L36.6 30.7 L49.9 28.6 L63.2 26.6 L76.5 24.8 L89.8 23.2 L103.1 21.8 L116.4 20.6 L129.7 19.6 L143.0 18.7 L156.3 17.7 L169.6 16.6 L182.9 15.1 L196.2 13.1 L209.5 10.6 L222.8 7.7 L236.1 4.8 L249.4 2.7 L262.7 1.9 L276.0 2.9 L289.3 5.9 L302.6 10.7 L315.9 16.7 L329.2 23.1 L342.5 29.4 L355.8 34.9 L369.1 39.4 L382.4 43.0 L395.7 45.7 L409.0 47.7 L422.3 49.1 L435.6 50.1 L448.9 50.7 L462.2 51.0 L475.5 50.9 L488.8 50.5 L502.1 49.9 L515.4 48.9 L528.7 47.7 L542.0 46.3 L542.0 62.3 L528.7 63.7 L515.4 64.9 L502.1 65.9 L488.8 66.6 L475.5 66.9 L462.2 67.0 L448.9 66.8 L435.6 66.4 L422.3 65.7 L409.0 65.0 L395.7 64.3 L382.4 63.8 L369.1 63.9 L355.8 64.6 L342.5 66.0 L329.2 67.9 L315.9 70.0 L302.6 71.6 L289.3 72.0 L276.0 70.9 L262.7 68.0 L249.4 63.5 L236.1 58.1 L222.8 52.5 L209.5 47.2 L196.2 42.9 L182.9 39.6 L169.6 37.5 L156.3 36.3 L143.0 35.9 L129.7 36.2 L116.4 36.9 L103.1 37.9 L89.8 39.3 L76.5 40.9 L63.2 42.6 L49.9 44.6 L36.6 46.7 L23.3 48.8 L10.0 51.0 Z"/></g>
+          <g class="v-in" style="--d:0.20s"><path class="dg-band-t" d="M10.0 35.0 L23.3 32.8 L36.6 30.7 L49.9 28.6 L63.2 26.6 L76.5 24.8 L89.8 23.2 L103.1 21.9 L116.4 20.7 L129.7 19.9 L143.0 19.3 L156.3 19.0 L169.6 19.1 L182.9 19.4 L196.2 20.0 L209.5 20.9 L222.8 22.1 L236.1 23.5 L249.4 25.1 L262.7 26.9 L276.0 28.9 L289.3 31.0 L302.6 33.1 L315.9 35.3 L329.2 37.5 L342.5 39.7 L355.8 41.7 L369.1 43.6 L382.4 45.4 L395.7 47.0 L409.0 48.3 L422.3 49.4 L435.6 50.2 L448.9 50.8 L462.2 51.0 L475.5 50.9 L488.8 50.6 L502.1 49.9 L515.4 48.9 L528.7 47.7 L542.0 46.3 L542.0 62.3 L528.7 63.7 L515.4 64.9 L502.1 65.9 L488.8 66.6 L475.5 66.9 L462.2 67.0 L448.9 66.8 L435.6 66.2 L422.3 65.4 L409.0 64.3 L395.7 63.0 L382.4 61.4 L369.1 59.6 L355.8 57.7 L342.5 55.7 L329.2 53.5 L315.9 51.3 L302.6 49.1 L289.3 47.0 L276.0 44.9 L262.7 42.9 L249.4 41.1 L236.1 39.5 L222.8 38.1 L209.5 36.9 L196.2 36.0 L182.9 35.4 L169.6 35.1 L156.3 35.0 L143.0 35.3 L129.7 35.9 L116.4 36.7 L103.1 37.9 L89.8 39.2 L76.5 40.8 L63.2 42.6 L49.9 44.6 L36.6 46.7 L23.3 48.8 L10.0 51.0 Z"/></g>
+          <g class="v-in" style="--d:0.10s"><circle class="dg-txt" cx="26.0" cy="37.2" r="3"/><circle class="dg-txt" cx="41.9" cy="33.1" r="3"/><circle class="dg-txt" cx="57.9" cy="34.2" r="3"/><circle class="dg-txt" cx="73.8" cy="29.0" r="3"/><circle class="dg-txt" cx="89.8" cy="26.0" r="3"/><circle class="dg-txt" cx="105.8" cy="28.4" r="3"/><circle class="dg-txt" cx="121.7" cy="33.4" r="3"/><circle class="dg-txt" cx="137.7" cy="31.1" r="3"/><circle class="dg-txt" cx="153.6" cy="30.2" r="3"/><circle class="dg-txt" cx="169.6" cy="23.7" r="3"/><circle class="dg-txt" cx="185.6" cy="27.9" r="3"/><circle class="dg-txt" cx="366.4" cy="48.6" r="3"/><circle class="dg-txt" cx="382.4" cy="49.5" r="3"/><circle class="dg-txt" cx="398.4" cy="50.5" r="3"/><circle class="dg-txt" cx="414.3" cy="53.4" r="3"/><circle class="dg-txt" cx="430.3" cy="63.1" r="3"/><circle class="dg-txt" cx="446.2" cy="62.6" r="3"/><circle class="dg-txt" cx="462.2" cy="62.7" r="3"/><circle class="dg-txt" cx="478.2" cy="62.5" r="3"/><circle class="dg-txt" cx="494.1" cy="54.6" r="3"/><circle class="dg-txt" cx="510.1" cy="55.1" r="3"/><circle class="dg-txt" cx="526.0" cy="57.5" r="3"/></g>
+          <path class="dg-plot-t draw" d="M10.0 43.0 L23.3 40.8 L36.6 38.7 L49.9 36.6 L63.2 34.6 L76.5 32.8 L89.8 31.2 L103.1 29.9 L116.4 28.7 L129.7 27.9 L143.0 27.3 L156.3 27.0 L169.6 27.1 L182.9 27.4 L196.2 28.0 L209.5 28.9 L222.8 30.1 L236.1 31.5 L249.4 33.1 L262.7 34.9 L276.0 36.9 L289.3 39.0 L302.6 41.1 L315.9 43.3 L329.2 45.5 L342.5 47.7 L355.8 49.7 L369.1 51.6 L382.4 53.4 L395.7 55.0 L409.0 56.3 L422.3 57.4 L435.6 58.2 L448.9 58.8 L462.2 59.0 L475.5 58.9 L488.8 58.6 L502.1 57.9 L515.4 56.9 L528.7 55.7 L542.0 54.3" pathLength="1" style="--d:0.30s"/>
+          <g class="v-in" style="--d:0.90s"><text class="dg-txt-s" x="100.44" y="100" text-anchor="middle">data: aleatoric band</text><text class="dg-lbl" x="276" y="100" text-anchor="middle">no data: epistemic</text><text class="dg-txt-s" x="451.56" y="100" text-anchor="middle">data: aleatoric band</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 14.6.</strong> With data, only the noise band remains; the gap is epistemic.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <h3>Why the distinction is operational</h3>
+        <p>
+          These call for opposite actions. If uncertainty is aleatoric, no amount of data will
+          fix it, and the right move is to change the decision process. If it is epistemic, the
+          right move is to gather data in that region.
+        </p>
+        <div class="panel panel--accent" style="margin-top:12px">
+          <h3>Practical signals</h3>
+          <ul>
+            <li>Ensemble disagreement and MC dropout estimate epistemic uncertainty.</li>
+            <li>Predictive entropy mixes both, which is why it can mislead.</li>
+            <li>Out-of-distribution detectors target epistemic cases specifically.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s16">
+  <h2>Case study: automated proctoring</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A system flags "suspicious behaviour" during online exams using webcam frames. It is
+          a useful case because you have all been on the receiving end, and because every
+          failure mode in this module appears at once.
+        </p>
+        <ul>
+          <li>Training data comes from one demographic and one lighting condition.</li>
+          <li>Labels come from human reviewers with their own biases.</li>
+          <li>The cost of a false positive is a misconduct allegation.</li>
+          <li>The cost of a false negative is undetected cheating.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>What you would demand before deployment</h3>
+          <ul>
+            <li>Per-subgroup false-positive rates, not just overall accuracy.</li>
+            <li>A stated base rate and the resulting precision.</li>
+            <li>Human review of every flag before any consequence.</li>
+            <li>An appeal path that does not require proving innocence.</li>
+            <li>A published error analysis, including who was harmed.</li>
+          </ul>
+        </div>
+        <p style="margin-top:12px; font-size:17px; color:var(--muted)">
+          Now apply the same list to whatever you build in your capstone. That is the
+          assignment, in spirit.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s17">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>Perception is inference from incomplete evidence.</strong><p>Every vision model encodes priors, and priors are assumptions.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Metrics measure agreement, not usefulness.</strong><p>IoU thresholds and mAP hide the errors that matter.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Robotics is a loop with latency budgets.</strong><p>Perception, planning, control, and a world that keeps moving.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>Distribution shift is the unifying failure.</strong><p>Pixels, dynamics, or labels — diagnose which, then fix that one.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Deployment is steps 4 through 6.</strong><p>Shadow, monitor, roll back, retire. Most failures live here.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s18">
+  <h2>This week's work</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA chapters 25–26.</li>
+          <li>Skim a model card for a released vision model; note what is missing.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Lab 6: retrieval-augmented question answering; evaluate retrieval and generation separately.</li>
+          <li>Paper critique 2 due this week.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — Lab 6 and critique 2.</li>
+          <li>Friday class, 8:30–11:10 a.m. CT, MIC: deployment review clinic; online students watch the recorded lecture.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next:</strong> module 15 asks who answers when one of these systems is wrong —
+        and what the law now requires.
+      </p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Practice Midterm · CS 5700</title>
+<meta name="description" content="CS 5700 practice midterm: concepts, search and game traces, learning updates, value iteration, proofs and a design problem, in the format of the week 8 midterm, with answers to check yourself.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the questions</a>
+
+<div class="doc">
+<header class="doc-masthead">
+  <p class="inst"><span>CS 5700 · Artificial Intelligence</span><span>Week 8</span><span><a href="../../index.html">Course home</a></span></p>
+  <h1>Practice midterm</h1>
+  <p class="tagline">The same four parts, the same kinds of question and the same length as the real midterm. Do it on paper, in 120 minutes, with your note card and no calculator, before you open any answer. Then mark it yourself.</p>
+</header>
+
+<dl class="facts">
+  <div><dt>Midterm</dt><dd>Friday, March 5, 8:30 to 10:30 a.m. Central</dd></div>
+  <div><dt>Length</dt><dd>120 minutes, 100 points</dd></div>
+  <div><dt>Allowed</dt><dd>One handwritten 8.5 × 11 in note card, both sides, and the formula sheet handed out with the exam. No calculators.</dd></div>
+  <div><dt>Covers</dt><dd>Modules 1 to 7</dd></div>
+</dl>
+
+<nav class="toc" aria-labelledby="toc-h">
+  <h2 id="toc-h">On this page</h2>
+  <ol>
+    <li><a href="#about">About the midterm</a></li>
+    <li><a href="#pa">Part A: concepts (24 points)</a></li>
+    <li><a href="#pb">Part B: mechanics (36 points)</a></li>
+    <li><a href="#pc">Part C: proofs, two of three (20 points)</a></li>
+    <li><a href="#pd">Part D: design (20 points)</a></li>
+  </ol>
+</nav>
+
+<main id="main">
+
+<section id="about" aria-labelledby="about-h">
+  <h2 id="about-h">About the midterm</h2>
+  <ul>
+    <li>Section 01 sits the exam in the Friday classroom. Section 02 sits the same paper online, proctored, with camera and screen share on, and uploads a scan within 10 minutes of finishing. The <a href="index.html">week 8 slides</a> have the details for both.</li>
+    <li>There is no calculator, so every number on the exam works out by hand, as the numbers here do. If your arithmetic turns ugly, check the setup before you grind.</li>
+    <li>The marks on each question are also a time budget: about 1.2 minutes a point. Part D is worth 20 points; leave it 25 minutes.</li>
+    <li>Show your working. A frontier written out after each expansion, or a target written before the update, is what earns partial credit.</li>
+  </ul>
+  <p>The answers below are one correct way. In parts C and D any argument that is complete and correct earns full credit, even if it differs from the one shown.</p>
+</section>
+
+<section id="pa" aria-labelledby="pa-h">
+  <h2 id="pa-h">Part A: concepts (24 points, 3 each)</h2>
+  <p>Answer all eight in one to three sentences each.</p>
+  <ol class="qs">
+    <li><p><strong>A1.</strong> Define a consistent heuristic. Explain why, with a consistent heuristic, f = g + h never decreases along a path.</p>
+      <details><summary>Answer</summary><p>h is consistent if h(n) ≤ c(n, n′) + h(n′) for every edge from n to n′, and h(goal) = 0. Along an edge, f(n′) = g(n) + c(n, n′) + h(n′) ≥ g(n) + h(n) = f(n), using the inequality once.</p></details></li>
+    <li><p><strong>A2.</strong> Classify the task environment of a program that plays online chess against a person, with a game clock: observable, deterministic, episodic, static, discrete, single or multi-agent. One word each, with a reason for the one you think is least obvious.</p>
+      <details><summary>Answer</summary><p>Fully observable, deterministic (strategic: the only uncertainty is the opponent's move), sequential, semidynamic, discrete, multi-agent and competitive. The least obvious is semidynamic: the board does not change while the agent thinks, but the clock does, so its score does.</p></details></li>
+    <li><p><strong>A3.</strong> Iterative deepening expands the top of the tree again on every iteration. Explain why its time is still O(b<sup>d</sup>), the same order as breadth-first search.</p>
+      <details><summary>Answer</summary><p>Most nodes of a tree are in its bottom level: level d has b<sup>d</sup> nodes and is generated once, level d − 1 twice, and so on. The total, b<sup>d</sup> + 2b<sup>d−1</sup> + … , is at most (b/(b − 1))<sup>2</sup> times b<sup>d</sup>, a constant factor (about 1.23 for b = 10).</p></details></li>
+    <li><p><strong>A4.</strong> In backtracking search for a CSP, the minimum-remaining-values heuristic chooses which variable to assign next, and least-constraining-value chooses which value to try. Why does one aim to fail early and the other to fail late?</p>
+      <details><summary>Answer</summary><p>Every variable has to be assigned eventually, so picking the most constrained one first finds a dead end before more work is built on top of it. Only one value per variable is needed, so the value to try first is the one most likely to lead to a solution, which is the one that leaves the neighbours the most options.</p></details></li>
+    <li><p><strong>A5.</strong> Every leaf of a game tree has a positive value, and every leaf value is replaced by its square. Minimax still picks the same move; expectimax may not. Explain why.</p>
+      <details><summary>Answer</summary><p>Minimax only compares values, and squaring positive numbers keeps their order, so every max and min picks the same child. Expectimax averages values, and an average is not preserved by a transformation that only keeps order: squaring rewards a risky child with one large leaf more than a safe one. Expectimax needs values on a scale where differences mean something, such as utilities.</p></details></li>
+    <li><p><strong>A6.</strong> Give two reasons to use a discount factor γ &lt; 1 in an MDP, and say what can go wrong with γ = 1 when there is no terminal state.</p>
+      <details><summary>Answer</summary><p>It keeps the sum of rewards finite on an infinite horizon, and it expresses a real preference for reward sooner (or a chance the process stops). It also makes the Bellman update a contraction, so value iteration converges. With γ = 1 and no terminal state, returns can be infinite and different policies cannot be compared by their sums.</p></details></li>
+    <li><p><strong>A7.</strong> Q-learning is off-policy and SARSA is on-policy. Say what each one's estimate is the value of, when both follow an ε-greedy policy.</p>
+      <details><summary>Answer</summary><p>Q-learning's target uses max<sub>a′</sub> Q(s′, a′), so it learns the value of the greedy policy, whatever the agent actually does. SARSA's target uses the action the agent really takes next, so it learns the value of the ε-greedy policy it follows, exploration included.</p></details></li>
+    <li><p><strong>A8.</strong> An agent starts Q-learning with every Q value at 0 and ε = 0. Explain what can go wrong, and one change that fixes it.</p>
+      <details><summary>Answer</summary><p>With ε = 0 it always takes the greedy action; once one action earns a positive reward it keeps taking that action and never tries the others, which may be better. Fixes: ε-greedy with ε decaying over time, or optimistic initial values so untried actions look attractive until tried.</p></details></li>
+  </ol>
+</section>
+
+<section id="pb" aria-labelledby="pb-h">
+  <h2 id="pb-h">Part B: mechanics (36 points)</h2>
+  <ol class="qs">
+    <li><p><strong>B1. Search traces (10 points).</strong> The graph has start S and goal G. Use graph search: a node is expanded at most once, and the goal test happens when a node is expanded. Break ties alphabetically.</p>
+      <figure class="fig" style="max-width:580px;margin:12px 0">
+<svg viewBox="0 0 580 260" role="img" aria-labelledby="pm-g-t pm-g-d">
+<title id="pm-g-t">The graph for question B1</title>
+<desc id="pm-g-d">Seven nodes. Edges with costs: S to A 1, S to B 4, A to C 2, A to E 5, B to D 2, C to D 1, D to G 4, E to G 3. Heuristic values: S 5, A 4, B 5, C 4, D 3, E 1, G 0. The same data is in the table under the figure.</desc>
+<path class="dg-line" d="M50,125 L170,50"/>
+<text class="dg-sm-b" x="103" y="81" text-anchor="middle">1</text>
+<path class="dg-line" d="M50,125 L170,200"/>
+<text class="dg-sm-b" x="117" y="156" text-anchor="middle">4</text>
+<path class="dg-line" d="M170,50 L290,125"/>
+<text class="dg-sm-b" x="237" y="81" text-anchor="middle">2</text>
+<path class="dg-line" d="M170,50 L410,50"/>
+<text class="dg-sm-b" x="290" y="42" text-anchor="middle">5</text>
+<path class="dg-line" d="M170,200 L410,200"/>
+<text class="dg-sm-b" x="290" y="192" text-anchor="middle">2</text>
+<path class="dg-line" d="M290,125 L410,200"/>
+<text class="dg-sm-b" x="357" y="156" text-anchor="middle">1</text>
+<path class="dg-line" d="M410,200 L530,125"/>
+<text class="dg-sm-b" x="463" y="156" text-anchor="middle">4</text>
+<path class="dg-line" d="M410,50 L530,125"/>
+<text class="dg-sm-b" x="477" y="81" text-anchor="middle">3</text>
+<circle class="dg-box-a" cx="50" cy="125" r="19"/>
+<text class="dg-sm-b" x="50" y="131" text-anchor="middle">S</text>
+<text class="dg-xs" x="50" y="165" text-anchor="middle">h = 5</text>
+<circle class="dg-box" cx="170" cy="50" r="19"/>
+<text class="dg-sm-b" x="170" y="56" text-anchor="middle">A</text>
+<text class="dg-xs" x="170" y="23" text-anchor="middle">h = 4</text>
+<circle class="dg-box" cx="170" cy="200" r="19"/>
+<text class="dg-sm-b" x="170" y="206" text-anchor="middle">B</text>
+<text class="dg-xs" x="170" y="240" text-anchor="middle">h = 5</text>
+<circle class="dg-box" cx="290" cy="125" r="19"/>
+<text class="dg-sm-b" x="290" y="131" text-anchor="middle">C</text>
+<text class="dg-xs" x="290" y="165" text-anchor="middle">h = 4</text>
+<circle class="dg-box" cx="410" cy="200" r="19"/>
+<text class="dg-sm-b" x="410" y="206" text-anchor="middle">D</text>
+<text class="dg-xs" x="410" y="240" text-anchor="middle">h = 3</text>
+<circle class="dg-box" cx="410" cy="50" r="19"/>
+<text class="dg-sm-b" x="410" y="56" text-anchor="middle">E</text>
+<text class="dg-xs" x="410" y="23" text-anchor="middle">h = 1</text>
+<circle class="dg-box-a" cx="530" cy="125" r="19"/>
+<text class="dg-sm-b" x="530" y="131" text-anchor="middle">G</text>
+<text class="dg-xs" x="530" y="165" text-anchor="middle">h = 0</text>
+</svg>
+      </figure>
+      <table class="tbl tbl--compact">
+        <caption>The graph for B1: edge costs, and the heuristic value h of each node.</caption>
+        <thead><tr><th scope="col">Edge</th><th scope="col">Cost</th><th scope="col">Node</th><th scope="col">h</th></tr></thead>
+        <tbody>
+          <tr><td>S–A</td><td>1</td><td>S</td><td>5</td></tr>
+          <tr><td>S–B</td><td>4</td><td>A</td><td>4</td></tr>
+          <tr><td>A–C</td><td>2</td><td>B</td><td>5</td></tr>
+          <tr><td>A–E</td><td>5</td><td>C</td><td>4</td></tr>
+          <tr><td>B–D</td><td>2</td><td>D</td><td>3</td></tr>
+          <tr><td>C–D</td><td>1</td><td>E</td><td>1</td></tr>
+          <tr><td>D–G</td><td>4</td><td>G</td><td>0</td></tr>
+          <tr><td>E–G</td><td>3</td><td></td><td></td></tr>
+        </tbody>
+      </table>
+      <p>(a) Trace uniform-cost search. Give the expansion order, the path found and its cost. (3)</p>
+      <p>(b) Trace greedy best-first search, which orders the frontier by h alone. Give the expansion order, the path and its cost, and say in one sentence why it is not the cheapest. (2)</p>
+      <p>(c) Trace A*. Give the expansion order and the path. Name the node that uniform-cost search expanded and A* did not, and say why A* could skip it. (3)</p>
+      <p>(d) Show that h is consistent on the edges C–D and A–E, in both directions. Given that h is consistent on every edge, what does that guarantee about A* graph search here? (2)</p>
+      <details><summary>Answer</summary>
+        <p>(a) Frontier as node:g. Start S:0. Expand S: A:1, B:4. Expand A: C:3, B:4, E:6. Expand C: B:4, D:4, E:6. Expand B (B and D tie at 4; B first): D stays 4, because 4 + 2 = 6 is worse. Expand D: E:6, G:8. Expand E: G stays 8, because 6 + 3 = 9 is worse. Expand G. Order <strong>S, A, C, B, D, E, G</strong>; path S–A–C–D–G, cost <strong>8</strong>.</p>
+        <p>(b) S, then A (h 4 beats B's 5), then E (h 1), then G. Order <strong>S, A, E, G</strong>; path S–A–E–G, cost <strong>9</strong>. Greedy ignores the cost already paid, so the 5 on A–E never counts against E.</p>
+        <p>(c) Frontier as node:f. S:5. Expand S: A:1+4=5, B:4+5=9. Expand A: C:3+4=7, E:6+1=7, B:9. Expand C (C and E tie at 7): D:4+3=7. Expand D (D and E tie at 7): G:8+0=8. Expand E: G via E would be 9, so G stays 8. Expand G. Order <strong>S, A, C, D, E, G</strong>; path S–A–C–D–G, cost 8. A* never expands <strong>B</strong>: its f is 9, above the cost of the solution, 8, so the goal is reached first. Uniform cost expanded B because its g of 4 was small; the heuristic showed it was far from G.</p>
+        <p>(d) C–D: h(C) = 4 ≤ 1 + h(D) = 4, and h(D) = 3 ≤ 1 + h(C) = 5. A–E: h(A) = 4 ≤ 5 + h(E) = 6, and h(E) = 1 ≤ 5 + h(A) = 9. With a consistent h, the first time A* expands a node it has the cheapest path to it, so graph search, which never reopens a node, still returns an optimal path.</p>
+      </details></li>
+
+    <li><p><strong>B2. Minimax, pruning and chance (10 points).</strong> The root is MAX. Its children P, Q and R are MIN nodes, each with three leaves, left to right.</p>
+      <figure class="fig" style="max-width:600px;margin:12px 0">
+<svg viewBox="0 0 600 230" role="img" aria-labelledby="pm-t-t pm-t-d">
+<title id="pm-t-t">The game tree for question B2</title>
+<desc id="pm-t-d">A MAX root with three MIN children, P, Q and R. Leaves left to right: under P 5, 9, 7; under Q 6, 3, 15; under R 8, 4, 2. The same data is in the table under the figure.</desc>
+<path class="dg-line" d="M300,50 L110,104"/>
+<path class="dg-line" d="M110,136 L50,184"/>
+<rect class="dg-box-m" x="30" y="184" width="40" height="30" rx="4"/>
+<text class="dg-sm-b" x="50" y="205" text-anchor="middle">5</text>
+<path class="dg-line" d="M110,136 L110,184"/>
+<rect class="dg-box-m" x="90" y="184" width="40" height="30" rx="4"/>
+<text class="dg-sm-b" x="110" y="205" text-anchor="middle">9</text>
+<path class="dg-line" d="M110,136 L170,184"/>
+<rect class="dg-box-m" x="150" y="184" width="40" height="30" rx="4"/>
+<text class="dg-sm-b" x="170" y="205" text-anchor="middle">7</text>
+<path class="dg-line" d="M300,50 L300,104"/>
+<path class="dg-line" d="M300,136 L240,184"/>
+<rect class="dg-box-m" x="220" y="184" width="40" height="30" rx="4"/>
+<text class="dg-sm-b" x="240" y="205" text-anchor="middle">6</text>
+<path class="dg-line" d="M300,136 L300,184"/>
+<rect class="dg-box-m" x="280" y="184" width="40" height="30" rx="4"/>
+<text class="dg-sm-b" x="300" y="205" text-anchor="middle">3</text>
+<path class="dg-line" d="M300,136 L360,184"/>
+<rect class="dg-box-m" x="340" y="184" width="40" height="30" rx="4"/>
+<text class="dg-sm-b" x="360" y="205" text-anchor="middle">15</text>
+<path class="dg-line" d="M300,50 L490,104"/>
+<path class="dg-line" d="M490,136 L430,184"/>
+<rect class="dg-box-m" x="410" y="184" width="40" height="30" rx="4"/>
+<text class="dg-sm-b" x="430" y="205" text-anchor="middle">8</text>
+<path class="dg-line" d="M490,136 L490,184"/>
+<rect class="dg-box-m" x="470" y="184" width="40" height="30" rx="4"/>
+<text class="dg-sm-b" x="490" y="205" text-anchor="middle">4</text>
+<path class="dg-line" d="M490,136 L550,184"/>
+<rect class="dg-box-m" x="530" y="184" width="40" height="30" rx="4"/>
+<text class="dg-sm-b" x="550" y="205" text-anchor="middle">2</text>
+<polygon class="dg-box-a" points="300,14 322,50 278,50"/>
+<text class="dg-xs" x="334" y="42">MAX</text>
+<polygon class="dg-box" points="110,140 132,104 88,104"/>
+<text class="dg-sm-b" x="110" y="124" text-anchor="middle">P</text>
+<polygon class="dg-box" points="300,140 322,104 278,104"/>
+<text class="dg-sm-b" x="300" y="124" text-anchor="middle">Q</text>
+<polygon class="dg-box" points="490,140 512,104 468,104"/>
+<text class="dg-sm-b" x="490" y="124" text-anchor="middle">R</text>
+<text class="dg-xs" x="524" y="122">MIN</text>
+</svg>
+      </figure>
+      <table class="tbl tbl--compact">
+        <caption>The game tree for B2: leaf values under each MIN node, left to right.</caption>
+        <thead><tr><th scope="col">MIN node</th><th scope="col">Leaves, left to right</th></tr></thead>
+        <tbody>
+          <tr><td>P</td><td>5, 9, 7</td></tr>
+          <tr><td>Q</td><td>6, 3, 15</td></tr>
+          <tr><td>R</td><td>8, 4, 2</td></tr>
+        </tbody>
+      </table>
+      <p>(a) Compute the minimax value of each MIN node and of the root, and the move MAX makes. (2)</p>
+      <p>(b) Run alpha–beta from left to right. Give α and β where each cut happens, and list every leaf that is never evaluated. (4)</p>
+      <p>(c) Now P, Q and R are chance nodes, each leaf with probability 1/3. Compute the expectimax value of each child and the move MAX makes. (2)</p>
+      <p>(d) Explain why alpha–beta cannot be used unchanged on the tree in (c), and what extra knowledge about the leaves would allow some pruning. (2)</p>
+      <details><summary>Answer</summary>
+        <p>(a) P = min(5, 9, 7) = 5, Q = 3, R = 2. The root is max(5, 3, 2) = <strong>5</strong>; MAX moves to P.</p>
+        <p>(b) Under P nothing can be cut: P = 5, so α = 5 at the root. At Q, the leaf 6 gives β = 6 &gt; α, so go on; the leaf 3 gives β = 3 ≤ α = 5, so <strong>15 is cut</strong>: Q is at most 3, and MAX already has 5. At R, the leaf 8 gives β = 8; the leaf 4 gives β = 4 ≤ 5, so <strong>2 is cut</strong>. Seven of the nine leaves are evaluated, and the root value is still 5.</p>
+        <p>(c) P = (5 + 9 + 7)/3 = 7, Q = (6 + 3 + 15)/3 = 8, R = (8 + 4 + 2)/3 = 14/3, about 4.7. MAX now moves to <strong>Q</strong>, value 8: the 15 that pruning skipped is exactly what makes Q worth more on average.</p>
+        <p>(d) An average can be changed by any one leaf, so no unseen leaf can be ruled out: the cut of 15 in (b) would give the wrong answer here. If the leaves are known to lie in a range, say 0 to 20, a partly evaluated chance node has an upper bound (the leaves seen plus the maximum for the rest), and the node can be cut when that bound is below α.</p>
+      </details></li>
+
+    <li><p><strong>B3. Learning updates (8 points).</strong> Use α = 0.5 and γ = 0.9 throughout.</p>
+      <p>(a) Q-learning. Q(s, a) = 2. The agent receives r = 1 and lands in s′, where Q(s′, left) = 4 and Q(s′, right) = 6. Write the target, then the new Q(s, a). (3)</p>
+      <p>(b) SARSA, the same transition. The agent's ε-greedy policy picks left as its next action in s′. Write the target, then the new Q(s, a). (2)</p>
+      <p>(c) Monte Carlo. From state s, an episode earns the rewards 1, 0 and 2, then ends. Compute the return G from s, then the new V(s) if V(s) was 1. (2)</p>
+      <p>(d) In one sentence, why is SARSA's new value in (b) lower than Q-learning's in (a)? (1)</p>
+      <details><summary>Answer</summary>
+        <p>(a) Target = 1 + 0.9 × max(4, 6) = 1 + 5.4 = <strong>6.4</strong>. New Q(s, a) = 2 + 0.5 × (6.4 − 2) = 2 + 2.2 = <strong>4.2</strong>.</p>
+        <p>(b) Target = 1 + 0.9 × Q(s′, left) = 1 + 3.6 = <strong>4.6</strong>. New Q(s, a) = 2 + 0.5 × (4.6 − 2) = 2 + 1.3 = <strong>3.3</strong>.</p>
+        <p>(c) G = 1 + 0.9 × 0 + 0.9<sup>2</sup> × 2 = 1 + 0 + 1.62 = <strong>2.62</strong>. New V(s) = 1 + 0.5 × (2.62 − 1) = 1 + 0.81 = <strong>1.81</strong>.</p>
+        <p>(d) SARSA backs up the action the policy actually took, an exploratory left worth 4, while Q-learning backs up the best action, worth 6.</p>
+      </details></li>
+
+    <li><p><strong>B4. Value iteration (8 points).</strong> Three states in a row: L, M and R. R is terminal and its value is fixed: V(R) = 10 in every sweep. In L there are two actions: <em>stay</em> earns reward 1 and remains in L; <em>right</em> earns 0 and moves to M. In M there are two actions: <em>right</em> earns 0 and reaches R with probability 0.8, staying in M with probability 0.2; <em>left</em> earns 0 and moves to L. Use γ = 0.5 and start from V<sub>0</sub>(L) = V<sub>0</sub>(M) = 0.</p>
+      <p>(a) Compute V<sub>1</sub>(L) and V<sub>1</sub>(M), with the value of each action. (3)</p>
+      <p>(b) Compute V<sub>2</sub>(L) and V<sub>2</sub>(M). (2)</p>
+      <p>(c) Which action gives the maximum at L in sweep 1, and which in sweep 2? Explain the switch in one sentence. (1)</p>
+      <p>(d) Solve for the exact V*(M) from the Bellman optimality equation for <em>right</em>, then find V*(L). (2)</p>
+      <details><summary>Answer</summary>
+        <p>(a) L: stay = 1 + 0.5 × 0 = 1; right = 0 + 0.5 × V<sub>0</sub>(M) = 0. <strong>V<sub>1</sub>(L) = 1.</strong> M: right = 0.8 × 0.5 × 10 + 0.2 × 0.5 × 0 = 4; left = 0.5 × 0 = 0. <strong>V<sub>1</sub>(M) = 4.</strong></p>
+        <p>(b) L: stay = 1 + 0.5 × 1 = 1.5; right = 0.5 × 4 = 2. <strong>V<sub>2</sub>(L) = 2.</strong> M: right = 0.8 × 5 + 0.2 × 0.5 × 4 = 4 + 0.4 = 4.4; left = 0.5 × 1 = 0.5. <strong>V<sub>2</sub>(M) = 4.4.</strong></p>
+        <p>(c) Stay in sweep 1, right in sweep 2. After one sweep, the reward at R has only reached M; in sweep 2 it reaches L through V<sub>1</sub>(M), and it is worth more than the steady 1 from staying.</p>
+        <p>(d) V*(M) = 0.8 × 0.5 × 10 + 0.2 × 0.5 × V*(M), so V*(M) = 4 + 0.1 V*(M), and 0.9 V*(M) = 4: <strong>V*(M) = 40/9</strong>, about 4.44. At L, right is worth 0.5 × 40/9 = <strong>20/9</strong>, about 2.22, and staying forever is worth 1/(1 − 0.5) = 2, so V*(L) = 20/9 and the optimal action is right.</p>
+      </details></li>
+  </ol>
+</section>
+
+<section id="pc" aria-labelledby="pc-h">
+  <h2 id="pc-h">Part C: proofs and arguments (20 points, two of three)</h2>
+  <p>Each is worth 10 points. If you attempt all three, your best two count.</p>
+  <ol class="qs">
+    <li><p><strong>C1.</strong> Let h<sub>1</sub> and h<sub>2</sub> be consistent heuristics, and h(n) = max(h<sub>1</sub>(n), h<sub>2</sub>(n)). Prove that h is consistent and that it dominates both. Then argue that A* with h surely expands no node that A* with h<sub>1</sub> would not.</p>
+      <details><summary>Answer</summary>
+        <ol>
+          <li>For an edge from n to n′: h<sub>1</sub>(n) ≤ c(n, n′) + h<sub>1</sub>(n′) ≤ c(n, n′) + h(n′), because h<sub>1</sub>(n′) ≤ h(n′). The same holds for h<sub>2</sub>. So h(n), the larger of the two, is also ≤ c(n, n′) + h(n′). At a goal both are 0, so h is 0. h is consistent. (4)</li>
+          <li>h(n) ≥ h<sub>1</sub>(n) and h(n) ≥ h<sub>2</sub>(n) for every n by the definition of max, so h dominates both. (2)</li>
+          <li>With a consistent heuristic, A* surely expands every node with f(n) &lt; C*, and no node with f(n) &gt; C*. If g(n) + h(n) &lt; C*, then g(n) + h<sub>1</sub>(n) ≤ g(n) + h(n) &lt; C*, so every node A* with h surely expands is one A* with h<sub>1</sub> surely expands too. Ties at f = C* are the only exception. (4)</li>
+        </ol>
+      </details></li>
+    <li><p><strong>C2.</strong> Let B be the Bellman optimality update, (BV)(s) = max<sub>a</sub> Σ<sub>s′</sub> T(s, a, s′)[R(s, a, s′) + γV(s′)]. Prove that ‖BU − BV‖<sub>∞</sub> ≤ γ‖U − V‖<sub>∞</sub> for any U and V. Conclude that value iteration converges to a single V* from any starting values.</p>
+      <details><summary>Answer</summary>
+        <ol>
+          <li>For any two functions f and g of a, |max<sub>a</sub> f(a) − max<sub>a</sub> g(a)| ≤ max<sub>a</sub> |f(a) − g(a)|. (Say f's max is the larger, at a*: then the difference is at most f(a*) − g(a*).) (3)</li>
+          <li>Fix s. The rewards cancel in the difference, so |(BU)(s) − (BV)(s)| ≤ max<sub>a</sub> |Σ<sub>s′</sub> T(s, a, s′) γ (U(s′) − V(s′))| ≤ max<sub>a</sub> Σ<sub>s′</sub> T(s, a, s′) γ ‖U − V‖<sub>∞</sub> = γ‖U − V‖<sub>∞</sub>, because the probabilities sum to 1. Taking the max over s gives the claim. (4)</li>
+          <li>B is a contraction for γ &lt; 1. If BV* = V* and BW = W, then ‖V* − W‖ ≤ γ‖V* − W‖, so they are equal: there is at most one fixed point. Applying B k times from any V<sub>0</sub> gives ‖V<sub>k</sub> − V*‖ ≤ γ<sup>k</sup>‖V<sub>0</sub> − V*‖, which goes to 0 (the contraction mapping theorem gives existence). (3)</li>
+        </ol>
+      </details></li>
+    <li><p><strong>C3.</strong> Prove that a CSP whose constraint graph is a tree, with n variables and domains of size d, can be solved in O(n d<sup>2</sup>) time without backtracking.</p>
+      <details><summary>Answer</summary>
+        <ol>
+          <li>Pick any variable as the root and order the variables so that each one comes after its parent (a topological order of the tree). (2)</li>
+          <li>For j from n down to 2, make the arc from Parent(X<sub>j</sub>) to X<sub>j</sub> consistent: delete every value of the parent that has no compatible value in X<sub>j</sub>. Each arc costs O(d<sup>2</sup>), and there are n − 1 arcs: O(n d<sup>2</sup>). Working from the leaves up means a later deletion never touches an arc already made consistent below it. If a domain becomes empty, there is no solution. (4)</li>
+          <li>Assign X<sub>1</sub> to X<sub>n</sub> in order. Each X<sub>j</sub> has only one assigned neighbour, its parent, and the parent's value survived step 2 only because some value of X<sub>j</sub> is compatible with it. So a consistent value always exists: no backtracking. This pass costs O(n d). (4)</li>
+        </ol>
+      </details></li>
+  </ol>
+</section>
+
+<section id="pd" aria-labelledby="pd-h">
+  <h2 id="pd-h">Part D: design (20 points)</h2>
+  <p>A city bike-share program wants an agent that decides, every 30 minutes, where its one rebalancing truck goes next and how many bikes it loads or drops there, across 40 stations. Riders take and return bikes unpredictably, and a station that is empty or full loses rides. The program has a year of trip logs and station counts and a simulator built from them that it only partly trusts. It cannot try risky policies on the live system at rush hour. It is judged on the number of lost rides each week.</p>
+  <ol class="qs">
+    <li><p><strong>(a) Formulate (7).</strong> Define states, actions and rewards. Say whether this is best modelled as a search problem, a CSP, an MDP or a POMDP, and why. Name one thing your formulation leaves out.</p></li>
+    <li><p><strong>(b) Choose (6).</strong> Pick an approach from modules 1 to 7 and defend it against the strongest alternative. State the assumption your choice depends on.</p></li>
+    <li><p><strong>(c) Falsify (4).</strong> Describe the evaluation that would show you were wrong, including the baseline you would compare against.</p></li>
+    <li><p><strong>(d) Scale (3).</strong> The program grows to 80 stations and a second truck. Say what breaks in your approach first, and what you would change.</p>
+      <details><summary>What a full-credit answer looks like</summary>
+        <p>There is no single right answer. Here is one that would earn full marks, with the points each part is looking for.</p>
+        <ul>
+          <li><strong>(a)</strong> State: the bike count at each of the 40 stations, the truck's location and load, and the time of day and type of day. Actions: drive to station k, then load or drop j bikes, within the truck's capacity and the station's docks. Reward: minus the rides lost in the next 30 minutes, minus a small cost for driving. Demand is random but the counts are observed, so an MDP; a POMDP is also defensible if broken bikes or docks hide the true counts. Left out, for example: weather, events and holidays, which change demand.</li>
+          <li><strong>(b)</strong> The state space is far too large for a table (40 counts at once), so value iteration on the full MDP is out. One good answer: Q-learning with function approximation, trained in the simulator on the year of logs, because there is no model to plan with but there is a place to practise. The strongest alternative is online lookahead: expectimax or Monte Carlo tree search a few steps deep with sampled demand, replanned every 30 minutes, which needs no training but needs the simulator at decision time. Either choice depends on the simulator's demand being close to the real one.</li>
+          <li><strong>(c)</strong> Replay weeks held out of training, and compare lost rides against the program's current rule (for example, go to the station nearest to empty or full) and against doing nothing. If the agent does not beat the current rule on held-out weeks, or wins in the simulator and loses in an off-peak pilot, the simulator assumption was wrong.</li>
+          <li><strong>(d)</strong> The joint action of two trucks is the product of their choices, and a learned value for the joint state needs far more data. Split the city into two zones with one truck each, or let the trucks choose in turn, each treating the other's plan as fixed.</li>
+        </ul>
+        <p>Marks go to the argument: a formulation that is stated precisely, a choice tied to the structure of this problem, and an honest test. A list of algorithm names earns little.</p>
+      </details></li>
+  </ol>
+</section>
+</main>
+
+<footer>
+  <p>CS 5700 · Artificial Intelligence · University of Central Missouri · Dr. Gorkem Kar · Spring 2027</p>
+</footer>
+</div>
+</body>
+</html>

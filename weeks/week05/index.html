@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 5 — Adversarial Search and Games · CS 5700</title>
+<meta name="description" content="CS 5700 Module 5: minimax, alpha-beta pruning and its proof, evaluation functions, expectimax, Monte Carlo tree search, and self-play systems.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 5 lecture slides: Adversarial Search">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 5 of 15</p>
+  <h1>Adversarial Search and Games</h1>
+  <p class="subtitle">
+    Search where the environment is not passive: it is trying to make your plan fail.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<g class="v-in" style="--d:0.20s"><polygon class="dg-box-a" points="190,24 207,52 173,52"/><text class="dg-xs" x="222" y="46">MAX</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.40s" d="M190 54 L100 111"/>
+<g class="v-in" style="--d:0.70s"><polygon class="dg-box-t" points="100,141 117,113 83,113"/></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.50s" d="M190 54 L190 111"/>
+<g class="v-in" style="--d:0.85s"><polygon class="dg-box-t" points="190,141 207,113 173,113"/></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.60s" d="M190 54 L280 111"/>
+<g class="v-in" style="--d:1.00s"><polygon class="dg-box-t" points="280,141 297,113 263,113"/></g>
+<g class="v-in" style="--d:0.70s"><text class="dg-xs" x="318" y="129">MIN</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.20s" d="M100 138 L60.0 196"/>
+<g class="v-in" style="--d:1.40s"><rect class="dg-box" x="47" y="198" width="26" height="26" rx="3"/><text class="dg-xs" x="60" y="216" text-anchor="middle">3</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.28s" d="M100 138 L92.5 196"/>
+<g class="v-in" style="--d:1.50s"><rect class="dg-box" x="79.5" y="198" width="26" height="26" rx="3"/><text class="dg-xs" x="92.5" y="216" text-anchor="middle">12</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.36s" d="M100 138 L125.0 196"/>
+<g class="v-in" style="--d:1.60s"><rect class="dg-box" x="112" y="198" width="26" height="26" rx="3"/><text class="dg-xs" x="125" y="216" text-anchor="middle">8</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.44s" d="M190 138 L157.5 196"/>
+<g class="v-in" style="--d:1.70s"><rect class="dg-box" x="144.5" y="198" width="26" height="26" rx="3"/><text class="dg-xs" x="157.5" y="216" text-anchor="middle">2</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.52s" d="M190 138 L190.0 196"/>
+<g class="v-in" style="--d:1.80s"><rect class="dg-box-m" x="177" y="198" width="26" height="26" rx="3"/><text class="dg-xs" x="190" y="216" text-anchor="middle">4</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.60s" d="M190 138 L222.5 196"/>
+<g class="v-in" style="--d:1.90s"><rect class="dg-box-m" x="209.5" y="198" width="26" height="26" rx="3"/><text class="dg-xs" x="222.5" y="216" text-anchor="middle">6</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.68s" d="M280 138 L255.0 196"/>
+<g class="v-in" style="--d:2.00s"><rect class="dg-box" x="242" y="198" width="26" height="26" rx="3"/><text class="dg-xs" x="255" y="216" text-anchor="middle">14</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.76s" d="M280 138 L287.5 196"/>
+<g class="v-in" style="--d:2.10s"><rect class="dg-box" x="274.5" y="198" width="26" height="26" rx="3"/><text class="dg-xs" x="287.5" y="216" text-anchor="middle">5</text></g>
+<path class="dg-line-q v-draw" pathLength="1" style="--d:1.84s" d="M280 138 L320.0 196"/>
+<g class="v-in" style="--d:2.20s"><rect class="dg-box" x="307" y="198" width="26" height="26" rx="3"/><text class="dg-xs" x="320" y="216" text-anchor="middle">2</text></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-xs" x="190" y="260" text-anchor="middle">values 3 · 2 · 2  →  MAX takes 3</text></g>
+<g class="v-in" style="--d:3.00s"><text class="dg-sm dg-teal" x="190" y="305" text-anchor="middle">assume the worst, choose the best</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>Formalise a two-player zero-sum game and compute minimax values by hand.</li>
+      <li>Apply alpha–beta pruning and explain why it never changes the result.</li>
+      <li>Design an evaluation function and explain the horizon effect it creates.</li>
+      <li>Use expectimax when the outcome is random rather than adversarial.</li>
+      <li>Describe the four phases of Monte Carlo tree search and the role of UCT.</li>
+      <li>Explain what self-play systems changed, and what they still cannot do.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Alpha–beta is the most examinable algorithm in the course: it has a
+        <strong>precise trace</strong>, a <strong>precise proof</strong>, and a
+        <strong>precise speedup</strong>. Expect all three.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>Games as search</h2>
+  <p>An opponent who is trying to make you lose.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>Why games are a good testbed — and a misleading one</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div class="panel panel--key">
+        <h3>Good properties</h3>
+        <ul>
+          <li>The rules are exact, so there is no modelling ambiguity.</li>
+          <li>Win or loss is unambiguous, so progress is measurable.</li>
+          <li>The opponent provides an unlimited curriculum of hard cases.</li>
+          <li>Self-play generates its own training data.</li>
+        </ul>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Misleading properties</h3>
+        <ul>
+          <li>Perfect information and deterministic rules are rare in the world.</li>
+          <li>A game score is a single number, so the evaluation hides everything else.</li>
+          <li>Superhuman play does not transfer to open-ended tasks.</li>
+          <li>Games have no humans in the loop to harm — which is a large omission.</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:16px">
+      Keep both columns in mind. "It beat the world champion" is evidence about a
+      narrow, well-specified problem — not a general claim about intelligence, and not
+      a claim that module 15's questions are answered.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>Formalising a game</h2>
+  <div class="slide-main">
+    <div class="panel panel--definition">
+      <span class="term">Two-player zero-sum game</span>
+      <p>
+        States <var>S</var>, a player to move in each, actions
+        <var>A</var>(<var>s</var>), a result function, a terminal test, and a utility
+        <var>U</var>(<var>s</var>, <var>p</var>) where one player's gain is the other's
+        loss.
+      </p>
+    </div>
+    <div class="cols-2">
+      <div>
+        <h3>Assumptions made explicit</h3>
+        <ul>
+          <li><strong>Perfect information</strong> — both players see the full state. Chess yes, poker no.</li>
+          <li><strong>Deterministic</strong> — actions have single outcomes. Backgammon no.</li>
+          <li><strong>Zero-sum</strong> — utilities are negatives of each other.</li>
+          <li><strong>Rational opponent</strong> — they play to maximize their own utility.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>What each assumption buys</h3>
+        <p>
+          Perfect information lets us search the true state. Determinism lets us compute
+          a value instead of an expectation. Zero-sum lets one number describe both
+          players. Rationality lets us model the opponent as a minimizer.
+        </p>
+        <p>
+          Remove rationality and minimax is too pessimistic: a random opponent is not
+          out to get you, so expectimax is the right model.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>Minimax: assume the worst, choose the best of it</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <div class="eq" style="text-align:left">
+          V(s) = max<sub>a</sub> V(Result(s, a)) &nbsp;&nbsp; if MAX to move<br>
+          V(s) = min<sub>a</sub> V(Result(s, a)) &nbsp;&nbsp; if MIN to move<br>
+          V(s) = U(s) &nbsp;&nbsp; if terminal
+        </div>
+        <p style="margin-top:16px">
+          The value of a state is what you can guarantee against an opponent who plays
+          perfectly. It is not the value you expect to achieve against a weak opponent,
+          and it is not an average over their mistakes.
+        </p>
+        <div class="callout" style="margin-top:14px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            Minimax is <strong>pessimistic by construction</strong>. That is a feature:
+            it produces a policy that does not depend on the opponent blundering.
+          </p>
+        </div>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.424" class="dg-seq" viewBox="30 16 382 272.1" role="img" aria-labelledby="f5t f5d">
+          <title id="f5t">A minimax game tree with computed values</title>
+          <desc id="f5d">A root maximizing node with three minimizing children. Their values are three, two and two, so the root value is three. The left child is chosen.</desc>
+          <defs>
+            <marker id="a5" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#c9ced5"/>
+            </marker>
+          </defs>
+          <g class="v-in" style="--d:1.45s">
+            <rect class="dg-box-a" x="180" y="16" width="100" height="44" rx="3"/>
+            <text class="dg-txt-b" x="230" y="43" text-anchor="middle">MAX = 3</text>
+          </g>
+
+          <path class="dg-line-q" d="M206 62 L 100 106" marker-end="url(#a5)"/>
+          <path class="dg-line-q" d="M230 62 V 106" marker-end="url(#a5)"/>
+          <path class="dg-line-q" d="M254 62 L 360 106" marker-end="url(#a5)"/>
+
+          <g class="v-in" style="--d:0.85s">
+            <rect class="dg-box" x="48" y="110" width="104" height="44" rx="3"/>
+            <text class="dg-txt-b" x="100" y="137" text-anchor="middle">MIN = 3</text>
+          </g>
+          <g class="v-in" style="--d:1.00s">
+            <rect class="dg-box" x="178" y="110" width="104" height="44" rx="3"/>
+            <text class="dg-txt-b" x="230" y="137" text-anchor="middle">MIN = 2</text>
+          </g>
+          <g class="v-in" style="--d:1.15s">
+            <rect class="dg-box" x="308" y="110" width="104" height="44" rx="3"/>
+            <text class="dg-txt-b" x="360" y="137" text-anchor="middle">MIN = 2</text>
+          </g>
+
+          <g class="v-in" style="--d:0.00s"><text x="30" y="212">3</text></g>
+          <g class="v-in" style="--d:0.08s"><text x="72" y="212">12</text></g>
+          <g class="v-in" style="--d:0.16s"><text x="118" y="212">8</text></g>
+          <g class="v-in" style="--d:0.24s"><text x="164" y="212">2</text></g>
+          <g class="v-in" style="--d:0.32s"><text x="206" y="212">4</text></g>
+          <g class="v-in" style="--d:0.40s"><text x="248" y="212">6</text></g>
+          <g class="v-in" style="--d:0.48s"><text x="294" y="212">14</text></g>
+          <g class="v-in" style="--d:0.56s"><text x="336" y="212">5</text></g>
+          <g class="v-in" style="--d:0.64s"><text x="378" y="212">2</text></g>
+          <path class="dg-line-q" d="M100 158 V 178 H 30" marker-end="url(#a5)"/>
+          <path class="dg-line-q" d="M100 158 V 178 H 72" marker-end="url(#a5)"/>
+          <path class="dg-line-q" d="M100 158 V 178 H 118" marker-end="url(#a5)"/>
+          <path class="dg-line-q" d="M230 158 V 178 H 164" marker-end="url(#a5)"/>
+          <path class="dg-line-q" d="M230 158 V 178 H 206" marker-end="url(#a5)"/>
+          <path class="dg-line-q" d="M230 158 V 178 H 248" marker-end="url(#a5)"/>
+          <path class="dg-line-q" d="M360 158 V 178 H 294" marker-end="url(#a5)"/>
+          <path class="dg-line-q" d="M360 158 V 178 H 336" marker-end="url(#a5)"/>
+          <path class="dg-line-q" d="M360 158 V 178 H 378" marker-end="url(#a5)"/>
+          <text class="dg-txt-s" x="230" y="250" text-anchor="middle">terminal utilities</text>
+          <text class="dg-txt-s" x="230" y="286" text-anchor="middle">MIN picks the smallest child; MAX picks the largest</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 5.1.</strong> Values propagate upward, and the sequence plays
+          in that order: the nine terminal utilities, then the three minima, then the
+          root. The root takes the best of the three minima.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s7">
+  <h2>Minimax is correct and unusable</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <table class="tbl tbl--compact">
+      <caption class="visually-hidden">Minimax is correct and unusable</caption>
+          <tbody>
+            <tr><th scope="row">Complete</th><td>Yes, if the tree is finite.</td></tr>
+            <tr><th scope="row">Optimal</th><td>Yes, against an optimal opponent.</td></tr>
+            <tr><th scope="row">Time</th><td>O(<var>b<sup>m</sup></var>)</td></tr>
+            <tr><th scope="row">Space</th><td>O(<var>bm</var>) with depth-first evaluation.</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:14px">
+          Chess has <var>b</var> ≈ 35 and games of about 80 plies. That is 35⁸⁰ ≈ 10¹²³
+          nodes. The observable universe holds about 10⁸⁰ atoms.
+        </p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Three ways out, all used in practice</h3>
+        <ol>
+          <li><strong>Prune</strong> — alpha–beta removes branches that cannot matter.</li>
+          <li><strong>Cut off</strong> — stop early and estimate with an evaluation function.</li>
+          <li><strong>Sample</strong> — do not search the tree exactly; simulate instead (MCTS).</li>
+        </ol>
+        <p style="margin-top:10px">
+          Every strong game engine uses at least two of the three.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 48" role="img" aria-labelledby="f5at f5ad">
+<title id="f5at">Powers of ten: a laptop, the atoms in the universe, and the chess game tree</title>
+<desc id="f5ad">A logarithmic number line from 1 to 10 to the 120th. A laptop&#x27;s billion or so steps a second sit near 10 to the 9th; the atoms in the observable universe near 10 to the 80th; the chess game tree at 10 to the 123rd.</desc>
+<path class="dg-line-q" d="M40 30 H960"/>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M40 26 V34"/><text class="dg-xs" x="40" y="46" text-anchor="middle">10^0</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M186 26 V34"/><text class="dg-xs" x="186" y="46" text-anchor="middle">10^20</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M332 26 V34"/><text class="dg-xs" x="332" y="46" text-anchor="middle">10^40</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M478 26 V34"/><text class="dg-xs" x="478" y="46" text-anchor="middle">10^60</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M624 26 V34"/><text class="dg-xs" x="624" y="46" text-anchor="middle">10^80</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M770 26 V34"/><text class="dg-xs" x="770" y="46" text-anchor="middle">10^100</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M916 26 V34"/><text class="dg-xs" x="916" y="46" text-anchor="middle">10^120</text></g>
+<g class="v-in" style="--d:0.50s"><circle class="dg-box-t" cx="107.89" cy="30" r="7"/><text class="dg-xs" x="117.89" y="16">laptop: about 10⁹ steps a second</text></g>
+<g class="v-in" style="--d:1.20s"><circle class="dg-box-m" cx="624" cy="30" r="7"/><text class="dg-xs" x="614" y="16" text-anchor="end">atoms in the observable universe</text></g>
+<g class="v-in" style="--d:1.90s"><circle class="dg-box-a" cx="937.9" cy="30" r="7"/><text class="dg-xs" x="927.9" y="16" text-anchor="end">chess game tree</text></g>
+</svg>
+<figcaption><strong>Figure 5.2.</strong> Exact chess search is 43 powers of ten past the atoms.</figcaption>
+</figure>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        The number 10¹²³ is not a motivation to write faster code. It is a proof that
+        <strong>exact search is the wrong algorithm class</strong> for the problem.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s8">
+  <h2>Pruning and cutting off</h2>
+  <p>The same answer with less work, and the price of stopping early.</p>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s9">
+  <h2>Alpha–beta: the same answer, less work</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Keep two bounds while searching: <var>α</var>, the best value MAX can
+          already guarantee, and <var>β</var>, the best value MIN can already guarantee.
+        </p>
+        <ul>
+          <li>At a MAX node, raise <var>α</var> as you find better children.</li>
+          <li>At a MIN node, lower <var>β</var>.</li>
+          <li>If <var>α</var> ≥ <var>β</var>, stop: the remaining children cannot change the answer.</li>
+        </ul>
+        <figure class="fig" style="margin-top:6px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 156" role="img" aria-labelledby="n5at n5ad">
+          <title id="n5at">Alpha-beta pruning on a small tree</title>
+          <desc id="n5ad">MAX at the root chooses between branch A and branch B, both MIN nodes. Branch A's leaves are 3, 12 and 8, so A is worth 3. In branch B the first leaf is 2, so B is worth at most 2. MAX already has 3, so B's other two leaves are pruned without being looked at. The root value is 3.</desc>
+          
+          <path class="dg-line-q" d="M276 31 L130 59"/><path class="dg-line-q" d="M276 31 L420 59"/><path class="dg-line-q" d="M130 85 L70 118"/><path class="dg-line-q" d="M130 85 L130 118"/><path class="dg-line-q" d="M130 85 L190 118"/><path class="dg-line-q" d="M420 85 L360 118"/>
+          <path class="dg-dash" d="M420 85 L420 118 M420 85 L480 118"/>
+          <g class="v-in" style="--d:1.30s"><rect class="dg-box-a" x="221" y="1" width="110" height="30" rx="3"/><text class="dg-txt-b" x="276" y="22" text-anchor="middle">MAX = 3</text></g>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="70" y="136" text-anchor="middle">3</text></g>
+          <g class="v-in" style="--d:0.25s"><text class="dg-txt" x="130" y="136" text-anchor="middle">12</text></g>
+          <g class="v-in" style="--d:0.40s"><text class="dg-txt" x="190" y="136" text-anchor="middle">8</text></g>
+          <g class="v-in" style="--d:0.55s"><rect class="dg-box" x="75" y="55" width="110" height="30" rx="3"/><text class="dg-txt-b" x="130" y="76" text-anchor="middle">A: MIN = 3</text></g>
+          <g class="v-in" style="--d:0.75s"><text class="dg-txt" x="360" y="136" text-anchor="middle">2</text></g>
+          <g class="v-in" style="--d:0.90s"><rect class="dg-box" x="365" y="55" width="110" height="30" rx="3"/><text class="dg-txt-b" x="420" y="76" text-anchor="middle">B: MIN ≤ 2</text></g>
+          <g class="v-in" style="--d:1.10s"><text class="dg-txt-s" x="420" y="130" text-anchor="middle">?</text><text class="dg-txt-s" x="480" y="130" text-anchor="middle">?</text><text class="dg-lbl" x="450" y="152" text-anchor="middle">pruned</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 5.3.</strong> In B, α = 3 ≥ β = 2, so its last two leaves are pruned.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="worked">
+          <span class="worked-label">Why the prune is safe</span>
+          <p>
+            Suppose MAX is choosing between branch <var>A</var> and branch
+            <var>B</var>. While exploring <var>B</var>, MIN has already forced its value
+            down to 2. MAX has already found 3 in branch <var>A</var>.
+          </p>
+          <p>
+            Whatever the rest of <var>B</var> contains, MIN will keep it at 2 or lower.
+            MAX will never choose <var>B</var>. Every remaining node under
+            <var>B</var> is <strong>irrelevant to the root value</strong>.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            Pruning removes work, never information that mattered. That is why the
+            returned value is identical, not approximate.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s10">
+  <h2>Worked trace: pruning in action</h2>
+  <div class="slide-main">
+    <table class="tbl tbl--compact">
+      <caption>Root is MAX; children B, C, D are MIN. Leaves are visited left to right.</caption>
+      <thead>
+        <tr><th scope="col">Step</th><th scope="col">Visiting</th><th scope="col" class="num">α</th><th scope="col" class="num">β</th><th scope="col">Decision</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>B's first leaf = 3</td><td class="num">−∞</td><td class="num">3</td><td>β falls to 3</td></tr>
+        <tr><td>2</td><td>B's second leaf = 12</td><td class="num">−∞</td><td class="num">3</td><td>12 &gt; 3, no change</td></tr>
+        <tr><td>3</td><td>B's third leaf = 8</td><td class="num">−∞</td><td class="num">3</td><td>8 &gt; 3, no change; B = 3</td></tr>
+        <tr><td>4</td><td>Root: α = 3</td><td class="num">3</td><td class="num">+∞</td><td>MAX has 3 guaranteed</td></tr>
+        <tr><td>5</td><td>C's first leaf = 2</td><td class="num">3</td><td class="num">2</td><td><strong>α ≥ β → prune C's other leaves (4, 6)</strong></td></tr>
+        <tr><td>6</td><td>D's first leaf = 14</td><td class="num">3</td><td class="num">14</td><td>no prune yet</td></tr>
+        <tr><td>7</td><td>D's second leaf = 5</td><td class="num">3</td><td class="num">5</td><td>no prune yet</td></tr>
+        <tr><td>8</td><td>D's third leaf = 2</td><td class="num">3</td><td class="num">2</td><td>D = 2, nothing left to prune</td></tr>
+        <tr><td>9</td><td>Root</td><td class="num">3</td><td class="num">+∞</td><td>value 3; 2 of 9 leaves never examined</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:14px">
+      <em>Leaf order</em> decides how much is pruned: D's 2 comes last, so D is
+      searched in full.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s11">
+  <h2>Best case halves the exponent; worst case does nothing</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="eq">
+          best case: O(b<sup>d/2</sup>)
+          <span class="cond">With perfect move ordering, alpha–beta examines about the square root of the minimax tree.</span>
+        </div>
+        <p style="margin-top:16px">
+          For chess that is the difference between 35⁸⁰ and 35⁴⁰ — still enormous, but
+          inside the range where a cutoff search with a good evaluation function works.
+        </p>
+        <p>
+          With random ordering the gain is closer to <var>b</var><sup>3d/4</sup>; with
+          adversarial ordering, no gain at all.
+        </p>
+        <figure class="fig" style="margin-top:6px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 104" role="img" aria-labelledby="n5bt n5bd">
+          <title id="n5bt">Nodes examined in chess, by move ordering</title>
+          <desc id="n5bd">Three horizontal bars showing the exponent of 35 for an 80-ply search. Plain minimax or adversarial ordering: 35 to the 80. Random ordering: about 35 to the 60. Perfect ordering: 35 to the 40.</desc>
+          
+          <text class="dg-txt-s" x="0" y="14">nodes examined, as a power of 35 (log scale)</text>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="140" y="40" text-anchor="end">worst ordering</text><rect class="dg-card" x="150" y="24" width="350" height="20" rx="2"/><text class="dg-txt-b" x="508" y="40">35⁸⁰</text></g>
+          <g class="v-in" style="--d:0.24s"><text class="dg-txt" x="140" y="68" text-anchor="end">random ordering</text><rect class="dg-gold" x="150" y="52" width="262.5" height="20" rx="2"/><text class="dg-txt-b" x="420.5" y="68">≈ 35⁶⁰</text></g>
+          <g class="v-in" style="--d:0.38s"><text class="dg-txt" x="140" y="96" text-anchor="end">perfect ordering</text><rect class="dg-teal" x="150" y="80" width="175" height="20" rx="2"/><text class="dg-txt-b" x="333" y="96">35⁴⁰</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 5.4.</strong> Each bar is an exponent, so halving it is a square root.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Move ordering is the engineering</h3>
+          <ul>
+            <li>Try captures and checks first — they are most likely to be best.</li>
+            <li>Use the previous iteration's best move first (iterative deepening).</li>
+            <li>Keep a transposition table so repeated positions are evaluated once.</li>
+          </ul>
+        </div>
+        <p style="margin-top:14px">
+          Every one of these is a heuristic about which move is likely best. Alpha–beta
+          converts good guesses about ordering into exponential savings — the same theme
+          as module 3.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s12">
+  <h2>Cutting off search creates the horizon effect</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Real games are too deep, so we stop at a depth limit and apply an
+          <strong>evaluation function</strong> — a heuristic estimate of the position's
+          value. This is module 3's heuristic idea, applied to game states.
+        </p>
+        <p>
+          The evaluation should preserve the ordering of positions, not their exact
+          values. A function that ranks well but is badly scaled is still useful.
+        </p>
+        <div class="panel panel--accent" style="margin-top:12px">
+          <h3>Horizon effect</h3>
+          <p>
+            A bad outcome is pushed just beyond the search limit. The engine believes the
+            position is fine because the loss occurs at depth 7 and it searched depth 6.
+          </p>
+        </div>
+      </div>
+      <div>
+        <div class="worked">
+          <span class="worked-label">A concrete horizon failure</span>
+          <p>
+            A queen is trapped and will be lost in five moves. Within a depth-4 search,
+            the engine sees only that it can delay the loss by one move — so it does, and
+            reports a better score. It has not improved the position; it has moved the
+            disaster outside the window.
+          </p>
+          <p>
+            <strong>Quiescence search</strong> mitigates this: at the cutoff, keep
+            searching only forcing moves (captures, checks) until the position is quiet.
+          </p>
+        </div>
+        <p style="margin-top:12px; font-size:17px; color:var(--muted)">
+          Every cutoff search has a horizon. The only question is whether you have
+          engineered around its worst cases.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 60" role="img" aria-labelledby="f5bt f5bd">
+<title id="f5bt">The horizon effect: a loss at ply 7 lies just past a depth-6 search</title>
+<desc id="f5bd">A ply axis from 0 to 7. Plies 1 to 6 are shaded as searched, with a cutoff line after ply 6. The queen is lost at ply 7, just outside the searched window, so the engine does not see it.</desc>
+<g class="v-in" style="--d:0.10s"><rect class="dg-band-t" x="60" y="6" width="720" height="34"/></g>
+<g class="v-in" style="--d:0.20s"><text class="dg-xs dg-teal" x="70" y="28">searched: plies 1 to 6</text></g>
+<g class="v-in" style="--d:0.30s"><path class="dg-line-q" d="M60 40 H920"/></g>
+<g class="v-in" style="--d:0.30s"><path class="dg-line-q" d="M60 40 V46"/><text class="dg-xs" x="60" y="58" text-anchor="middle">0</text></g>
+<g class="v-in" style="--d:0.40s"><path class="dg-line-q" d="M180 40 V46"/><text class="dg-xs" x="180" y="58" text-anchor="middle">1</text></g>
+<g class="v-in" style="--d:0.50s"><path class="dg-line-q" d="M300 40 V46"/><text class="dg-xs" x="300" y="58" text-anchor="middle">2</text></g>
+<g class="v-in" style="--d:0.60s"><path class="dg-line-q" d="M420 40 V46"/><text class="dg-xs" x="420" y="58" text-anchor="middle">3</text></g>
+<g class="v-in" style="--d:0.70s"><path class="dg-line-q" d="M540 40 V46"/><text class="dg-xs" x="540" y="58" text-anchor="middle">4</text></g>
+<g class="v-in" style="--d:0.80s"><path class="dg-line-q" d="M660 40 V46"/><text class="dg-xs" x="660" y="58" text-anchor="middle">5</text></g>
+<g class="v-in" style="--d:0.90s"><path class="dg-line-q" d="M780 40 V46"/><text class="dg-xs" x="780" y="58" text-anchor="middle">6</text></g>
+<g class="v-in" style="--d:1.00s"><path class="dg-line-q" d="M900 40 V46"/><text class="dg-xs" x="900" y="58" text-anchor="middle">7</text></g>
+<g class="v-in" style="--d:1.40s"><path class="dg-line-a" d="M780 2 V44" stroke-dasharray="4 4"/><text class="dg-xs" x="772" y="18" text-anchor="end">cutoff</text></g>
+<g class="v-in" style="--d:2.00s"><circle class="dg-bad" cx="900" cy="23" r="11"/><text class="dg-xs dg-txt-bad" x="918" y="28">queen lost</text></g>
+</svg>
+<figcaption><strong>Figure 5.5.</strong> The loss has not gone away; it moved past the cutoff.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s13">
+  <h2>Chance and sampling</h2>
+  <p>Expectimax, Monte Carlo tree search and self-play.</p>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s14">
+  <h2>Expectimax: when the world is random, not hostile</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          If an outcome is produced by chance — a die, a shuffled deck — model it with an
+          expectation rather than a minimum. The agent then maximizes expected utility.
+        </p>
+        <div class="eq" style="text-align:left">
+          V(s) = max<sub>a</sub> Σ<sub>s′</sub> P(s′ | s, a) · V(s′)
+        </div>
+        <p style="margin-top:14px">
+          This is the Bellman equation of module 6, appearing early. MDPs and expectimax
+          are the same idea with different bookkeeping.
+        </p>
+        <figure class="fig" style="margin-top:6px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 132" role="img" aria-labelledby="n5ct n5cd">
+          <title id="n5ct">Expectimax and minimax disagree against a die</title>
+          <desc id="n5cd">MAX chooses between a risky move and a safe move. The risky move leads to a chance node with outcomes 10 and 0, each with probability one half, averaging 5. The safe move leads to outcomes 4 and 4, averaging 4. Expectimax picks the risky move. Minimax, assuming the worst outcome, would pick the safe move because 4 beats 0.</desc>
+          
+          <path class="dg-line-q" d="M276 31 L150 57"/><path class="dg-line-q" d="M276 31 L402 57"/><path class="dg-line-q" d="M150 83 L90 100"/><path class="dg-line-q" d="M150 83 L210 100"/><path class="dg-line-q" d="M402 83 L342 100"/><path class="dg-line-q" d="M402 83 L462 100"/>
+          <g class="v-in" style="--d:1.00s"><rect class="dg-box-a" x="211" y="1" width="130" height="30" rx="3"/><text class="dg-txt-b" x="276" y="22" text-anchor="middle">MAX picks 5</text></g>
+          <g class="v-in" style="--d:0.50s"><ellipse class="dg-box-t" cx="150" cy="70" rx="70" ry="15"/><text class="dg-txt-b" x="150" y="76" text-anchor="middle">risky: avg 5</text></g>
+          <g class="v-in" style="--d:0.70s"><ellipse class="dg-box-t" cx="402" cy="70" rx="70" ry="15"/><text class="dg-txt-b" x="402" y="76" text-anchor="middle">safe: avg 4</text></g>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="90" y="116" text-anchor="middle">10</text></g>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="210" y="116" text-anchor="middle">0</text></g>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="342" y="116" text-anchor="middle">4</text></g>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="462" y="116" text-anchor="middle">4</text></g>
+          <g class="v-in" style="--d:0.20s"><text class="dg-txt-s" x="90" y="130" text-anchor="middle">p = ½</text><text class="dg-txt-s" x="210" y="130" text-anchor="middle">p = ½</text><text class="dg-txt-s" x="342" y="130" text-anchor="middle">p = ½</text><text class="dg-txt-s" x="462" y="130" text-anchor="middle">p = ½</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 5.6.</strong> Expectimax picks risky (avg 5); minimax, safe (4 beats 0).
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Minimax is wrong for a random opponent</h3>
+          <p>
+            Against a die, minimizing assumes the worst face every time. That produces
+            needlessly conservative play — the same error as planning for an adversary
+            who is actually indifferent.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:14px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            <strong>The model of the other agent is a design choice.</strong> Minimax for
+            an adversary, expectimax for chance, and a mixture when the opponent is
+            merely imperfect.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s15">
+  <h2>Monte Carlo tree search: sample instead of enumerate</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <ol class="steps">
+          <li><span class="n" aria-hidden="true">1</span><div><strong>Selection</strong><p>From the root, follow child statistics until reaching a node not yet expanded.</p></div></li>
+          <li><span class="n" aria-hidden="true">2</span><div><strong>Expansion</strong><p>Add one new child for an untried action.</p></div></li>
+          <li><span class="n" aria-hidden="true">3</span><div><strong>Simulation</strong><p>Play to the end with a fast, dumb policy — random or nearly so.</p></div></li>
+          <li><span class="n" aria-hidden="true">4</span><div><strong>Backpropagation</strong><p>Update win counts along the path visited.</p></div></li>
+        </ol>
+        <div class="eq eq--tight" style="margin-top:12px">
+          UCT = w<sub>i</sub>/n<sub>i</sub> + c·√(ln N / n<sub>i</sub>)
+          <span class="cond">exploitation term + exploration term</span>
+        </div>
+      </div>
+      <figure class="fig" style="max-width:96%">
+        <svg style="--dg-k:1.813; max-height:430px" viewBox="26 24 288.1 252" role="img" aria-labelledby="f12t f12d">
+          <title id="f12t">The four phases of Monte Carlo tree search</title>
+          <desc id="f12d">A tree in which search descends along the most promising path, adds one node, simulates to a terminal outcome, and returns the result up the same path.</desc>
+          <defs>
+            <marker id="a12" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <circle cx="210" cy="40" r="16" class="dg-box-a"/>
+          <text class="dg-txt-s" x="210" y="44" text-anchor="middle">root</text>
+
+          <path class="dg-line" d="M198 52 L 138 76" marker-end="url(#a12)"/>
+          <path class="dg-line" d="M222 52 L 282 76" marker-end="url(#a12)"/>
+          <circle cx="130" cy="90" r="14" class="dg-box-m"/>
+          <circle cx="290" cy="90" r="14" class="dg-box-m"/>
+
+          <path class="dg-line" d="M120 102 L 90 132" marker-end="url(#a12)"/>
+          <path class="dg-line" d="M140 102 L 170 132" marker-end="url(#a12)"/>
+          <circle cx="84" cy="146" r="14" class="dg-box-t"/>
+          <circle cx="176" cy="146" r="14" class="dg-box-t"/>
+
+          <path class="dg-dash" d="M84 160 V 226" marker-end="url(#a12)"/>
+          <rect class="dg-box-m" x="26" y="230" width="118" height="46" rx="3"/>
+          <text class="dg-txt-s" x="85" y="250" text-anchor="middle">simulate to</text>
+          <text class="dg-txt-s" x="85" y="266" text-anchor="middle">terminal state</text>
+
+          <text class="dg-lbl" x="248" y="130">1 select</text>
+          <text class="dg-lbl" x="248" y="152">2 expand</text>
+          <text class="dg-lbl" x="248" y="196">3 simulate</text>
+          <text class="dg-lbl" x="248" y="236">4 backpropagate</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 5.7.</strong> One iteration of the four phases.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s16">
+  <h2>Why sampling beat search in Go</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Go has <var>b</var> ≈ 250 and games around 150 moves. Minimax is not merely
+          slow; the evaluation function is the real problem — nobody could write a good
+          positional evaluator by hand.
+        </p>
+        <p>
+          Two properties made MCTS effective:
+        </p>
+        <ul>
+          <li><strong>Anytime</strong> — it returns a usable move immediately and improves with more simulations.</li>
+          <li><strong>No evaluation function</strong> — it uses game outcomes, which are exact.</li>
+        </ul>
+      </div>
+      <div class="panel panel--accent">
+        <h3>The asymmetry that mattered</h3>
+        <p>
+          Chess engines were strong because humans could articulate what a good position
+          looks like. Go players could not articulate it — the knowledge was tacit.
+        </p>
+        <p>
+          MCTS replaced the missing evaluation function with rollouts. That is a general
+          lesson: <strong>when you cannot specify the objective, learn or sample it
+          instead.</strong>
+        </p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Pure MCTS was still not enough for superhuman Go. The breakthrough was combining
+        it with a learned policy and value network — which is the next slide.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s17">
+  <h2>Self-play: the opponent becomes the curriculum</h2>
+  <div class="slide-main">
+    <div class="cols-3">
+      <div class="panel">
+        <h3>Policy network</h3>
+        <p>Outputs a probability over moves. Used to narrow the tree instead of trying all 250 moves.</p>
+      </div>
+      <div class="panel">
+        <h3>Value network</h3>
+        <p>Predicts the game outcome from a position, replacing deep rollouts with one forward pass.</p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Self-play loop</h3>
+        <p>Play against a previous version of yourself, label positions with the result, retrain, repeat.</p>
+      </div>
+    </div>
+    <p style="margin-top:18px">
+      This loop is a reinforcement-learning algorithm with a moving target: the data
+      distribution and the policy co-evolve. It is also where the modern connection to
+      module 13 begins — a preference model replacing a game result is a small change.
+    </p>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Self-play works when <strong>the environment can generate unlimited episodes and
+        the reward is exact</strong>. Those conditions hold in games and almost nowhere
+        else.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s18">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>Minimax computes a guarantee, not an expectation.</strong><p>The value assumes a perfect opponent, which is a modelling choice.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Alpha–beta is exact.</strong><p>It changes the work, never the value; its speedup depends entirely on move ordering.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Cutoffs create horizons.</strong><p>Every evaluation function is a proxy, and every proxy can be gamed by delay.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>Sample when you cannot specify.</strong><p>MCTS replaced a hand-written Go evaluator with outcomes.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Games are a narrow testbed.</strong><p>Exact rules and exact rewards are what make self-play work — and what the real world withholds.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 16 -->
+<section class="slide" id="s19">
+  <h2>This week's work</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA §5.1–5.5.</li>
+          <li>Re-run the slide-8 trace with the leaves reversed.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Reflection 4: is minimax or expectimax the right model for a human opponent? Argue it.</li>
+          <li>Implement alpha–beta; assert it returns the same value as minimax on random trees.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — reflection 4.</li>
+          <li>Friday class, 8:30–11:10 a.m. CT, MIC: pruning traces; online students watch the recorded lecture.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next:</strong> module 6 removes the opponent and adds a die — and with
+        it, the most important equation in the course.
+      </p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 4 — Inference · CS 5700</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to lab content</a>
+
+<div class="doc">
+
+  <header class="doc-masthead">
+    <p class="inst">
+      <span>University of Central Missouri</span>
+      <span>CS 5700 Artificial Intelligence</span>
+      <span>Spring 2027</span>
+    </p>
+    <h1>Lab 4 — Inference</h1>
+    <p class="tagline">
+      Exact inference by enumeration and by variable elimination, approximate inference by
+      sampling, and the point where approximation stops being worth it.
+    </p>
+    <p class="instructor">
+      <strong>Dr. Gorkem Kar</strong>
+      <span>Due: end of week 10</span>
+      <span>Weight: 4% of the course grade</span>
+      <span>Individual work</span>
+    </p>
+  </header>
+
+  <main id="main">
+
+    <section>
+      <h2>What you are building</h2>
+      <p>
+        An inference engine for discrete Bayesian networks, built on a network
+        specification file format you are given. It must answer queries of the form
+        P(variable | evidence) four ways, and it must be correct before it is fast.
+      </p>
+      <p>
+        Three networks ship in <code>../data/lab4/</code>: <code>alarm.json</code> (five
+        nodes), <code>chain20.json</code> (twenty in a line) and <code>dense.json</code> (a
+        clique). The dense one exists to punish enumeration, and the chain exists to reward
+        elimination ordering. <code>../data/README.md</code> documents the CPT row order,
+        which is the part students get wrong first.
+      </p>
+    </section>
+
+    <section>
+      <h2>Before you start</h2>
+      <ul>
+        <li>Module 9 (representation, independence, d-separation) and module 10 (inference, sampling, HMMs).</li>
+        <li>AIMA 13.3–13.4 and 14.3–14.5.</li>
+        <li>Python help for this lab: <a href="https://docs.python.org/3/library/itertools.html">itertools</a> for looping over assignments, and <a href="https://docs.python.org/3/tutorial/classes.html">classes</a> for a factor object. More on the <a href="index.html">labs page</a>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Tasks</h2>
+
+      <h3>1. Enumeration</h3>
+      <p>
+        Implement inference by enumeration over the full joint distribution. It will be
+        slow; that is the point of having it. Report the number of terms the sum expands
+        to for each query, as a formula in the number of unobserved variables, and check
+        the formula against a counted value.
+      </p>
+
+      <h3>2. Variable elimination</h3>
+      <p>
+        Implement variable elimination with factors. Support at least two orderings: the
+        order given on the command line, and a greedy min-fill heuristic. Report, for each
+        query, the number of multiplication and sum operations performed. Then state, with
+        numbers, what the ordering bought you on the dense network.
+      </p>
+
+      <h3>3. Sampling</h3>
+      <p>
+        Implement rejection sampling and likelihood weighting. For one query on the alarm
+        network, plot estimated probability against number of samples for both methods, on
+        the same axes, with the exact answer drawn as a horizontal line. Then answer: at
+        what sample count does rejection sampling become unusable as evidence grows, and
+        why does likelihood weighting not suffer the same collapse?
+      </p>
+
+      <h3>4. Filtering</h3>
+      <p>
+        Implement the forward algorithm for an HMM and run it on the provided sequence —
+        <code>hmm_params.json</code> and <code>hmm_observations.txt</code>, with
+        <code>hmm_first_step.json</code> giving the first posterior so you can check the
+        recursion before running 300 steps. Then implement particle filtering and compare. Report the effective
+        sample size over time and the point at which resampling is required. The
+        comparison should say when particles are the right tool and when the exact forward
+        pass is simply better.
+      </p>
+    </section>
+
+    <section>
+      <h2>Deliverables</h2>
+      <ul>
+        <li><strong>Code</strong> for all four methods plus the experiment driver.</li>
+        <li><strong>Reproduction file</strong> regenerating every reported number and figure.</li>
+        <li><strong>Written report, 5–7 pages</strong>: the operation counts, the sampling
+          convergence plot, and the filtering comparison.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What the grader runs</h2>
+      <pre>python3 infer.py --net ../data/lab4/alarm.json \
+    --query "Alarm" --evidence "JohnCalls=true,MaryCalls=true" --method ve
+
+{"query": "Alarm", "p_true": 0.760692}</pre>
+      <p>
+        <strong>That number is worth checking.</strong> P(Alarm | John, Mary) = 0.7607, while
+        P(Burglary | John, Mary) = 0.2842 — the well-known 0.284 in the textbook is the
+        <em>burglary</em> posterior, not the alarm one. If your first answer is 0.284 you have
+        the query right and the variable wrong, which is the most common single mistake in
+        this lab.
+      </p>
+      <p>
+        <code>--method</code> is one of <code>enum</code>, <code>ve</code>,
+        <code>rejection</code> or <code>lw</code>; add <code>--samples N</code> for the two
+        sampling methods and <code>--order</code> to pin an elimination ordering. The two
+        exact methods must agree to 1e-9 on the alarm network, and each sampling method is
+        checked against that answer at five standard errors of its own estimate — which is
+        why the report needs the standard error, not just the number. Operation counts are
+        not graded; put them in your complexity table and report them honestly.
+      </p>
+      <p>
+        To check yourself before submitting, reproduce 0.760692 for the query above with
+        both exact methods, and check your forward pass against
+        <code>hmm_first_step.json</code> before running the whole sequence.
+      </p>
+    </section>
+
+    <section>
+      <h2>How it is graded</h2>
+      <table class="tbl tbl--compact">
+        <thead><tr><th scope="col">Component</th><th scope="col" class="num">Weight</th><th scope="col">What earns full marks</th></tr></thead>
+        <tbody>
+          <tr><td>Correctness</td><td class="num">40%</td><td>All four methods agree with each other on the alarm network to sampling error</td></tr>
+          <tr><td>Complexity</td><td class="num">20%</td><td>Operation counts match the formulas; the ordering comparison is quantified</td></tr>
+          <tr><td>Sampling analysis</td><td class="num">20%</td><td>The rejection-versus-likelihood argument is correct and specific</td></tr>
+          <tr><td>Filtering</td><td class="num">20%</td><td>Effective sample size is tracked and resampling is justified, not routine</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Rules</h2>
+      <p>
+        Individual work. The syllabus late policy applies: 10% off per day for up to three days, then not accepted. Disclose AI tool use. A library
+        that performs Bayesian inference for you is not permitted — the point is to write
+        the factors yourself. Numerical libraries for arrays and plotting are fine.
+      </p>
+    </section>
+
+    <section>
+      <h2>Check yourself before submitting</h2>
+      <ul class="objectives">
+        <li>Do enumeration and elimination agree exactly on every query?</li>
+        <li>Does your operation count for elimination drop when the ordering improves?</li>
+        <li>Does likelihood weighting converge to the same answer with far fewer samples than rejection?</li>
+        <li>Does your particle filter's effective sample size fall before you resample?</li>
+        <li>Can you say which query on the dense network is intractable in practice, and why?</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CS 5700 · Lab 4 · University of Central Missouri · Spring 2027</p>
+  </footer>
+
+</div>
+</body>
+</html>

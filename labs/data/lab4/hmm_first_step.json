@@ -1,0 +1,9 @@
+{
+  "note": "Posterior over hidden states after the first observation, for checking your forward pass.",
+  "observation": 3,
+  "posterior": [
+    0.178571,
+    0.321429,
+    0.5
+  ]
+}

@@ -1,0 +1,13 @@
+grid,algorithm,path_cost,nodes_expanded,nodes_generated,peak_frontier,path_length
+a,bfs,38.0,245,245,23,27
+a,dfs,120.5,145,226,88,84
+a,ucs,30.5,238,257,27,27
+a,astar,30.5,101,161,55,27
+b,bfs,40.0,215,217,19,27
+b,dfs,79.0,71,111,41,56
+b,ucs,34.0,210,226,21,27
+b,astar,34.0,156,210,33,27
+c,bfs,45.0,198,198,13,35
+c,dfs,79.0,169,198,46,58
+c,ucs,44.0,198,205,13,35
+c,astar,44.0,145,182,26,35

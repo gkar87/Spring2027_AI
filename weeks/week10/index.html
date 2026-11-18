@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 10 — Inference and Reasoning over Time · CS 5700</title>
+<meta name="description" content="CS 5700 Module 10: variable elimination, likelihood weighting, Gibbs sampling, hidden Markov models, the forward algorithm, Viterbi, and particle filtering.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 10 lecture slides: Inference and Reasoning over Time">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 10 of 15</p>
+  <h1>Inference and Reasoning over Time</h1>
+  <p class="subtitle">
+    A network tells you what depends on what. Inference tells you what to believe.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<defs><marker id="mk-ta10" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker><marker id="mk-ta10t" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker></defs>
+<g class="v-in" style="--d:0.20s"><circle class="dg-box-t" cx="70" cy="90" r="30"/><text class="dg-sm-b" x="70" y="95" text-anchor="middle">X₁</text></g>
+<g class="v-in" style="--d:0.40s"><rect class="dg-box-m" x="40" y="190" width="60" height="44" rx="4"/><text class="dg-sm-b" x="70" y="217" text-anchor="middle">E₁</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.60s" d="M70 120 V186" marker-end="url(#mk-ta10)"/>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:0.70s" d="M100 90 H156" marker-end="url(#mk-ta10t)"/>
+<g class="v-in" style="--d:0.50s"><circle class="dg-box-t" cx="190" cy="90" r="30"/><text class="dg-sm-b" x="190" y="95" text-anchor="middle">X₂</text></g>
+<g class="v-in" style="--d:0.70s"><rect class="dg-box-m" x="160" y="190" width="60" height="44" rx="4"/><text class="dg-sm-b" x="190" y="217" text-anchor="middle">E₂</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.90s" d="M190 120 V186" marker-end="url(#mk-ta10)"/>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:1.00s" d="M220 90 H276" marker-end="url(#mk-ta10t)"/>
+<g class="v-in" style="--d:0.80s"><circle class="dg-box-t" cx="310" cy="90" r="30"/><text class="dg-sm-b" x="310" y="95" text-anchor="middle">X₃</text></g>
+<g class="v-in" style="--d:1.00s"><rect class="dg-box-m" x="280" y="190" width="60" height="44" rx="4"/><text class="dg-sm-b" x="310" y="217" text-anchor="middle">E₃</text></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:1.20s" d="M310 120 V186" marker-end="url(#mk-ta10)"/>
+<g class="v-in" style="--d:1.80s"><text class="dg-xs" x="190" y="40" text-anchor="middle">hidden state over time</text></g>
+<g class="v-in" style="--d:2.00s"><text class="dg-xs" x="190" y="268" text-anchor="middle">what we observe</text></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-sm dg-teal" x="190" y="315" text-anchor="middle">predict, weight, normalize</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>Explain why naive enumeration is exponential and what factors buy you.</li>
+      <li>Run variable elimination by hand on a three-variable network.</li>
+      <li>State the complexity of exact inference in terms of treewidth.</li>
+      <li>Describe likelihood weighting and Gibbs sampling, and when each is preferable.</li>
+      <li>Define filtering, prediction, smoothing, and most-likely-sequence for an HMM.</li>
+      <li>Trace one step of a particle filter and explain degeneracy.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        The skill to practise is to <strong>eliminate one variable</strong> and show the
+        resulting factor. That is the whole algorithm in miniature.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>Exact inference</h2>
+  <p>Factors and variable elimination.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>The query, and why it is expensive</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A query asks for the posterior of some variables given evidence:
+        </p>
+        <div class="eq eq--tight">
+          P(Q | E = e) = α Σ<sub>h</sub> P(Q, E = e, H = h)
+        </div>
+        <p style="margin-top:12px">
+          We must sum over every assignment to the hidden variables <var>H</var>. That is
+          2<sup>|<var>H</var>|</sup> terms, and each term needs the full joint.
+        </p>
+        <p>
+          Enumeration is correct, simple, and hopeless beyond roughly 30 variables.
+        </p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Two ways out</h3>
+        <ol>
+          <li><strong>Exact, cleverly</strong> — reorder the summations so shared subexpressions are computed once. This is variable elimination.</li>
+          <li><strong>Approximate, honestly</strong> — sample from the network and estimate the answer, with a confidence interval.</li>
+        </ol>
+        <p style="margin-top:10px">
+          Both are used in practice; the second dominates for large models.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 126" role="img" aria-labelledby="f10at f10ad">
+<title id="f10at">The number of terms in enumeration grows as 2 to the number of hidden variables</title>
+<desc id="f10ad">A straight line on a logarithmic axis: with 10 hidden binary variables enumeration sums about a thousand terms, with 20 about a million, and with 30 about a billion, each of which needs the full joint. A dashed line marks roughly 30 variables as the practical limit.</desc>
+<path class="dg-line-q" d="M80 104 H900 M80 104 V6"/>
+<text class="dg-xs" x="900" y="120" text-anchor="end">hidden binary variables |H| →</text>
+<text class="dg-xs" x="70" y="108" text-anchor="end">1</text>
+<text class="dg-xs" x="70" y="12" text-anchor="end">10¹³</text>
+<g class="v-in" style="--d:0.10s"><text class="dg-xs" x="80" y="120" text-anchor="middle">0</text></g>
+<g class="v-in" style="--d:0.10s"><text class="dg-xs" x="280" y="120" text-anchor="middle">10</text></g>
+<g class="v-in" style="--d:0.10s"><text class="dg-xs" x="480" y="120" text-anchor="middle">20</text></g>
+<g class="v-in" style="--d:0.10s"><text class="dg-xs" x="680" y="120" text-anchor="middle">30</text></g>
+<path class="dg-plot-a v-draw" pathLength="1" style="--d:0.40s" d="M80 104.0 L100 101.7 L120 99.5 L140 97.2 L160 95.0 L180 92.7 L200 90.5 L220 88.2 L240 85.9 L260 83.7 L280 81.4 L300 79.2 L320 76.9 L340 74.6 L360 72.4 L380 70.1 L400 67.9 L420 65.6 L440 63.4 L460 61.1 L480 58.8 L500 56.6 L520 54.3 L540 52.1 L560 49.8 L580 47.6 L600 45.3 L620 43.0 L640 40.8 L660 38.5 L680 36.3 L700 34.0 L720 31.8 L740 29.5 L760 27.2 L780 25.0 L800 22.7 L820 20.5 L840 18.2 L860 15.9 L880 13.7"/>
+<g class="v-in" style="--d:1.60s"><path class="dg-dash" d="M680 104 V6"/><text class="dg-xs" x="688" y="70">about 30: a billion terms,</text><text class="dg-xs" x="688" y="88">each over the full joint</text></g>
+<g class="v-in" style="--d:2.40s"><text class="dg-xs" x="274" y="71.4228" text-anchor="middle">2¹⁰ ≈ 1,000</text><text class="dg-xs" x="474" y="48.8455" text-anchor="middle">2²⁰ ≈ 10⁶</text></g>
+</svg>
+<figcaption><strong>Figure 10.1.</strong> Exponential growth: about 30 variables is the limit.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>Factors: the data structure that makes it work</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A factor is a table over a set of variables. The joint is a factor over all
+          variables; a conditional probability table is a factor over a node and its
+          parents.
+        </p>
+        <table class="tbl tbl--compact" style="margin-top:8px">
+          <caption>Two operations are enough.</caption>
+          <thead><tr><th scope="col">Operation</th><th scope="col">Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Pointwise product</strong></td><td>Multiply two factors, matching on shared variables</td></tr>
+            <tr><td><strong>Sum out</strong></td><td>Remove a variable by summing over its values</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="worked">
+          <span class="worked-label">Summing out, concretely</span>
+          <p>Given factor <var>f</var>(<var>A</var>, <var>B</var>):</p>
+          <table class="tbl tbl--compact">
+      <caption class="visually-hidden">Factors: the data structure that makes it work</caption>
+            <thead><tr><th scope="col">A</th><th scope="col">B</th><th scope="col" class="num">f</th></tr></thead>
+            <tbody>
+              <tr><td>true</td><td>true</td><td class="num">0.3</td></tr>
+              <tr><td>true</td><td>false</td><td class="num">0.1</td></tr>
+              <tr><td>false</td><td>true</td><td class="num">0.2</td></tr>
+              <tr><td>false</td><td>false</td><td class="num">0.4</td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:8px">
+            Summing out <var>B</var> gives <var>f</var>(<var>A</var>) = {true: 0.4, false: 0.6}.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>Variable elimination: sum early, sum small</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Instead of enumerating all hidden variables, eliminate them one at a time,
+          multiplying only the factors that mention the variable being removed.
+        </p>
+<pre class="code">factors = [P(B), P(E), P(A|B,E), P(J|A), P(M|A)]
+
+<span class="k">for</span> var <span class="k">in</span> order:            <span class="c"># hidden: E, A</span>
+  subset = factors mentioning var
+  new    = SUM-OUT(var, PRODUCT(subset))
+  factors = (factors − subset) + [new]
+
+result = PRODUCT(factors)</pre>
+        <p style="margin-top:12px">
+          The answer is identical to enumeration. The work is not: factors stay small
+          because each one mentions only a few variables.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Why order matters</h3>
+          <p>
+            Eliminating a variable creates a new factor over its neighbours. That factor can
+            be large. Choosing an order that keeps intermediate factors small is the entire
+            optimization problem — and it is NP-hard in general.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            A good heuristic: <strong>eliminate variables with the fewest neighbours
+            first</strong>, which is the same min-degree idea as module 4's MRV.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s7">
+  <h2>Worked elimination, one step at a time</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Query P(<var>B</var> | <var>j</var>, <var>m</var>) on the alarm network. Evidence
+          is already applied: P(<var>j</var>|<var>A</var>) and P(<var>m</var>|<var>A</var>)
+          are reduced to two-row factors over <var>A</var>.
+        </p>
+        <ol style="font-size:18px">
+          <li><strong>Eliminate E</strong>: multiply P(<var>E</var>) by P(<var>A</var>|<var>B</var>,<var>E</var>), sum over E → <var>f₁</var>(<var>A</var>,<var>B</var>).</li>
+          <li><strong>Eliminate A</strong>: multiply <var>f₁</var>(<var>A</var>,<var>B</var>) × P(<var>j</var>|<var>A</var>) × P(<var>m</var>|<var>A</var>), sum over A → <var>f₂</var>(<var>B</var>).</li>
+          <li><strong>Multiply</strong> P(<var>B</var>) × <var>f₂</var>(<var>B</var>) → two numbers, one per value of B. B is the query, so it is kept, never summed out.</li>
+          <li><strong>Normalize</strong>: divide by the sum.</li>
+        </ol>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>What to notice</h3>
+          <ul>
+            <li>No new factor mentions more than two variables.</li>
+            <li>Steps 3 and 4 produce the posterior directly, with a hidden constant α.</li>
+            <li>The intermediate factors are not probabilities; only the normalized result is.</li>
+          </ul>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            Unnormalized factors are fine. <strong>Normalize at the end, once</strong> —
+            normalizing early loses precision and gains nothing.
+          </p>
+        </div>
+        <p style="margin-top:12px; font-size:17px; color:var(--muted)">
+          The in-class version of this is three variables and two eliminations. Do it
+          slowly once and it becomes routine.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s8">
+  <h2>The complexity is treewidth, not size</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Exact inference costs O(<var>n</var> · <var>d</var><sup><var>w</var>+1</sup>),
+          where <var>w</var> is the treewidth of the moralized graph — roughly, the size of
+          the largest clique you are forced to build.
+        </p>
+        <ul>
+          <li>A tree has <var>w</var> = 1, so inference is linear.</li>
+          <li>A grid of size <var>k</var> has <var>w</var> ≈ <var>k</var>.</li>
+          <li>A complete graph on 30 nodes has <var>w</var> = 29 — hopeless.</li>
+        </ul>
+        <figure class="fig">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 156" role="img" aria-labelledby="n10at n10ad">
+          <title id="n10at">Three graph shapes and their treewidth</title>
+          <desc id="n10ad">A tree, with treewidth 1, so inference is linear. A 3 by 3 grid, whose treewidth grows with its side length k. A densely connected graph of six nodes where every node links to every other, whose treewidth is n minus 1.</desc>
+          
+          <g class="v-in" style="--d:0.00s"><path class="dg-line" d="M90.0 14.0 L50.0 56.0"/><path class="dg-line" d="M90.0 14.0 L130.0 56.0"/><path class="dg-line" d="M50.0 56.0 L30.0 98.0"/><path class="dg-line" d="M50.0 56.0 L70.0 98.0"/><path class="dg-line" d="M130.0 56.0 L110.0 98.0"/><path class="dg-line" d="M130.0 56.0 L150.0 98.0"/><circle class="dg-teal" cx="90.0" cy="14.0" r="7"/><circle class="dg-teal" cx="50.0" cy="56.0" r="7"/><circle class="dg-teal" cx="130.0" cy="56.0" r="7"/><circle class="dg-teal" cx="30.0" cy="98.0" r="7"/><circle class="dg-teal" cx="70.0" cy="98.0" r="7"/><circle class="dg-teal" cx="110.0" cy="98.0" r="7"/><circle class="dg-teal" cx="150.0" cy="98.0" r="7"/><text class="dg-txt-b" x="90" y="132" text-anchor="middle">tree</text><text class="dg-txt-s" x="90" y="152" text-anchor="middle">w = 1</text></g>
+          <g class="v-in" style="--d:0.12s"><path class="dg-line" d="M226.0 14.0 L276.0 14.0"/><path class="dg-line" d="M226.0 56.0 L276.0 56.0"/><path class="dg-line" d="M226.0 98.0 L276.0 98.0"/><path class="dg-line" d="M276.0 14.0 L326.0 14.0"/><path class="dg-line" d="M276.0 56.0 L326.0 56.0"/><path class="dg-line" d="M276.0 98.0 L326.0 98.0"/><path class="dg-line" d="M226.0 14.0 L226.0 56.0"/><path class="dg-line" d="M226.0 56.0 L226.0 98.0"/><path class="dg-line" d="M276.0 14.0 L276.0 56.0"/><path class="dg-line" d="M276.0 56.0 L276.0 98.0"/><path class="dg-line" d="M326.0 14.0 L326.0 56.0"/><path class="dg-line" d="M326.0 56.0 L326.0 98.0"/><circle class="dg-gold" cx="226.0" cy="14.0" r="7"/><circle class="dg-gold" cx="226.0" cy="56.0" r="7"/><circle class="dg-gold" cx="226.0" cy="98.0" r="7"/><circle class="dg-gold" cx="276.0" cy="14.0" r="7"/><circle class="dg-gold" cx="276.0" cy="56.0" r="7"/><circle class="dg-gold" cx="276.0" cy="98.0" r="7"/><circle class="dg-gold" cx="326.0" cy="14.0" r="7"/><circle class="dg-gold" cx="326.0" cy="56.0" r="7"/><circle class="dg-gold" cx="326.0" cy="98.0" r="7"/><text class="dg-txt-b" x="276" y="132" text-anchor="middle">grid, side k</text><text class="dg-txt-s" x="276" y="152" text-anchor="middle">w ≈ k</text></g>
+          <g class="v-in" style="--d:0.24s"><path class="dg-line" d="M460.0 10.0 L420.2 33.0"/><path class="dg-line" d="M460.0 10.0 L420.2 79.0"/><path class="dg-line" d="M460.0 10.0 L460.0 102.0"/><path class="dg-line" d="M460.0 10.0 L499.8 79.0"/><path class="dg-line" d="M460.0 10.0 L499.8 33.0"/><path class="dg-line" d="M420.2 33.0 L420.2 79.0"/><path class="dg-line" d="M420.2 33.0 L460.0 102.0"/><path class="dg-line" d="M420.2 33.0 L499.8 79.0"/><path class="dg-line" d="M420.2 33.0 L499.8 33.0"/><path class="dg-line" d="M420.2 79.0 L460.0 102.0"/><path class="dg-line" d="M420.2 79.0 L499.8 79.0"/><path class="dg-line" d="M420.2 79.0 L499.8 33.0"/><path class="dg-line" d="M460.0 102.0 L499.8 79.0"/><path class="dg-line" d="M460.0 102.0 L499.8 33.0"/><path class="dg-line" d="M499.8 79.0 L499.8 33.0"/><circle class="dg-card" cx="460.0" cy="10.0" r="7"/><circle class="dg-card" cx="420.2" cy="33.0" r="7"/><circle class="dg-card" cx="420.2" cy="79.0" r="7"/><circle class="dg-card" cx="460.0" cy="102.0" r="7"/><circle class="dg-card" cx="499.8" cy="79.0" r="7"/><circle class="dg-card" cx="499.8" cy="33.0" r="7"/><text class="dg-txt-b" x="460" y="132" text-anchor="middle">dense, n nodes</text><text class="dg-txt-s" x="460" y="152" text-anchor="middle">w = n − 1</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 10.2.</strong> Inference cost grows as <var>d</var><sup><var>w</var>+1</sup>: linear for the tree, hopeless for the dense graph.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>The practical consequence</h3>
+          <p>
+            A network with 10,000 variables arranged as a tree is easy. A network with 40
+            densely connected variables is not. <strong>Node count tells you almost
+            nothing</strong>; connectivity tells you everything.
+          </p>
+        </div>
+        <p style="margin-top:14px">
+          This is also why the same model can be tractable for one query and intractable for
+          another: different evidence creates different effective graphs.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s9">
+  <h2>Approximate inference</h2>
+  <p>When exact is too slow, sample.</p>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s10">
+  <h2>When exact is too slow, sample</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <h3>Likelihood weighting</h3>
+        <p>
+          Generate a sample by sampling each node in topological order. When you reach an
+          evidence variable, fix it to the observed value and multiply the sample's weight
+          by the probability of that value.
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          w ← w · P(e<sub>i</sub> | parents)
+        </div>
+        <p style="margin-top:10px">
+          The weighted fraction of samples with <var>Q</var> = <var>q</var> estimates
+          P(<var>q</var> | <var>e</var>).
+        </p>
+      </div>
+      <div>
+        <h3>Gibbs sampling</h3>
+        <p>
+          Start with a random complete assignment consistent with the evidence. Repeatedly
+          pick a non-evidence variable and resample it from its conditional distribution
+          given all the others.
+        </p>
+        <p>
+          It needs no weights, and it often mixes better than likelihood weighting when
+          there is a lot of evidence.
+        </p>
+        <div class="panel panel--key" style="margin-top:12px">
+          <h3>Markov chain Monte Carlo</h3>
+          <p>
+            Gibbs is an MCMC method: the sequence of assignments converges to the posterior,
+            but successive samples are correlated, so the effective sample size is smaller
+            than the count.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s11">
+  <h2>Exact versus approximate, honestly compared</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption class="visually-hidden">Exact versus approximate, honestly compared</caption>
+      <thead>
+        <tr><td></td><th scope="col">Variable elimination</th><th scope="col">Sampling</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Answer</th><td>Exact</td><td>Estimate with error</td></tr>
+        <tr><th scope="row">Cost</th><td>Exponential in treewidth</td><td>Linear per sample; error shrinks as 1/√N</td></tr>
+        <tr><th scope="row">Scales to</th><td>Moderate treewidth</td><td>Large, dense networks</td></tr>
+        <tr><th scope="row">Fails when</th><td>Treewidth is large</td><td>Evidence is rare, or the posterior is concentrated</td></tr>
+        <tr><th scope="row">Debugging</th><td>Deterministic, reproducible</td><td>Stochastic, needs seeds and convergence checks</td></tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:16px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        "Approximate" does not mean "unreliable". A sampling estimate with a reported
+        confidence interval is more honest than an exact answer computed with a wrong model
+        — and the second happens far more often.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s12">
+  <h2>Reasoning over time</h2>
+  <p>The same network, unrolled, and the filters that run on it.</p>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s13">
+  <h2>Reasoning over time: the same network, unrolled</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          A temporal model has a state <var>X<sub>t</sub></var> and an observation
+          <var>E<sub>t</sub></var> at each time step. Two assumptions make it tractable:
+        </p>
+        <ul>
+          <li><strong>Markov</strong> — <var>X<sub>t</sub></var> depends only on <var>X<sub>t−1</sub></var>.</li>
+          <li><strong>Stationary</strong> — the transition and observation models do not change with time.</li>
+        </ul>
+        <p>
+          The result is a hidden Markov model: one transition table, one observation table,
+          reused at every step.
+        </p>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.381" class="dg-seq" viewBox="24 40 394 184.2" role="img" aria-labelledby="f10t f10d">
+          <title id="f10t">A hidden Markov model unrolled over four time steps</title>
+          <desc id="f10d">Hidden states X0 through X3 form a chain, each connected to the next. Each hidden state has an observation E0 through E3 below it. Only the observations are visible.</desc>
+          <defs>
+            <marker id="a10" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <g class="v-in" style="--d:0.00s">
+            <rect class="dg-box-a" x="24"  y="40" width="76" height="44" rx="3"/>
+            <text class="dg-txt-b" x="62"  y="68" text-anchor="middle">X₀</text>
+          </g>
+          <g class="v-in" style="--d:0.30s">
+            <rect class="dg-box-a" x="130" y="40" width="76" height="44" rx="3"/>
+            <text class="dg-txt-b" x="168" y="68" text-anchor="middle">X₁</text>
+          </g>
+          <g class="v-in" style="--d:0.60s">
+            <rect class="dg-box-a" x="236" y="40" width="76" height="44" rx="3"/>
+            <text class="dg-txt-b" x="274" y="68" text-anchor="middle">X₂</text>
+          </g>
+          <g class="v-in" style="--d:0.90s">
+            <rect class="dg-box-a" x="342" y="40" width="76" height="44" rx="3"/>
+            <text class="dg-txt-b" x="380" y="68" text-anchor="middle">X₃</text>
+          </g>
+
+          <path class="dg-line" d="M100 62 H 128" marker-end="url(#a10)"/>
+          <path class="dg-line" d="M206 62 H 234" marker-end="url(#a10)"/>
+          <path class="dg-line" d="M312 62 H 340" marker-end="url(#a10)"/>
+
+          <g class="v-in" style="--d:0.15s">
+            <rect class="dg-box-m" x="24"  y="150" width="76" height="44" rx="3"/>
+            <text class="dg-txt-b" x="62"  y="178" text-anchor="middle">E₀</text>
+          </g>
+          <g class="v-in" style="--d:0.45s">
+            <rect class="dg-box-m" x="130" y="150" width="76" height="44" rx="3"/>
+            <text class="dg-txt-b" x="168" y="178" text-anchor="middle">E₁</text>
+          </g>
+          <g class="v-in" style="--d:0.75s">
+            <rect class="dg-box-m" x="236" y="150" width="76" height="44" rx="3"/>
+            <text class="dg-txt-b" x="274" y="178" text-anchor="middle">E₂</text>
+          </g>
+          <g class="v-in" style="--d:1.05s">
+            <rect class="dg-box-m" x="342" y="150" width="76" height="44" rx="3"/>
+            <text class="dg-txt-b" x="380" y="178" text-anchor="middle">E₃</text>
+          </g>
+
+          <path class="dg-line-q" d="M62 86 V 146" marker-end="url(#a10)"/>
+          <path class="dg-line-q" d="M168 86 V 146" marker-end="url(#a10)"/>
+          <path class="dg-line-q" d="M274 86 V 146" marker-end="url(#a10)"/>
+          <path class="dg-line-q" d="M380 86 V 146" marker-end="url(#a10)"/>
+          <text class="dg-txt-s" x="230" y="222" text-anchor="middle">hidden (unobserved) above · observed below</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 10.3.</strong> The HMM unrolled one step at a time: a hidden
+          state, then its observation, then the next state. The network grows with time,
+          but the number of <em>parameters</em> does not — which is why filtering can be
+          done recursively.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s14">
+  <h2>Four questions, four algorithms</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption class="visually-hidden">Four questions, four algorithms</caption>
+      <thead>
+        <tr><th scope="col">Task</th><th scope="col">Question</th><th scope="col">Method</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Filtering</strong></td>
+          <td>What state am I in now, given all evidence so far?</td>
+          <td>Forward recursion: P(X<sub>t</sub> | e<sub>1:t</sub>)</td>
+        </tr>
+        <tr>
+          <td><strong>Prediction</strong></td>
+          <td>Where will I be later, given evidence so far?</td>
+          <td>Project forward without new observations</td>
+        </tr>
+        <tr>
+          <td><strong>Smoothing</strong></td>
+          <td>Where was I, given everything including the future?</td>
+          <td>Forward–backward: P(X<sub>k</sub> | e<sub>1:t</sub>)</td>
+        </tr>
+        <tr>
+          <td><strong>Most likely sequence</strong></td>
+          <td>What single path explains the observations best?</td>
+          <td>Viterbi: max instead of sum</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:16px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Viterbi and filtering look almost identical. <strong>Viterbi replaces the sum with
+        a max</strong>, so it propagates the single best path rather than a distribution —
+        and it keeps backpointers to recover that path.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s15">
+  <h2>The forward recursion, in one line of algebra</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="eq" style="text-align:left">
+          f<sub>1:t+1</sub> = α · P(e<sub>t+1</sub> | X<sub>t+1</sub>) ·
+          Σ<sub>x<sub>t</sub></sub> P(X<sub>t+1</sub> | x<sub>t</sub>) · f<sub>1:t</sub>
+        </div>
+        <p style="margin-top:14px">
+          Read it right to left: take what you believed, project it through the transition
+          model, weight it by how well each new state explains the observation, normalize.
+        </p>
+        <p>
+          That is the whole of filtering. Every Kalman filter, particle filter, and HMM
+          forward pass is this equation with a different representation of the belief.
+        </p>
+      </div>
+      <div>
+        <div class="worked">
+          <span class="worked-label">Worked step — a two-state world</span>
+          <p>
+            Belief at <var>t</var>: [0.6, 0.4]. Transition matrix [[0.7, 0.3], [0.3, 0.7]].
+            Observation likelihood for <var>e</var>: [0.9, 0.2].
+          </p>
+          <p class="eq" style="text-align:left">
+            predicted = 0.7(0.6) + 0.3(0.4) = 0.54<br>
+            other     = 0.3(0.6) + 0.7(0.4) = 0.46
+          </p>
+          <p class="eq" style="text-align:left">
+            weighted = [0.54 × 0.9, 0.46 × 0.2] = [0.486, 0.092]<br>
+            normalized = [0.841, 0.159]
+          </p>
+        </div>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 160" role="img" aria-labelledby="f10bt f10bd">
+<title id="f10bt">One step of the forward recursion in a two-state world</title>
+<desc id="f10bd">Four pairs of bars for the two states. Belief at time t: 0.6 and 0.4. After the transition model, the prediction: 0.54 and 0.46. After weighting by the observation likelihoods 0.9 and 0.2: 0.486 and 0.092. After normalizing: 0.841 and 0.159.</desc>
+<defs><marker id="mk-f10b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0e5a6b"/></marker></defs>
+<g class="v-in" style="--d:0.20s"><text class="dg-sm-b" x="115" y="14" text-anchor="middle">belief at t</text><path class="dg-line-q" d="M30 122 H200"/></g>
+<g class="v-in" style="--d:0.30s"><rect class="dg-bar" x="50" y="68" width="56" height="54"/></g>
+<g class="v-in" style="--d:0.40s"><text class="dg-xs" x="78" y="63" text-anchor="middle">0.6</text><text class="dg-xs" x="78" y="138" text-anchor="middle">state 1</text></g>
+<g class="v-in" style="--d:0.40s"><rect class="dg-bar-a" x="125" y="86" width="56" height="36"/></g>
+<g class="v-in" style="--d:0.50s"><text class="dg-xs" x="153" y="81" text-anchor="middle">0.4</text><text class="dg-xs" x="153" y="138" text-anchor="middle">state 2</text></g>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:0.60s" d="M214 70 H264" marker-end="url(#mk-f10b)"/>
+<g class="v-in" style="--d:0.90s"><text class="dg-sm-b" x="365" y="14" text-anchor="middle">predict</text><path class="dg-line-q" d="M280 122 H450"/></g>
+<g class="v-in" style="--d:1.00s"><rect class="dg-bar" x="300" y="73.4" width="56" height="48.6"/></g>
+<g class="v-in" style="--d:1.10s"><text class="dg-xs" x="328" y="68.4" text-anchor="middle">0.54</text><text class="dg-xs" x="328" y="138" text-anchor="middle">state 1</text></g>
+<g class="v-in" style="--d:1.10s"><rect class="dg-bar-a" x="375" y="80.6" width="56" height="41.4"/></g>
+<g class="v-in" style="--d:1.20s"><text class="dg-xs" x="403" y="75.6" text-anchor="middle">0.46</text><text class="dg-xs" x="403" y="138" text-anchor="middle">state 2</text></g>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:1.30s" d="M464 70 H514" marker-end="url(#mk-f10b)"/>
+<g class="v-in" style="--d:1.60s"><text class="dg-sm-b" x="615" y="14" text-anchor="middle">× evidence</text><path class="dg-line-q" d="M530 122 H700"/></g>
+<g class="v-in" style="--d:1.70s"><rect class="dg-bar" x="550" y="78.26" width="56" height="43.74"/></g>
+<g class="v-in" style="--d:1.80s"><text class="dg-xs" x="578" y="73.26" text-anchor="middle">0.486</text><text class="dg-xs" x="578" y="138" text-anchor="middle">state 1</text></g>
+<g class="v-in" style="--d:1.80s"><rect class="dg-bar-a" x="625" y="113.72" width="56" height="8.28"/></g>
+<g class="v-in" style="--d:1.90s"><text class="dg-xs" x="653" y="108.72" text-anchor="middle">0.092</text><text class="dg-xs" x="653" y="138" text-anchor="middle">state 2</text></g>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:2.00s" d="M714 70 H764" marker-end="url(#mk-f10b)"/>
+<g class="v-in" style="--d:2.30s"><text class="dg-sm-b" x="865" y="14" text-anchor="middle">normalize</text><path class="dg-line-q" d="M780 122 H950"/></g>
+<g class="v-in" style="--d:2.40s"><rect class="dg-bar" x="800" y="46.31" width="56" height="75.69"/></g>
+<g class="v-in" style="--d:2.50s"><text class="dg-xs" x="828" y="41.31" text-anchor="middle">0.841</text><text class="dg-xs" x="828" y="138" text-anchor="middle">state 1</text></g>
+<g class="v-in" style="--d:2.50s"><rect class="dg-bar-a" x="875" y="107.69" width="56" height="14.31"/></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-xs" x="903" y="102.69" text-anchor="middle">0.159</text><text class="dg-xs" x="903" y="138" text-anchor="middle">state 2</text></g>
+<g class="v-in" style="--d:3.00s"><text class="dg-xs dg-teal" x="500" y="158" text-anchor="middle">transition [[0.7, 0.3], [0.3, 0.7]] · observation likelihood [0.9, 0.2]</text></g>
+</svg>
+<figcaption><strong>Figure 10.4.</strong> Predict, weight by the evidence, normalize.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s16">
+  <h2>Particle filtering: represent the belief with samples</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          When the state is continuous, a table is impossible. Represent the belief with
+          <var>N</var> weighted samples instead, and update them:
+        </p>
+        <figure class="fig" style="margin-bottom:12px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 168" role="img" aria-labelledby="n10bt n10bd">
+          <title id="n10bt">One particle filter update</title>
+          <desc id="n10bd">Three rows of the same particles on a line. In the propagate row, ten particles are spread out. In the weight row, an observation is marked and particles near it are drawn larger because they get more weight. In the resample row, the particles are clustered near the observation.</desc>
+          
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt-b" x="0" y="36">1 · propagate</text><path class="dg-line-q" d="M140 30 H 540"/><circle class="dg-teal" cx="150" cy="30" r="6"/><circle class="dg-teal" cx="186" cy="30" r="6"/><circle class="dg-teal" cx="214" cy="30" r="6"/><circle class="dg-teal" cx="250" cy="30" r="6"/><circle class="dg-teal" cx="282" cy="30" r="6"/><circle class="dg-teal" cx="318" cy="30" r="6"/><circle class="dg-teal" cx="352" cy="30" r="6"/><circle class="dg-teal" cx="390" cy="30" r="6"/><circle class="dg-teal" cx="430" cy="30" r="6"/><circle class="dg-teal" cx="470" cy="30" r="6"/></g>
+          <g class="v-in" style="--d:0.55s"><text class="dg-txt-b" x="0" y="92">2 · weight</text><path class="dg-line-q" d="M140 86 H 540"/><path class="dg-card" d="M322 60 L338 60 L330 72 Z"/><circle class="dg-teal" cx="150" cy="86" r="3.0"/><circle class="dg-teal" cx="186" cy="86" r="3.0"/><circle class="dg-teal" cx="214" cy="86" r="3.1"/><circle class="dg-teal" cx="250" cy="86" r="4.3"/><circle class="dg-teal" cx="282" cy="86" r="8.1"/><circle class="dg-teal" cx="318" cy="86" r="13.5"/><circle class="dg-teal" cx="352" cy="86" r="12.4"/><circle class="dg-teal" cx="390" cy="86" r="6.3"/><circle class="dg-teal" cx="430" cy="86" r="3.4"/><circle class="dg-teal" cx="470" cy="86" r="3.0"/></g>
+          <g class="v-in" style="--d:1.00s"><text class="dg-txt-b" x="0" y="148">3 · resample</text><path class="dg-line-q" d="M140 142 H 540"/><circle class="dg-teal" cx="276" cy="142" r="6"/><circle class="dg-teal" cx="300" cy="142" r="6"/><circle class="dg-teal" cx="312" cy="142" r="6"/><circle class="dg-teal" cx="324" cy="142" r="6"/><circle class="dg-teal" cx="330" cy="142" r="6"/><circle class="dg-teal" cx="338" cy="142" r="6"/><circle class="dg-teal" cx="346" cy="142" r="6"/><circle class="dg-teal" cx="356" cy="142" r="6"/><circle class="dg-teal" cx="368" cy="142" r="6"/><circle class="dg-teal" cx="390" cy="142" r="6"/></g>
+          <g class="v-in" style="--d:0.60s"><text class="dg-lbl" x="344" y="66">observation</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 10.5.</strong> Propagate each particle through the transition model with noise, weight it by the likelihood of the observation, then resample in proportion to weight.
+        </figcaption>
+      </figure>
+        <p>
+          The particle cloud approximates any distribution shape — which is the point, and
+          why it beats a Kalman filter when the belief is multimodal.
+        </p>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Degeneracy</h3>
+          <p>
+            After a few steps, one particle carries almost all the weight and the rest are
+            irrelevant. The estimate stops improving no matter how long you run.
+          </p>
+          <p style="margin-top:8px">
+            Symptoms: all weights but one are near zero. Fixes: more particles, resampling
+            more often, or a better proposal distribution.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            In high dimensions, particle filters need exponentially many particles. They are
+            a <strong>low-dimensional</strong> tool, and using them in 50 dimensions is a
+            common and expensive mistake.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s17">
+  <h2>Where this is used, and what it costs</h2>
+  <div class="slide-main">
+    <div class="cols-3">
+      <div class="panel">
+        <h3>Robot localization</h3>
+        <p>A particle filter over pose, updated by odometry and range sensors. The classic application, still the workhorse.</p>
+      </div>
+      <div class="panel">
+        <h3>Speech and language</h3>
+        <p>HMMs were the backbone of speech recognition for decades; Viterbi decoding is still in every phone.</p>
+      </div>
+      <div class="panel">
+        <h3>Tracking and forecasting</h3>
+        <p>Kalman filters for linear-Gaussian state, particle filters otherwise, in navigation, finance, and epidemiology.</p>
+      </div>
+    </div>
+    <p style="margin-top:18px">
+      All three share a structure: a hidden state you cannot see, observations you can, and
+      a model of how one becomes the other. Recognising that structure is more valuable
+      than memorising any particular filter.
+    </p>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        <strong>The model is the hard part.</strong> A particle filter with a wrong
+        transition model produces confident, precise, wrong beliefs — and a plot that looks
+        perfectly healthy.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s18">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>Inference is summation, and summation is expensive.</strong><p>2^|H| terms if you enumerate naively.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Elimination reorders the sum to keep factors small.</strong><p>Cost is exponential in treewidth, not in node count.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Sampling trades exactness for scale.</strong><p>Report the error; 1/√N is slow but honest.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>Time is just another variable.</strong><p>Filtering, smoothing, and Viterbi are the same recursion with sum or max.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Particles are for low dimensions.</strong><p>Degeneracy is not a bug you can tune away.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 16 -->
+<section class="slide" id="s19">
+  <h2>This week's work</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA §13.3–13.4 and §14.3–14.5.</li>
+          <li>Trace the forward recursion for two steps on the worked example.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Lab 4: variable elimination and a particle filter on the same tracking problem.</li>
+          <li>Capstone checkpoint due this Sunday: working pipeline and preliminary results.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — Lab 4 and the checkpoint.</li>
+          <li>Friday class, 8:30–11:10 a.m. CT, MIC: elimination traces; online students watch the recorded lecture.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next:</strong> module 11 stops assuming you know the probabilities and asks
+        how to estimate them without fooling yourself.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 17 ─────────────────────────────── Python learning resources -->
+<section class="slide" id="s20">
+  <h2>Python help for Lab 4</h2>
+  <div class="slide-main">
+    <p style="margin-bottom:14px">Lab 4 asks you to build the factors yourself. Arrays and plotting libraries are allowed.</p>
+    <ul class="resources">
+      <li><a href="https://docs.python.org/3/library/itertools.html">itertools</a><span class="src">docs.python.org</span><p>product() lists every assignment of a set of variables, which is how a factor table is filled.</p></li>
+      <li><a href="https://docs.python.org/3/tutorial/datastructures.html">Data structures (tutorial, chapter 5)</a><span class="src">docs.python.org</span><p>A factor can be a dictionary keyed by tuples of values.</p></li>
+      <li><a href="https://docs.python.org/3/library/dataclasses.html">dataclasses</a><span class="src">docs.python.org</span><p>A small Factor class holding its variables and its table keeps the code readable.</p></li>
+      <li><a href="https://numpy.org/doc/stable/user/basics.broadcasting.html">NumPy broadcasting</a><span class="src">numpy.org</span><p>If you store factors as arrays, broadcasting does the multiply step.</p></li>
+      <li><a href="https://numpy.org/doc/stable/reference/random/generator.html">NumPy random Generator</a><span class="src">numpy.org</span><p>Seeded sampling for likelihood weighting and the particle filter.</p></li>
+      <li><a href="https://docs.python.org/3/library/json.html">json</a><span class="src">docs.python.org</span><p>The network file for the alarm example is JSON.</p></li>
+    </ul>
+    <div class="callout" style="margin-top:20px">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>Check your code against a hand calculation on the alarm network before you scale up.</p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

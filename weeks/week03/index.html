@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 3 — Informed Search and Heuristics · CS 5700</title>
+<meta name="description" content="CS 5700 Module 3: heuristic functions, greedy best-first search, A*, proofs of admissibility and consistency, heuristic design by relaxation, weighted A* and IDA*.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 3 lecture slides: Informed Search and Heuristics">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 3 of 15</p>
+  <h1>Informed Search and Heuristics</h1>
+  <p class="subtitle">
+    A guess about the goal, used carefully, turns an impossible search into a routine one.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<rect class="dg-box-m" x="30" y="20" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="30" y="60" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="30" y="100" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="30" y="140" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="30" y="180" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="30" y="220" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="76" y="20" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="76" y="60" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="76" y="100" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="76" y="140" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="76" y="180" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="76" y="220" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="122" y="20" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="122" y="60" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="122" y="100" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="122" y="140" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="122" y="180" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="122" y="220" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="168" y="20" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="168" y="60" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="168" y="100" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="168" y="140" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="168" y="180" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="168" y="220" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="214" y="20" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="214" y="60" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="214" y="100" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="214" y="140" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="214" y="180" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="214" y="220" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="260" y="20" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="260" y="60" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="260" y="100" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="260" y="140" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="260" y="180" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="260" y="220" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="306" y="20" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="306" y="60" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="306" y="100" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="306" y="140" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="306" y="180" width="44" height="38" rx="3"/>
+<rect class="dg-box-m" x="306" y="220" width="44" height="38" rx="3"/>
+<g class="v-in" style="--d:0.20s"><rect class="dg-box-t" x="32" y="222" width="40" height="34" rx="3"/><text class="dg-sm-b" x="52" y="244" text-anchor="middle">S</text></g>
+<g class="v-in" style="--d:0.40s"><rect class="dg-box-a" x="308" y="22" width="40" height="34" rx="3"/><text class="dg-sm-b" x="328" y="44" text-anchor="middle">G</text></g>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:0.80s" d="M52 239 H190 V119 H282 V39 H306"/>
+<g class="v-in" style="--d:1.60s"><path class="dg-dash" d="M72 230 L306 50"/></g>
+<g class="v-in" style="--d:1.90s"><text class="dg-sm dg-mono" x="196" y="132">h(n)</text></g>
+<g class="v-in" style="--d:2.40s"><text class="dg-sm dg-teal dg-mono" x="190" y="300" text-anchor="middle">f(n) = g(n) + h(n)</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>Explain what a heuristic function estimates and what it must not overestimate.</li>
+      <li>Trace greedy best-first and A* on a weighted graph, and say why they differ.</li>
+      <li>Prove that an admissible heuristic makes tree-search A* optimal.</li>
+      <li>Distinguish admissibility from consistency and state what each buys.</li>
+      <li>Construct an admissible heuristic by relaxing the problem, and argue that one heuristic dominates another.</li>
+      <li>Decide when a bounded-suboptimal algorithm is the right engineering choice.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Two questions recur on the midterm: <strong>is this heuristic admissible, and
+        why does that matter here?</strong> Answer both or the argument is incomplete.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>Why heuristics</h2>
+  <p>Uninformed search cannot be rescued by faster code.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>Why uninformed search cannot be rescued by better hardware</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Breadth-first search expands nodes in order of depth. It has no way to
+          prefer a node that looks promising over one that does not, because it has no
+          notion of promising at all.
+        </p>
+        <p>
+          Consider route finding on a road network with a million intersections. BFS
+          expands in rings of equal road distance, so it explores equally in every
+          direction — including directly away from the destination.
+        </p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>The wasted work is directional</h3>
+        <p>
+          In a roughly circular search, BFS expands the full disc of radius
+          <var>d</var>, but only a narrow wedge points toward the goal. The fraction
+          of wasted expansion grows with <var>d</var>, so more computing power buys you
+          a slightly larger disc and the same proportional waste.
+        </p>
+        <p>
+          <strong>The fix is information, not speed.</strong>
+        </p>
+      </div>
+    </div>
+    <div class="cols-2" style="align-items:center">
+      <div class="callout">
+        <span class="mark" aria-hidden="true">§</span>
+        <p>
+          A heuristic is <strong>extra knowledge about the problem</strong>, supplied by
+          a human or learned from data. Every practical search system has one; the only
+          question is whether it is stated honestly.
+        </p>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 158" role="img" aria-labelledby="n3at n3ad">
+          <title id="n3at">Breadth-first search explores a disc; a heuristic explores a wedge</title>
+          <desc id="n3ad">A start point with a grey disc around it, showing breadth-first search expanding equally in every direction. A narrow teal wedge points from the start to the goal, showing the region a good heuristic explores.</desc>
+          
+          <g class="v-in" style="--d:0.10s"><circle class="dg-wash" cx="140" cy="74" r="72"/><circle class="dg-line-q" cx="140" cy="74" r="72"/></g>
+          <g class="v-in" style="--d:0.60s"><path class="dg-band-t" d="M140 74 L 470 44 L 470 104 Z"/><path class="dg-line-q" d="M140 74 L 470 44 M140 74 L470 104"/></g>
+          <g class="v-in" style="--d:0.00s"><circle class="dg-txt" cx="140" cy="74" r="6"/><text class="dg-txt-b" x="140" y="98" text-anchor="middle">start</text></g>
+          <g class="v-in" style="--d:0.30s"><circle class="dg-card" cx="490" cy="74" r="8"/><text class="dg-lbl" x="490" y="104" text-anchor="middle">goal</text></g>
+          <g class="v-in" style="--d:0.40s"><text class="dg-txt-s" x="140" y="156" text-anchor="middle">BFS: the whole disc</text></g>
+          <g class="v-in" style="--d:0.80s"><text class="dg-txt-b" x="330" y="36" text-anchor="middle">heuristic: a wedge</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 3.1.</strong> Hardware grows the disc; information turns it into a wedge.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>A heuristic estimates the distance that remains</h2>
+  <div class="slide-main">
+    <div class="panel panel--definition">
+      <span class="term">Heuristic function</span>
+      <p>
+        <var>h</var>(<var>n</var>) estimates the cost of the cheapest path from the
+        state at node <var>n</var> to a goal state. It is a property of the problem,
+        not of the algorithm.
+      </p>
+    </div>
+    <div class="cols-2">
+      <div>
+        <h3>Where heuristics come from</h3>
+        <ul>
+          <li><strong>Relaxation</strong> — solve an easier version of the problem and use its exact cost.</li>
+          <li><strong>Landmarks</strong> — precompute true distances to a few reference points and apply the triangle inequality.</li>
+          <li><strong>Pattern databases</strong> — solve every instance of a subproblem exactly, once.</li>
+          <li><strong>Learning</strong> — fit a model to observed costs; admissible only if you can bound the error.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>What it must satisfy</h3>
+        <p>
+          For A* to be optimal, <var>h</var> must never overestimate. That single
+          condition, <strong>admissibility</strong>, is the subject of the next three
+          slides.
+        </p>
+        <p class="eq eq--tight" style="background:none;border:0;padding:6px 0;text-align:left">
+          0 ≤ h(n) ≤ h*(n)
+        </p>
+        <p style="font-size:17px;color:var(--muted)">
+          <var>h*</var> is the true remaining cost. <var>h</var> = 0 gives uniform-cost
+          search; perfect <var>h</var> = <var>h*</var> goes straight to the goal.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>Greedy best-first search: trust the estimate completely</h2>
+  <div class="slide-main">
+    <div class="cols-2-1">
+      <div>
+        <p>
+          Order the frontier by <var>h</var>(<var>n</var>) alone and expand the node
+          that looks closest to the goal. It is fast, and it is not optimal, because it
+          ignores what the path has already cost.
+        </p>
+        <div class="worked">
+          <span class="worked-label">Worked example — Arad to Bucharest</span>
+          <p>
+            Straight-line distances make <strong>Sibiu</strong> (253 km) look better
+            than <strong>Zerind</strong> (374) or <strong>Timisoara</strong> (329), so
+            greedy goes Arad → Sibiu → Fagaras → Bucharest.
+          </p>
+          <p class="eq">140 + 99 + 211 = 450 km</p>
+          <p>
+            The optimal route is Arad → Sibiu → Rimnicu Vilcea → Pitesti → Bucharest:
+          </p>
+          <p class="eq">140 + 80 + 97 + 101 = 418 km</p>
+        </div>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Why it failed</h3>
+          <p>
+            Fagaras is genuinely close to Bucharest as the crow flies, but the road
+            from Fagaras to Bucharest is long. Greedy never asked what reaching
+            Fagaras had already cost.
+          </p>
+        </div>
+        <p style="margin-top:16px">
+          Greedy is not complete in infinite spaces, and it is not optimal in general.
+          Its complexity is O(<var>b<sup>m</sup></var>) in the worst case, though it is
+          often fast in practice.
+        </p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 82" role="img" aria-labelledby="f3at f3ad">
+<title id="f3at">Greedy best-first and optimal routes from Arad to Bucharest</title>
+<desc id="f3ad">The Romania map. Greedy best-first search follows Arad, Sibiu, Fagaras, Bucharest, 450 km, drawn in red. The optimal route, Arad, Sibiu, Rimnicu Vilcea, Pitesti, Bucharest, 418 km, is drawn in teal.</desc>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M60 42 L120 14"/><text class="dg-xs dg-teal" x="94" y="24">75</text></g>
+<g class="v-in" style="--d:0.15s"><path class="dg-line-q" d="M60 42 L110 68"/><text class="dg-xs dg-teal" x="89" y="51">118</text></g>
+<g class="v-in" style="--d:0.20s"><path class="dg-line-q" d="M60 42 L290 34"/><text class="dg-xs dg-teal" x="179" y="34">140</text></g>
+<g class="v-in" style="--d:0.25s"><path class="dg-line-q" d="M290 34 L520 22"/><text class="dg-xs dg-teal" x="409" y="24">99</text></g>
+<g class="v-in" style="--d:0.30s"><path class="dg-line-q" d="M290 34 L400 62"/><text class="dg-xs dg-teal" x="349" y="44">80</text></g>
+<g class="v-in" style="--d:0.35s"><path class="dg-line-q" d="M400 62 L640 64"/><text class="dg-xs dg-teal" x="524" y="59">97</text></g>
+<g class="v-in" style="--d:0.40s"><path class="dg-line-q" d="M520 22 L860 43"/><text class="dg-xs dg-teal" x="694" y="28.5">211</text></g>
+<g class="v-in" style="--d:0.45s"><path class="dg-line-q" d="M640 64 L860 43"/><text class="dg-xs dg-teal" x="754" y="49.5">101</text></g>
+<g class="v-in" style="--d:0.50s"><circle class="dg-box-t" cx="60" cy="42" r="7"/><text class="dg-xs" x="70" y="34">Arad</text></g>
+<g class="v-in" style="--d:0.56s"><circle class="dg-box" cx="120" cy="14" r="7"/><text class="dg-xs" x="130" y="6">Zerind</text></g>
+<g class="v-in" style="--d:0.62s"><circle class="dg-box" cx="110" cy="68" r="7"/><text class="dg-xs" x="120" y="85">Timisoara</text></g>
+<g class="v-in" style="--d:0.68s"><circle class="dg-box" cx="290" cy="34" r="7"/><text class="dg-xs" x="300" y="26">Sibiu</text></g>
+<g class="v-in" style="--d:0.74s"><circle class="dg-box" cx="520" cy="22" r="7"/><text class="dg-xs" x="530" y="14">Fagaras</text></g>
+<g class="v-in" style="--d:0.80s"><circle class="dg-box" cx="400" cy="62" r="7"/><text class="dg-xs" x="410" y="79">Rimnicu Vilcea</text></g>
+<g class="v-in" style="--d:0.86s"><circle class="dg-box" cx="640" cy="64" r="7"/><text class="dg-xs" x="650" y="81">Pitesti</text></g>
+<g class="v-in" style="--d:0.92s"><circle class="dg-box-a" cx="860" cy="43" r="7"/><text class="dg-xs" x="870" y="60">Bucharest</text></g>
+<path class="dg-line-a v-draw" pathLength="1" style="--d:0.90s" stroke-width="4" stroke-linecap="round" opacity="0.8" d="M60 42 L290 34 L520 22 L860 43"/>
+<path class="dg-line-t v-draw" pathLength="1" style="--d:2.00s" stroke-width="4" stroke-linecap="round" opacity="0.8" d="M60 42 L290 34 L400 62 L640 64 L860 43"/>
+<g class="v-in" style="--d:1.60s"><text class="dg-xs dg-txt-bad" x="1000" y="22" text-anchor="end">greedy: 450 km</text></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-xs dg-teal" x="1000" y="86" text-anchor="end">optimal: 418 km</text></g>
+</svg>
+<figcaption><strong>Figure 3.2.</strong> Fagaras looks close, but its road to Bucharest is long.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s7">
+  <h2>A* and its guarantees</h2>
+  <p>Cost so far plus cost to go, and the two conditions that make it optimal.</p>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s8">
+  <h2>A*: cost so far plus cost to go</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A* orders the frontier by <var>f</var>(<var>n</var>) = <var>g</var>(<var>n</var>)
+          + <var>h</var>(<var>n</var>): the cost already paid plus the estimated cost
+          remaining.
+        </p>
+        <div class="eq">
+          f(n) = g(n) + h(n)
+          <span class="cond">g is exact and known; h is estimated and must not overestimate.</span>
+        </div>
+        <p style="margin-top:16px">
+          One line changes and the algorithm becomes both complete and optimal, under
+          one condition on <var>h</var>. That is the most favourable
+          cost-to-benefit ratio in this course.
+        </p>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.677" class="dg-seq" viewBox="60 42 329.3 232.8" role="img" aria-labelledby="f6t f6d">
+          <title id="f6t">A* expands nodes in order of increasing f value</title>
+          <desc id="f6d">Nested contours of equal f value around the start node. A* completes each lower contour before starting a higher one, so it expands in rings that are shaped by the heuristic rather than by distance travelled.</desc>
+          <defs>
+            <marker id="a6" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#16181d"/>
+            </marker>
+          </defs>
+          <g class="v-in" style="--d:0.0s">
+          <ellipse cx="200" cy="150" rx="52" ry="40" fill="#fbf5f6" stroke="#9e1b32" stroke-width="1.6"/>
+          </g>
+          <g class="v-in" style="--d:0.11s">
+          <ellipse cx="200" cy="150" rx="96" ry="74" fill="none" stroke="#c9ced5" stroke-width="1.4"/>
+          </g>
+          <g class="v-in" style="--d:0.22s">
+          <ellipse cx="200" cy="150" rx="140" ry="108" fill="none" stroke="#c9ced5" stroke-width="1.4"/>
+          </g>
+          <g class="v-in" style="--d:0.33s">
+          <circle cx="200" cy="150" r="6" class="dg-card"/>
+          </g>
+          <g class="v-in" style="--d:0.44s">
+          <text class="dg-txt-s" x="200" y="140" text-anchor="middle">start</text>
+          </g>
+          <g class="v-in" style="--d:0.55s">
+          <text class="dg-txt-s" x="200" y="205" text-anchor="middle">f = 380</text>
+          </g>
+          <g class="v-in" style="--d:0.66s">
+          <text class="dg-txt-s" x="200" y="239" text-anchor="middle">f = 400</text>
+          </g>
+          <g class="v-in" style="--d:0.77s">
+          <text class="dg-txt-s" x="200" y="273" text-anchor="middle">f = 420</text>
+          </g>
+          <g class="v-in" style="--d:0.88s">
+          <circle cx="380" cy="96" r="9" class="dg-box-t"/>
+          </g>
+          <g class="v-in" style="--d:0.99s">
+          <text class="dg-txt-s" x="380" y="78" text-anchor="middle">goal</text>
+          </g>
+          <g class="v-in" style="--d:1.1s">
+          <path class="dg-dash" d="M232 143 L 376 109" marker-end="url(#a6)"/>
+          </g>
+        </svg>
+        <figcaption>
+          <strong>Figure 3.3.</strong> Contours of equal <var>f</var>. A* finishes a
+          contour before starting the next, so the contours — not the circles of
+          uniform cost — decide the work.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s9">
+  <h2>Admissibility is exactly the condition for optimality</h2>
+  <div class="slide-main">
+    <div class="cols-2-1">
+      <div>
+        <div class="panel panel--definition">
+          <span class="term">Admissible</span>
+          <p>
+            <var>h</var> never overestimates the true cost to the nearest goal:
+            <var>h</var>(<var>n</var>) ≤ <var>h*</var>(<var>n</var>) for every node
+            <var>n</var>.
+          </p>
+        </div>
+        <p style="margin-top:16px">
+          <strong>Theorem.</strong> A* with tree search and an admissible heuristic
+          returns an optimal solution.
+        </p>
+        <ol style="font-size:17.5px">
+          <li>Suppose A* returns goal <var>G₂</var> with cost <var>g</var>(<var>G₂</var>) &gt; <var>C*</var>.</li>
+          <li>An optimal solution exists; let <var>n</var> be an unexpanded frontier node on it.</li>
+          <li>By admissibility, <var>f</var>(<var>n</var>) = <var>g</var>(<var>n</var>) + <var>h</var>(<var>n</var>) ≤ <var>C*</var>.</li>
+          <li>A* expanded <var>G₂</var> first, so <var>f</var>(<var>G₂</var>) ≤ <var>f</var>(<var>n</var>) ≤ <var>C*</var>.</li>
+          <li>But <var>f</var>(<var>G₂</var>) = <var>g</var>(<var>G₂</var>) &gt; <var>C*</var> — contradiction.</li>
+        </ol>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>Why step 2 is always available</h3>
+          <p>
+            If A* has not yet found the optimum, some node on the optimal path is
+            still sitting in the frontier. That node's <var>f</var> value is a lower
+            bound on <var>C*</var>, so A* cannot pass it by.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:14px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            The proof is a <strong>contradiction about an ordering</strong>. If you
+            remember only that, you can reconstruct the rest.
+          </p>
+        </div>
+        <p style="margin-top:14px; font-size:17px; color:var(--muted)">
+          Note the two hypotheses: admissibility, and <em>tree</em> search. Relaxing
+          either breaks the conclusion — which is the next slide.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s10">
+  <h2>Consistency: the stronger condition that fixes graph search</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="panel panel--definition">
+          <span class="term">Consistent (monotone)</span>
+          <p>
+            For every node <var>n</var> and successor <var>n′</var> reached by action
+            <var>a</var> with cost <var>c</var>:
+          </p>
+          <p class="eq eq--tight" style="background:none;border:0;padding:8px 0">
+            h(n) ≤ c(n, a, n′) + h(n′)
+          </p>
+          <p>This is the triangle inequality along every edge.</p>
+        </div>
+        <p style="margin-top:14px">
+          Consistency implies admissibility: by induction along a path to a goal, the
+          telescoping sum gives <var>h</var>(<var>n</var>) ≤ <var>h*</var>(<var>n</var>).
+          The converse is false — some admissible heuristics are inconsistent.
+        </p>
+      </div>
+      <div>
+        <h3>What consistency buys</h3>
+        <p>
+          Along any path, <var>f</var> is non-decreasing. So when A* expands a node,
+          it has already found the cheapest route to that state — and the explored set
+          is safe. Without consistency the explored set can block a cheaper path, and
+          A* with a graph-search explored set is no longer optimal.
+        </p>
+        <div class="callout">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            <strong>Admissible gives you optimality on a tree. Consistent gives you
+            optimality with a hash set.</strong> The second is what you actually need
+            in practice.
+          </p>
+        </div>
+        <p style="margin-top:14px; font-size:17px; color:var(--muted)">
+          Practical fix if you must use an inconsistent heuristic: allow re-expansion
+          when a cheaper path is found (closed-list reopening). Correct, but slower.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s11">
+  <h2>Worked trace: A* on the Romania map</h2>
+  <div class="slide-main">
+    <table class="tbl tbl--compact tbl--reveal">
+      <caption>Heuristic: straight-line distance to Bucharest. Costs in km. Ties broken alphabetically.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Step</th>
+          <th scope="col">Expanded</th>
+          <th scope="col" class="num">g</th>
+          <th scope="col" class="num">h</th>
+          <th scope="col" class="num">f</th>
+          <th scope="col">Frontier after expansion (f values)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Arad</td><td class="num">0</td><td class="num">366</td><td class="num">366</td><td>Sibiu 393, Timisoara 447, Zerind 449</td></tr>
+        <tr><td>2</td><td>Sibiu</td><td class="num">140</td><td class="num">253</td><td class="num">393</td><td>Rimnicu 413, Fagaras 415, Timisoara 447, Zerind 449, Oradea 671</td></tr>
+        <tr><td>3</td><td>Rimnicu Vilcea</td><td class="num">220</td><td class="num">193</td><td class="num">413</td><td>Fagaras 415, Pitesti 417, Timisoara 447, …</td></tr>
+        <tr><td>4</td><td>Fagaras</td><td class="num">239</td><td class="num">176</td><td class="num">415</td><td>Pitesti 417, Timisoara 447, Zerind 449, Bucharest 450, …</td></tr>
+        <tr><td>5</td><td>Pitesti</td><td class="num">317</td><td class="num">100</td><td class="num">417</td><td>Bucharest 418 (this cheaper route replaces the 450 entry), Timisoara 447, …</td></tr>
+        <tr><td>6</td><td>Bucharest</td><td class="num">418</td><td class="num">0</td><td class="num">418</td><td>goal removed → cost 418</td></tr>
+      </tbody>
+    </table>
+    <div class="cols-2" style="margin-top:14px">
+      <div class="panel panel--accent">
+        <h3>The instructive detail</h3>
+        <p>
+          Fagaras (415) is expanded before Pitesti (417) and puts Bucharest on the
+          frontier at 450. A* stops only when it removes the goal, and by then Pitesti
+          has found the 418 route. <strong>The expansion order is not the solution path.</strong>
+        </p>
+      </div>
+      <div class="panel">
+        <h3>What this teaches</h3>
+        <p>
+          A* never expands a node whose <var>f</var> exceeds the optimal cost. The
+          optimal cost is 418, and every expanded node has <var>f</var> ≤ 418. That is
+          the theorem from slide 9 happening on a real graph.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s12">
+  <h2>Designing heuristics, and trading optimality</h2>
+  <p>Relaxations, dominance, pattern databases and bounded search.</p>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s13">
+  <h2>Designing a heuristic by relaxing the problem</h2>
+  <div class="slide-main">
+    <div class="split">
+      <div>
+        <p>
+          Remove a constraint from the problem. The optimal cost of the relaxed problem
+          is never more than the optimal cost of the real one — so it is an admissible
+          heuristic.
+        </p>
+        <table class="tbl tbl--compact" style="margin-top:10px">
+          <caption>8-puzzle relaxations and the heuristics they produce.</caption>
+          <thead><tr><th scope="col">Relaxation</th><th scope="col">Resulting h</th></tr></thead>
+          <tbody>
+            <tr><td>A tile can move anywhere</td><td>Number of misplaced tiles</td></tr>
+            <tr><td>A tile can move to any adjacent square</td><td>Sum of Manhattan distances</td></tr>
+            <tr><td>Tiles can overlap</td><td>Pattern database over a tile subset</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figure class="fig">
+        <svg style="--dg-k:1.417" viewBox="18 30 384 244" role="img" aria-labelledby="f10t f10d">
+          <title id="f10t">Relaxing the 8-puzzle produces a cheaper problem whose cost bounds the original</title>
+          <desc id="f10d">Two boxes. The original problem forbids tiles from passing through each other. The relaxed problem allows tiles to swap freely, so its optimal cost is lower. That lower cost is admissible as a heuristic for the original.</desc>
+          <rect class="dg-box" x="18" y="30" width="176" height="92" rx="3"/>
+          <text class="dg-txt-b" x="106" y="56" text-anchor="middle">real problem</text>
+          <text class="dg-txt-s" x="106" y="78" text-anchor="middle">tiles block each other</text>
+          <text class="dg-txt-s" x="106" y="98" text-anchor="middle">optimal cost h*</text>
+
+          <rect class="dg-box-a" x="226" y="30" width="176" height="92" rx="3"/>
+          <text class="dg-txt-b" x="314" y="56" text-anchor="middle">relaxed problem</text>
+          <text class="dg-txt-s" x="314" y="78" text-anchor="middle">tiles pass through</text>
+          <text class="dg-txt-s" x="314" y="98" text-anchor="middle">optimal cost h ≤ h*</text>
+
+          <text class="dg-txt-s" x="210" y="190" text-anchor="middle">remove a constraint → easier problem</text>
+
+          <rect class="dg-box-t" x="60" y="216" width="300" height="58" rx="3"/>
+          <text class="dg-txt-b" x="210" y="240" text-anchor="middle">an admissible heuristic</text>
+          <text class="dg-txt-s" x="210" y="260" text-anchor="middle">never overestimates: the relaxed world is easier</text>
+        </svg>
+        <figcaption>
+          <strong>Figure 3.4.</strong> Relaxation is the standard way to invent a
+          heuristic. It trades exactness for a guarantee.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s14">
+  <h2>Admissible is a floor; dominance decides which heuristic wins</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          For the 8-puzzle, both heuristics are admissible. But Manhattan distance is
+          always at least as large as the misplaced-tile count, and sometimes larger.
+        </p>
+        <div class="panel panel--definition">
+          <span class="term">Dominance</span>
+          <p>
+            <var>h₂</var> dominates <var>h₁</var> if
+            <var>h₂</var>(<var>n</var>) ≥ <var>h₁</var>(<var>n</var>) for all
+            <var>n</var>, and both are admissible. A* with <var>h₂</var> expands no
+            more nodes than A* with <var>h₁</var>.
+          </p>
+        </div>
+        <p style="margin-top:14px">
+          A larger admissible heuristic is a tighter lower bound, so fewer nodes satisfy
+          <var>f</var> ≤ <var>C*</var> and fewer get expanded.
+        </p>
+      </div>
+      <div>
+        <h3>Why it matters in numbers</h3>
+        <table class="tbl tbl--compact">
+          <caption>Typical 8-puzzle search cost, averaged over random instances.</caption>
+          <thead><tr><th scope="col">Heuristic</th><th scope="col" class="num">Nodes expanded</th></tr></thead>
+          <tbody>
+            <tr><td>None (uniform cost)</td><td class="num">~150,000</td></tr>
+            <tr><td>Misplaced tiles</td><td class="num">~400</td></tr>
+            <tr><td>Manhattan distance</td><td class="num">~40</td></tr>
+            <tr><td>Manhattan + linear conflict</td><td class="num">~25</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:14px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            You can always combine admissible heuristics by taking the
+            <strong>maximum</strong> — it stays admissible and dominates each input.
+            <var>h</var>(<var>n</var>) = max(<var>h₁</var>, <var>h₂</var>).
+          </p>
+        </div>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 96" role="img" aria-labelledby="f3bt f3bd">
+<title id="f3bt">Nodes expanded on the 8-puzzle by four heuristics, on a logarithmic scale</title>
+<desc id="f3bd">Four bars on a log scale: no heuristic, about 150,000 nodes; misplaced tiles, about 400; Manhattan distance, about 40; Manhattan distance plus linear conflict, about 25.</desc>
+<g class="v-in" style="--d:0.20s"><text class="dg-xs" x="240" y="19" text-anchor="end">None (uniform cost)</text></g>
+<rect class="dg-bar-a v-grow" style="--d:0.30s" x="250" y="4" width="621.131" height="17"/>
+<g class="v-in" style="--d:0.80s"><text class="dg-xs" x="879.131" y="18">~150,000</text></g>
+<g class="v-in" style="--d:0.60s"><text class="dg-xs" x="240" y="42" text-anchor="end">Misplaced tiles</text></g>
+<rect class="dg-bar v-grow" style="--d:0.70s" x="250" y="27" width="312.247" height="17"/>
+<g class="v-in" style="--d:1.20s"><text class="dg-xs" x="570.247" y="41">~400</text></g>
+<g class="v-in" style="--d:1.00s"><text class="dg-xs" x="240" y="65" text-anchor="end">Manhattan distance</text></g>
+<rect class="dg-bar v-grow" style="--d:1.10s" x="250" y="50" width="192.247" height="17"/>
+<g class="v-in" style="--d:1.60s"><text class="dg-xs" x="450.247" y="64">~40</text></g>
+<g class="v-in" style="--d:1.40s"><text class="dg-xs" x="240" y="88" text-anchor="end">Manhattan + linear conflict</text></g>
+<rect class="dg-bar v-grow" style="--d:1.50s" x="250" y="73" width="167.753" height="17"/>
+<g class="v-in" style="--d:2.00s"><text class="dg-xs" x="425.753" y="87">~25</text></g>
+<g class="v-in" style="--d:2.60s"><text class="dg-xs" x="1000" y="92" text-anchor="end">nodes expanded, log scale</text></g>
+</svg>
+<figcaption><strong>Figure 3.5.</strong> Each dominating heuristic cuts the search again.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s15">
+  <h2>Pattern databases: solving a subproblem exactly, once</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Choose a subset of the puzzle — say tiles 1 through 8 in the 15-puzzle.
+          Ignore the rest. Run a backward breadth-first search from the goal over every
+          arrangement of that subset, and store the true distance for each.
+        </p>
+        <p>
+          The stored distance is a lower bound on the real cost, because the ignored
+          tiles can only add moves, never remove them.
+        </p>
+        <div class="eq eq--tight">
+          h(n) = sum over disjoint patterns of their exact costs
+        </div>
+        <p style="margin-top:12px">
+          With several <em>disjoint</em> pattern databases you may add their costs
+          (each move affects only one pattern); with overlapping ones you must take the
+          maximum, because they can count the same move twice.
+        </p>
+      </div>
+      <div class="panel panel--key">
+        <h3>Why this is the standard technique</h3>
+        <ul>
+          <li>The table is computed once, offline, and reused for every instance.</li>
+          <li>It is exact for the subproblem, so it is admissible by construction.</li>
+          <li>It scales to the 24-puzzle, where it was the difference between solvable and not.</li>
+        </ul>
+        <p style="margin-top:10px">
+          The trade is memory for search: a pattern database is a cache of solved
+          subproblems. That is the same trade as memoization, applied to a search.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s16">
+  <h2>When optimal is too slow: bounded suboptimality</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Weighted A* orders the frontier by <var>f</var> = <var>g</var> +
+          <var>w</var>·<var>h</var> with <var>w</var> &gt; 1. It behaves greedily: it
+          reaches a solution much faster and accepts a solution that may be worse.
+        </p>
+        <p>
+          The guarantee is still useful. Weighted A* returns a solution costing at most
+          <var>w</var> times optimal.
+        </p>
+        <div class="eq">
+          C ≤ w · C*
+          <span class="cond">Requires h admissible. w = 1 is ordinary A*; w = ∞ is greedy best-first.</span>
+        </div>
+        <figure class="fig" style="margin-top:0">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 124" role="img" aria-labelledby="n3bt n3bd">
+          <title id="n3bt">Weighted A*: fewer expansions, looser bound</title>
+          <desc id="n3bd">Illustrative bars of nodes expanded for weights 1, 1.5, 2 and 5: 100, 35, 15 and 5 percent of ordinary A*. Under each bar, the guaranteed cost bound: 1, 1.5, 2 and 5 times optimal.</desc>
+          
+          <path class="dg-line" d="M40 78 H 520"/>
+          <g class="dg-bars" style="--base:78px"><rect x="73.0" y="24.0" width="54.0" height="54.0" class="dg-teal seq-bar" style="--d:0.10s"/><rect x="193.0" y="59.1" width="54.0" height="18.9" class="dg-gold seq-bar" style="--d:0.24s"/><rect x="313.0" y="69.9" width="54.0" height="8.1" class="dg-gold seq-bar" style="--d:0.38s"/><rect x="433.0" y="75.3" width="54.0" height="2.7" class="dg-card seq-bar" style="--d:0.52s"/></g>
+          <text class="dg-txt-s" x="100" y="100" text-anchor="middle">w = 1</text>
+          <text class="dg-txt-s" x="100" y="118" text-anchor="middle">≤ 1 × C*</text>
+          <g class="v-in" style="--d:0.45s"><text class="dg-txt" x="100" y="16" text-anchor="middle">100%</text></g>
+          <text class="dg-txt-s" x="220" y="100" text-anchor="middle">w = 1.5</text>
+          <text class="dg-txt-s" x="220" y="118" text-anchor="middle">≤ 1.5 × C*</text>
+          <g class="v-in" style="--d:0.59s"><text class="dg-txt" x="220" y="51.1" text-anchor="middle">35%</text></g>
+          <text class="dg-txt-s" x="340" y="100" text-anchor="middle">w = 2</text>
+          <text class="dg-txt-s" x="340" y="118" text-anchor="middle">≤ 2 × C*</text>
+          <g class="v-in" style="--d:0.73s"><text class="dg-txt" x="340" y="61.9" text-anchor="middle">15%</text></g>
+          <text class="dg-txt-s" x="460" y="100" text-anchor="middle">w = 5</text>
+          <text class="dg-txt-s" x="460" y="118" text-anchor="middle">≤ 5 × C*</text>
+          <g class="v-in" style="--d:0.87s"><text class="dg-txt" x="460" y="67.3" text-anchor="middle">5%</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 3.6.</strong> Nodes expanded (illustrative), with each cost bound below.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <h3>The engineering question</h3>
+        <p>
+          For a delivery router, a route 5% longer that is computed in 40 ms may be
+          worth far more than an optimal route computed in 4 seconds. Bounded
+          suboptimality makes that trade explicit instead of accidental.
+        </p>
+        <div class="panel panel--accent" style="margin-top:12px">
+          <h3>Anytime behaviour</h3>
+          <p>
+            Run weighted A* with decreasing <var>w</var> and keep the best solution
+            found. You get an answer immediately and improve it while time remains. This
+            is how real-time planners behave.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s17">
+  <h2>IDA*: A* answers at iterative-deepening memory</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A* keeps every generated node, so its memory is the bottleneck it was in
+          module 2. IDA* runs depth-first search with an <var>f</var>-value cutoff,
+          raising the cutoff to the smallest <var>f</var> that exceeded it, and repeating.
+        </p>
+        <ul>
+          <li>Memory: O(<var>bd</var>) — linear in depth.</li>
+          <li>Optimal with an admissible heuristic, like A*.</li>
+          <li>Re-expands nodes between iterations, which costs time but not memory.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>When it is the right choice</h3>
+        <p>
+          Large state spaces with a strong heuristic and a tight memory budget — the
+          15-puzzle was solved this way long before machines had gigabytes.
+        </p>
+        <p>
+          When the heuristic is weak, the number of iterations explodes and IDA* becomes
+          slower than A* by a large factor. The method inherits the quality of its
+          heuristic.
+        </p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        <strong>Search algorithms are memory policies plus ordering policies.</strong>
+        A* and IDA* share the ordering and differ only in what they keep.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s18">
+  <h2>Four mistakes that appear in almost every implementation</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption class="visually-hidden">Four mistakes that appear in almost every implementation</caption>
+      <thead><tr><th scope="col">Mistake</th><th scope="col">Symptom</th><th scope="col">Fix</th></tr></thead>
+      <tbody>
+        <tr><td>Recomputing <var>g</var> from the parent chain each time</td><td>Correct but quadratic; the profile shows it</td><td>Store <var>g</var> on the node when you generate it</td></tr>
+        <tr><td>Heuristic in the wrong units</td><td>A* becomes uniform cost, or returns a suboptimal path</td><td>Check that <var>h</var> is comparable to step cost, then test on a tiny case</td></tr>
+        <tr><td>Using a learned <var>h</var> without checking admissibility</td><td>Fast, plausible, occasionally wrong</td><td>Clamp, or use weighted A* and accept the bound honestly</td></tr>
+        <tr><td>Stale frontier entries for the same state</td><td>Expands a state twice at different costs</td><td>Skip on pop if the recorded <var>g</var> is worse than the stored best</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:16px">
+      The fourth is the one that bites in production. A priority queue does not support
+      "decrease key" cheaply, so the usual pattern is to push duplicates and discard
+      stale ones when they surface.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 16 -->
+<section class="slide" id="s19">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>A heuristic is problem knowledge, made explicit.</strong><p>It is not part of the algorithm, and it decides whether the algorithm is usable.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Admissibility ⟹ optimal tree-search A*.</strong><p>Because f on the optimal frontier is a lower bound on C*.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Consistency ⟹ safe explored set.</strong><p>That is the condition you actually need with a hash set.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>Relax to invent, dominate to improve.</strong><p>Solve an easier problem for a bound; take the max of admissible bounds.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>Optimality is a choice with a price.</strong><p>Weighted A* buys speed with a stated bound of w.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 17 -->
+<section class="slide" id="s20">
+  <h2>This week's work</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li>AIMA §3.5–3.6.</li>
+          <li>Re-derive the optimality proof from the five-line sketch.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Do</h3>
+        <ul>
+          <li>Reflection 3: invent a heuristic for a problem you care about, and argue its admissibility.</li>
+          <li>Implement A* with a stale-entry check; compare expansion counts against BFS.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — reflection 3.</li>
+          <li>Friday class, 8:30–11:10 a.m. CT, MIC: heuristic design clinic; online students watch the recorded lecture.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">→</span>
+      <p>
+        <strong>Next:</strong> some problems have no path to search at all — only
+        variables, domains, and constraints. Module 4 changes the representation.
+      </p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

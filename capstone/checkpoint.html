@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capstone checkpoint template — CS 5700</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="doc">
+
+  <header class="doc-masthead">
+    <p class="inst">
+      <span>University of Central Missouri</span>
+      <span>CS 5700 Artificial Intelligence</span>
+      <span>Spring 2027</span>
+    </p>
+    <h1>Capstone checkpoint</h1>
+    <p class="tagline">
+      One page, due Sunday, March 28, plus a ten-minute meeting in weeks 9–10. Evidence
+      that the pipeline runs end to end, not a progress report.
+    </p>
+    <p class="instructor">
+      <strong>Dr. Gorkem Kar</strong>
+      <span>Worth 5% of the course grade</span>
+      <span>Individual or pair</span>
+    </p>
+  </header>
+
+  <main id="main">
+
+    <section>
+      <h2>Submission details</h2>
+      <table class="tbl tbl--compact">
+        <tbody>
+          <tr><th scope="row">Name(s)</th><td>________________________</td></tr>
+          <tr><th scope="row">Project title</th><td>________________________</td></tr>
+          <tr><th scope="row">Meeting slot</th><td>________________________</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>1. Pipeline status</h2>
+      <p class="muted">
+        The command that reproduces your current result and what it consumes. This is the
+        most important line in the document: if it does not run in the meeting, the
+        checkpoint is incomplete regardless of everything below.
+      </p>
+      <pre># the command, run from a clean checkout
+python3 run.py --config configs/current.json --data data/
+
+# what it reads and what it writes
+reads:  ______________________________________
+writes: ______________________________________
+runtime: ______ on ______ (machine)</pre>
+      <p class="muted">
+        One sentence on what is <em>not</em> yet automated. Partial pipelines are expected at
+        this stage; pretending otherwise is what costs marks.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Preliminary results</h2>
+      <p class="muted">
+        One table or figure from real data, clearly labelled preliminary. Numbers that will
+        change are fine. Numbers you have not produced are not.
+      </p>
+      <table class="tbl">
+        <caption>Preliminary results. Replace with your own rows.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Condition</th>
+            <th scope="col">Metric</th>
+            <th scope="col" class="num">Value</th>
+            <th scope="col" class="num">Runs</th>
+            <th scope="col">Caveat</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Your method</td><td>&nbsp;</td><td class="num">&nbsp;</td><td class="num">&nbsp;</td><td>&nbsp;</td></tr>
+          <tr><td>Baseline</td><td>&nbsp;</td><td class="num">&nbsp;</td><td class="num">&nbsp;</td><td>&nbsp;</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">
+        Put the baseline in the same table as your method. A number without a baseline at
+        this stage usually means the baseline has not been built, and that is exactly what
+        the meeting will ask about.
+      </p>
+    </section>
+
+    <section>
+      <h2>3. Risks now</h2>
+      <p class="muted">
+        What is most likely to stop you between now and May 2, and the fallback you will
+        take if it does. Two rows is enough. If the answer is "nothing", you have not looked
+        hard enough — say what would have to go wrong for the report to be thin.
+      </p>
+      <table class="tbl tbl--compact">
+        <thead><tr><th scope="col">Risk</th><th scope="col">If it happens, I will</th><th scope="col">Costs me</th></tr></thead>
+        <tbody>
+          <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+          <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>4. Changes since the proposal</h2>
+      <p class="muted">
+        What you narrowed, and why. Scope reduction at the checkpoint is normal and costs
+        nothing; the same reduction discovered in May costs marks. Two or three sentences,
+        and name the scope box sentence you are changing if you are changing it.
+      </p>
+    </section>
+
+    <section>
+      <h2>The meeting</h2>
+      <p>
+        Ten minutes, booked from the sign-up sheet. Bring the pipeline runnable on the
+        machine you will use. Expect three questions: show me a result from real data; what
+        is your baseline; what happens in the run if I change this parameter. You will not
+        be asked to have finished.
+      </p>
+    </section>
+
+    <section>
+      <h2>How the checkpoint is marked <span class="muted">(5%)</span></h2>
+      <table class="tbl tbl--compact">
+        <thead><tr><th scope="col">Component</th><th scope="col" class="num">Weight</th><th scope="col">Full marks require</th></tr></thead>
+        <tbody>
+          <tr><td>Runs</td><td class="num">45%</td><td>The command works in the meeting from a clean checkout</td></tr>
+          <tr><td>Real data</td><td class="num">25%</td><td>At least one number produced from the real dataset, with its baseline</td></tr>
+          <tr><td>Honesty about risk</td><td class="num">20%</td><td>Specific risks with fallbacks that would actually be taken</td></tr>
+          <tr><td>Scope decision</td><td class="num">10%</td><td>Any narrowing is stated and justified rather than quietly dropped</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CS 5700 · Capstone checkpoint · Due Sunday, March 28, 2027 · 5% of the course grade</p>
+  </footer>
+
+</div>
+</body>
+</html>

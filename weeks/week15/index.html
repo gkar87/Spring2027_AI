@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 15 — Ethics, Safety, Governance, and Synthesis · CS 5700</title>
+<meta name="description" content="CS 5700 Module 15: harms, fairness definitions and their impossibility, privacy, explainability, accountability, the NIST AI Risk Management Framework, regulation, safety engineering, and the whole course in one map.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#s1">Skip to the first slide</a>
+
+<div class="deck-stage">
+<main class="deck" aria-label="Module 15 lecture slides: Ethics, Safety, Governance, and Synthesis">
+
+<!-- 1 -->
+<section class="slide slide--title" id="s1">
+  <p class="course-line">CS 5700 · Artificial Intelligence · Module 15 of 15</p>
+  <h1>Ethics, Safety, Governance, and Synthesis</h1>
+  <p class="subtitle">
+    Every technique in this course produces a system that will be wrong sometimes.
+    This module is about what you owe when it is.
+  </p>
+  <p class="byline">
+    Dr. Gorkem Kar
+    <span>University of Central Missouri</span>
+    <span>School of Computer Science and Cybersecurity</span>
+  </p>
+  <div class="title-art">
+<svg viewBox="0 0 380 330" aria-hidden="true" focusable="false" style="--dg-k:1">
+<g class="v-in" style="--d:0.20s"><path class="dg-line" d="M190 60 V250"/><polygon class="dg-box-m" points="160,270 220,270 190,250"/></g>
+<path class="dg-line v-draw" pathLength="1" style="--d:0.50s" d="M60 90 L320 70"/>
+<g class="v-in" style="--d:0.90s"><path class="dg-line-q" d="M60 90 L30 170 M60 90 L90 170 M320 70 L290 150 M320 70 L350 150"/></g>
+<g class="v-in" style="--d:1.20s"><path class="dg-box-t" d="M24 170 H96 Q60 200 24 170 Z"/><text class="dg-xs" x="60" y="222" text-anchor="middle">benefit</text></g>
+<g class="v-in" style="--d:1.50s"><path class="dg-box-a" d="M284 150 H356 Q320 180 284 150 Z"/><text class="dg-xs" x="320" y="202" text-anchor="middle">harm</text></g>
+<g class="v-in" style="--d:2.40s"><text class="dg-sm dg-teal" x="190" y="310" text-anchor="middle">evidence, not reassurance</text></g>
+</svg>
+  </div>
+  
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <h2>What you should be able to do after this module</h2>
+  <div class="slide-main">
+    <ul class="objectives">
+      <li>Identify allocative, quality-of-service, and representational harms in a concrete system.</li>
+      <li>State the main fairness definitions and explain why you cannot satisfy all of them at once.</li>
+      <li>Explain the privacy risks specific to models, not just datasets.</li>
+      <li>Describe what documentation a deployed model should carry, and who reads it.</li>
+      <li>Map a system onto the NIST AI Risk Management Framework functions.</li>
+      <li>Write a risk assessment a non-technical decision maker could act on.</li>
+    </ul>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        A risk assessment is useful only if <strong>its recommendation is
+        actionable</strong>, not merely cautious. Hold your capstone's risks section and
+        model card to that standard.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s3">
+  <h2>Harms and fairness</h2>
+  <p>Three kinds of harm, and fairness criteria that conflict.</p>
+  
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s4">
+  <h2>Why an AI course ends here</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          We spent fourteen modules making systems that optimize a specified objective. The
+          recurring failure is that the specification is not the intention: rewards get hacked,
+          proxies diverge, benchmarks saturate, and distributions shift.
+        </p>
+        <p>
+          Ethics and safety are the discipline of asking <em>whose</em> objective, measured
+          <em>how</em>, affecting <em>whom</em> — before deployment rather than after.
+        </p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Three claims this module defends</h3>
+        <ol>
+          <li>Most harms are ordinary engineering failures with distributional consequences.</li>
+          <li>Fairness is a choice among incompatible definitions, not a property you can maximize.</li>
+          <li>Accountability requires a named person and a document, not a principle.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        None of this is optional garnish. In the United States, accessibility obligations under
+        ADA Title II and sectoral rules already apply; in the EU, the AI Act assigns obligations
+        by risk tier. <strong>Compliance is a design input.</strong>
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s5">
+  <h2>Three kinds of harm</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption>A taxonomy is useful because each kind has a different detection method.</caption>
+      <thead>
+        <tr><th scope="col">Harm</th><th scope="col">What it looks like</th><th scope="col">How you would detect it</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Allocative</strong></td>
+          <td>A resource is distributed unequally — a loan denied, a résumé filtered, a case not flagged for review.</td>
+          <td>Compare decision rates and error rates across groups at a fixed threshold.</td>
+        </tr>
+        <tr>
+          <td><strong>Quality of service</strong></td>
+          <td>The system simply works worse for some people — speech recognition error rates by dialect, face detection by skin tone.</td>
+          <td>Per-subgroup performance, not aggregate accuracy.</td>
+        </tr>
+        <tr>
+          <td><strong>Representational</strong></td>
+          <td>The system reinforces a stereotype — image search returning only one kind of doctor, translation defaulting to gendered roles.</td>
+          <td>Audit outputs across prompts and groups; read what it generates, not just its accuracy.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top:16px">
+      The third is the one aggregate metrics cannot see at all. A model can be accurate and
+      still produce a demeaning output, because accuracy was never measuring that.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s6">
+  <h2>Fairness definitions conflict, and that is a theorem</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <table class="tbl tbl--compact">
+      <caption class="visually-hidden">Fairness definitions conflict, and that is a theorem</caption>
+          <thead><tr><th scope="col">Criterion</th><th scope="col">Statement</th></tr></thead>
+          <tbody>
+            <tr><td>Demographic parity</td><td>Equal positive rate across groups</td></tr>
+            <tr><td>Equalized odds</td><td>Equal true-positive and false-positive rates</td></tr>
+            <tr><td>Predictive parity</td><td>Equal precision across groups</td></tr>
+            <tr><td>Individual fairness</td><td>Similar people treated similarly</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:12px">
+          When base rates differ between groups, demographic parity, equalized odds, and
+          predictive parity cannot all hold. This is not an implementation problem; it is
+          arithmetic.
+        </p>
+      </div>
+      <div>
+        <div class="worked">
+          <span class="worked-label">Why they conflict</span>
+          <p>
+            Group A has a 10% base rate, group B has 30%. If the classifier has equal precision
+            in both, it must flag a larger share of B. If it flags equal shares, either precision
+            or recall must differ.
+          </p>
+          <p>
+            You can have any two of the three; choosing which two is a policy decision that
+            belongs to the institution, not to the data scientist alone.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            <strong>State which criterion you chose and why.</strong> An unstated criterion is
+            still a choice — just one nobody can review.
+          </p>
+        </div>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 126" role="img" aria-labelledby="f15at f15ad">
+<title id="f15at">Why equal precision and equal flag rates cannot both hold when base rates differ</title>
+<desc id="f15ad">Left: with precision and recall both 80 percent in each group, group A, base rate 10 percent, has 10 percent flagged, and group B, base rate 30 percent, has 30 percent flagged. Right: if both groups have 20 percent flagged, group A&#x27;s precision can be at most 50 percent and group B&#x27;s recall at most 67 percent.</desc>
+<g class="v-in" style="--d:0.10s"><text class="dg-sm-b" x="240" y="14" text-anchor="middle">Equal precision and recall (80%)</text><text class="dg-sm-b" x="760" y="14" text-anchor="middle">Equal share flagged (20%)</text></g>
+<path class="dg-line-q" d="M30 104 H470 M530 104 H970"/>
+<g class="v-in" style="--d:0.30s"><rect class="dg-bar" x="70" y="84" width="70" height="20"/></g>
+<g class="v-in" style="--d:0.50s"><rect class="dg-bar-a" x="150" y="84" width="70" height="20"/></g>
+<g class="v-in" style="--d:0.60s"><text class="dg-xs" x="145" y="122" text-anchor="middle">A: base rate 10%</text><text class="dg-xs" x="105" y="78" text-anchor="middle">10%</text><text class="dg-xs" x="185" y="78" text-anchor="middle">flag 10%</text></g>
+<g class="v-in" style="--d:0.70s"><rect class="dg-bar" x="270" y="44" width="70" height="60"/></g>
+<g class="v-in" style="--d:0.90s"><rect class="dg-bar-a" x="350" y="44" width="70" height="60"/></g>
+<g class="v-in" style="--d:1.00s"><text class="dg-xs" x="345" y="122" text-anchor="middle">B: base rate 30%</text><text class="dg-xs" x="305" y="38" text-anchor="middle">30%</text><text class="dg-xs" x="385" y="38" text-anchor="middle">flag 30%</text></g>
+<g class="v-in" style="--d:1.60s"><rect class="dg-bar" x="590" y="84" width="70" height="20"/></g>
+<g class="v-in" style="--d:1.80s"><rect class="dg-bar-a" x="670" y="64" width="70" height="40"/></g>
+<g class="v-in" style="--d:1.90s"><text class="dg-xs dg-txt-bad" x="665" y="122" text-anchor="middle">A: precision ≤ 50%</text><text class="dg-xs" x="625" y="78" text-anchor="middle">10%</text><text class="dg-xs" x="705" y="58" text-anchor="middle">flag 20%</text></g>
+<g class="v-in" style="--d:2.00s"><rect class="dg-bar" x="790" y="44" width="70" height="60"/></g>
+<g class="v-in" style="--d:2.20s"><rect class="dg-bar-a" x="870" y="64" width="70" height="40"/></g>
+<g class="v-in" style="--d:2.30s"><text class="dg-xs dg-txt-bad" x="865" y="122" text-anchor="middle">B: recall ≤ 67%</text><text class="dg-xs" x="825" y="38" text-anchor="middle">30%</text><text class="dg-xs" x="905" y="58" text-anchor="middle">flag 20%</text></g>
+</svg>
+<figcaption><strong>Figure 15.1.</strong> Teal is the base rate, red the share flagged.</figcaption>
+</figure>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s7">
+  <h2>Privacy, explanation and governance</h2>
+  <p>What documentation, risk frameworks and law ask of you.</p>
+  
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s8">
+  <h2>Privacy is a property of models, not just datasets</h2>
+  <div class="slide-main">
+    <div class="cols-3">
+      <div class="panel">
+        <h3>Memorization</h3>
+        <p>A model can reproduce training examples verbatim — including phone numbers and copyrighted text. Larger models memorize more.</p>
+      </div>
+      <div class="panel">
+        <h3>Membership inference</h3>
+        <p>An attacker can often tell whether a specific record was in the training set, which is itself a privacy harm.</p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Attribute inference</h3>
+        <p>Inferring a sensitive attribute from correlated features — the model becomes a re-identification tool.</p>
+      </div>
+    </div>
+    <div class="eq" style="margin-top:20px; text-align:left">
+      differential privacy: P(M(D) ∈ S) ≤ e<sup>ε</sup> · P(M(D′) ∈ S)
+    </div>
+    <p style="margin-top:12px">
+      For neighbouring datasets differing in one record, the output distribution barely changes.
+      ε is the privacy budget: smaller is stronger, and every query spends some. This is the only
+      formal guarantee in wide use, and it is not free — it costs accuracy.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s9">
+  <h2>Explainability: useful, and oversold</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          A saliency map shows which input features affected an output. It is genuinely useful
+          for debugging and for building trust with a domain expert.
+        </p>
+        <p>
+          It is not an explanation of the model's reasoning, and it is not a justification. Two
+          models with identical saliency can have different failure modes.
+        </p>
+        <div class="panel panel--key" style="margin-top:12px">
+          <h3>What explanations are good for</h3>
+          <ul>
+            <li>Finding spurious features (the model looked at the watermark, not the lesion).</li>
+            <li>Supporting a human review process.</li>
+            <li>Meeting a documentation or notice requirement.</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>The legal and practical turn</h3>
+          <p>
+            Regulation increasingly requires <em>notice</em> and <em>contestability</em> rather
+            than mechanistic explanation: tell the person a system was used, and give them a
+            way to challenge the outcome.
+          </p>
+          <p style="margin-top:8px">
+            That is achievable. "Explain the neural network" often is not — and promising it in
+            a policy document creates an obligation you cannot meet.
+          </p>
+        </div>
+        <p style="margin-top:12px; font-size:17px; color:var(--muted)">
+          Prefer explanations that name evidence: "denied because of these three factors" beats
+          a heat map.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s10">
+  <h2>Documentation is the deliverable of accountability</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <h3>What a model should carry</h3>
+        <ul>
+          <li><strong>Intended use</strong> and explicit non-uses.</li>
+          <li><strong>Training data</strong>: source, time period, consent basis, known gaps.</li>
+          <li><strong>Evaluation</strong>: metrics, subgroups, intervals, dates.</li>
+          <li><strong>Limitations</strong> and failure modes observed.</li>
+          <li><strong>Owner</strong>: a named role, not a team alias.</li>
+          <li><strong>Review trigger</strong>: what would force a re-evaluation.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Why it works</h3>
+          <p>
+            A model card is a forcing function. Writing "intended use: triage support for adult
+            emergency patients, not for discharge decisions" prevents a class of misuse that no
+            accuracy number prevents.
+          </p>
+          <p style="margin-top:8px">
+            It also creates a reviewable record when something goes wrong — which is the
+            difference between an incident and a scandal.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            If you cannot fill in the owner and the review trigger, the system is not
+            deployable yet — regardless of its performance.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s11">
+  <h2>The NIST AI Risk Management Framework, in one slide</h2>
+  <div class="slide-main">
+    <table class="tbl">
+      <caption>Four functions, applied across the lifecycle. This is the vocabulary US organizations increasingly use.</caption>
+      <thead>
+        <tr><th scope="col">Function</th><th scope="col">Question</th><th scope="col">Concrete artifact</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Govern</strong></td><td>Who is accountable, and under what policy?</td><td>Named owner, risk tolerance statement, approval process</td></tr>
+        <tr><td><strong>Map</strong></td><td>What is the context, and who is affected?</td><td>Use-case description, stakeholder list, harm analysis</td></tr>
+        <tr><td><strong>Measure</strong></td><td>How do we know it is working and failing?</td><td>Test plan, subgroup metrics, red-team results</td></tr>
+        <tr><td><strong>Manage</strong></td><td>What do we do about the risk?</td><td>Mitigations, monitoring, rollback plan, incident process</td></tr>
+      </tbody>
+    </table>
+    <div class="cols-2" style="margin-top:8px">
+      <p>
+        The framework does not tell you what an acceptable risk is. That is a decision for the
+        institution — but the framework forces the decision to be made explicitly and recorded,
+        which is most of the value.
+      </p>
+      <figure class="fig">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 156" role="img" aria-labelledby="n15at n15ad">
+          <title id="n15at">The four NIST AI RMF functions</title>
+          <desc id="n15ad">Govern sits at the centre and connects to the other three functions. Map, Measure and Manage form a cycle: map the context, measure the risks, manage them, then map again.</desc>
+          <defs><marker id="n15aa" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#16181d"/></marker></defs>
+          <g class="v-in" style="--d:0.10s"><circle class="dg-box-a" cx="110" cy="78" r="58"/><text class="dg-txt-b" x="110" y="74" text-anchor="middle">Govern</text><text class="dg-txt-s" x="110" y="94" text-anchor="middle">owner, policy</text></g>
+          <g class="v-in" style="--d:0.30s"><path class="dg-dash" d="M170 78 L296 24"/></g>
+          <g class="v-in" style="--d:0.40s"><path class="dg-dash" d="M170 78 L296 78"/></g>
+          <g class="v-in" style="--d:0.50s"><path class="dg-dash" d="M170 78 L296 132"/></g>
+          <g class="v-in" style="--d:0.50s"><rect class="dg-box-t" x="300" y="4" width="230" height="40" rx="3"/><text class="dg-txt-b" x="312" y="30">Map</text><text class="dg-txt-s" x="400" y="30">context</text></g>
+          <g class="v-in" style="--d:0.70s"><rect class="dg-box-t" x="300" y="58" width="230" height="40" rx="3"/><text class="dg-txt-b" x="312" y="84">Measure</text><text class="dg-txt-s" x="400" y="84">tests</text></g>
+          <g class="v-in" style="--d:0.90s"><rect class="dg-box-t" x="300" y="112" width="230" height="40" rx="3"/><text class="dg-txt-b" x="312" y="138">Manage</text><text class="dg-txt-s" x="400" y="138">mitigate</text></g>
+          <g class="v-in" style="--d:1.20s"><path class="dg-line" d="M530 28 H 540 V 74 H 534" marker-end="url(#n15aa)"/><path class="dg-line" d="M530 82 H 540 V 128 H 534" marker-end="url(#n15aa)"/><path class="dg-line" d="M530 140 H 552 V 14 H 534" marker-end="url(#n15aa)"/></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 15.2.</strong> Govern underpins the other three, which repeat as a cycle.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s12">
+  <h2>The regulatory landscape, briefly and accurately</h2>
+  <div class="slide-main">
+    <div class="cols-3">
+      <div class="panel">
+        <h3>European Union</h3>
+        <p>The AI Act assigns obligations by risk tier: prohibited practices, high-risk systems with conformity assessment, and transparency duties for general-purpose models.</p>
+      </div>
+      <div class="panel">
+        <h3>United States</h3>
+        <p>No single AI statute. Sectoral regulation (credit, employment, health, education) plus state laws, plus the NIST framework as de facto practice.</p>
+      </div>
+      <div class="panel panel--accent">
+        <h3>Education specifically</h3>
+        <p>ADA Title II requires WCAG 2.1 AA for web content and, since 2024, for apps and platforms. A course tool that is inaccessible is a compliance problem, not a UX preference.</p>
+      </div>
+    </div>
+    <figure class="fig" style="max-width:1000px;">
+<svg style="--dg-k:1" viewBox="0 0 1000 94" role="img" aria-labelledby="f15bt f15bd">
+<title id="f15bt">The EU AI Act&#x27;s risk tiers</title>
+<desc id="f15bd">A pyramid of four tiers. At the top, unacceptable-risk practices are prohibited. Below, high-risk systems need a conformity assessment. Below that, limited-risk systems carry transparency duties. At the base, minimal-risk systems carry no new obligations.</desc>
+<g class="v-in" style="--d:0.30s"><rect class="dg-bad" x="350" y="2" width="300" height="22" rx="3"/><text class="dg-xs" x="500" y="18" text-anchor="middle">Unacceptable risk: prohibited</text></g>
+<g class="v-in" style="--d:0.70s"><rect class="dg-warn" x="260" y="26" width="480" height="22" rx="3"/><text class="dg-xs" x="500" y="42" text-anchor="middle">High risk: conformity assessment</text></g>
+<g class="v-in" style="--d:1.10s"><rect class="dg-box-t" x="170" y="50" width="660" height="22" rx="3"/><text class="dg-xs" x="500" y="66" text-anchor="middle">Limited risk: transparency duties</text></g>
+<g class="v-in" style="--d:1.50s"><rect class="dg-box-m" x="80" y="74" width="840" height="22" rx="3"/><text class="dg-xs" x="500" y="90" text-anchor="middle">Minimal risk: no new obligations</text></g>
+<g class="v-in" style="--d:2.20s"><text class="dg-xs" x="1000" y="16" text-anchor="end">obligations rise toward the top</text></g>
+</svg>
+<figcaption><strong>Figure 15.3.</strong> Obligations rise with the tier; general-purpose models add duties.</figcaption>
+</figure>
+    <div class="callout" style="margin-top:18px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        You are not expected to be a lawyer. You are expected to know <strong>which questions
+        to route to one</strong>, and to not ship a high-risk system while those questions are
+        unanswered.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s13">
+  <h2>Safety engineering: the operational practices</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <ul>
+          <li><strong>Red-teaming</strong> — an adversarial team tries to make the system fail before users do.</li>
+          <li><strong>Evaluation suites</strong> — versioned tests that must pass before deployment, like regression tests.</li>
+          <li><strong>Guardrails</strong> — input and output filters, with logging when they trigger.</li>
+          <li><strong>Least privilege</strong> — a model with tools can act; give it only the actions it needs.</li>
+          <li><strong>Kill switch and rollback</strong> — tested, not assumed.</li>
+        </ul>
+        <figure class="fig" style="margin-top:4px">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 104" role="img" aria-labelledby="n15bt n15bd">
+          <title id="n15bt">Defence in depth</title>
+          <desc id="n15bd">Five barriers in a row: red-teaming, evaluation suites, guardrails, least privilege, and kill switch and rollback. Each has a gap at a different height. A harm arrow passes through the gaps in the first three barriers and is stopped by the fourth.</desc>
+          
+          <g class="v-in" style="--d:0.10s"><rect class="dg-teal" x="90" y="4" width="16" height="16" rx="2"/><rect class="dg-teal" x="90" y="40" width="16" height="36" rx="2"/><text class="dg-txt-s" x="98" y="100" text-anchor="middle">red team</text></g>
+          <g class="v-in" style="--d:0.20s"><rect class="dg-teal" x="188" y="4" width="16" height="12" rx="2"/><rect class="dg-teal" x="188" y="36" width="16" height="40" rx="2"/><text class="dg-txt-s" x="196" y="100" text-anchor="middle">evals</text></g>
+          <g class="v-in" style="--d:0.30s"><rect class="dg-teal" x="286" y="4" width="16" height="20" rx="2"/><rect class="dg-teal" x="286" y="44" width="16" height="32" rx="2"/><text class="dg-txt-s" x="294" y="100" text-anchor="middle">guardrails</text></g>
+          <g class="v-in" style="--d:0.40s"><rect class="dg-teal" x="384" y="4" width="16" height="48" rx="2"/><rect class="dg-teal" x="384" y="72" width="16" height="4" rx="2"/><text class="dg-txt-s" x="392" y="100" text-anchor="middle">privilege</text></g>
+          <g class="v-in" style="--d:0.50s"><rect class="dg-teal" x="482" y="4" width="16" height="36" rx="2"/><rect class="dg-teal" x="482" y="60" width="16" height="16" rx="2"/><text class="dg-txt-s" x="490" y="100" text-anchor="middle">kill switch</text></g>
+          <g class="v-in" style="--d:0.60s"><text class="dg-lbl" x="0" y="22">harm</text></g>
+          <path class="dg-plot-a draw" pathLength="1" d="M0 32 L 98 30 L 196 26 L 294 34 L 378 34" style="--d:0.7s"/>
+          <g class="v-in" style="--d:1.50s"><text class="dg-lbl" x="410" y="30">stopped</text></g>
+        </svg>
+        <figcaption>
+          <strong>Figure 15.4.</strong> Each control has gaps; harm gets through only if they all line up.
+        </figcaption>
+      </figure>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Incident response is part of the design</h3>
+          <p>
+            Assume an incident will occur: a harmful output, a data leak, a silent regression.
+            Write down who is woken up, what they check first, and how the system is taken
+            offline.
+          </p>
+          <p style="margin-top:8px">
+            Organizations that have rehearsed this recover in hours. Those that have not spend
+            the first day deciding who is in charge.
+          </p>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <span class="mark" aria-hidden="true">§</span>
+          <p>
+            <strong>A control you have not tested is a hope.</strong> That applies to your
+            rollback plan exactly as it applies to your test suite.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s14">
+  <h2>Two consequences people underrate</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <h3>Labour and economic effects</h3>
+        <p>
+          The evidence is mixed and task-specific: automation displaces some tasks within
+          occupations more than whole occupations, and it creates demand for verification and
+          oversight work.
+        </p>
+        <p>
+          The honest statement is that the distributional effects depend on institutional
+          choices — who owns the productivity gain — not on the technology alone. Anyone who
+          tells you the outcome is determined is selling something.
+        </p>
+      </div>
+      <div>
+        <h3>Environmental cost</h3>
+        <p>
+          Training and inference consume electricity and water. Inference at scale now
+          dominates the lifetime cost for widely used models, which makes efficiency a
+          first-order concern rather than an optimization.
+        </p>
+        <p>
+          Practical implication: a smaller model that meets the accuracy requirement is an
+          environmental decision as well as an engineering one. Report the cost alongside the
+          benefit.
+        </p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Both topics reward precision and punish confident narrative. <strong>Cite a number,
+        name its source, and state its uncertainty</strong> — the same standard the rest of this
+        course holds you to.
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s15">
+  <h2>Synthesis</h2>
+  <p>The whole course in one map, and the questions to keep asking.</p>
+  
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s16">
+  <h2>The whole course in one map</h2>
+  <div class="slide-main">
+    <figure class="fig">
+      <svg style="--dg-k:1.033" class="dg-seq" viewBox="20 40 1100 262.9" role="img" aria-labelledby="f13t f13d">
+        <title id="f13t">How the fifteen modules fit together</title>
+        <desc id="f13d">Three bands. The first covers acting: modules one through seven, from agents and search through MDPs and reinforcement learning. The second covers believing: modules nine and ten, probability and inference. The third covers learning and deploying: modules eleven through fifteen, from machine learning and transformers to perception and governance. Module eight is the midterm.</desc>
+        <g class="v-in" style="--d:0.0s">
+        <rect x="20" y="40" width="1100" height="110" fill="#fbf5f6" stroke="#ecd3d8"/>
+        </g>
+        <g class="v-in" style="--d:0.08s">
+        <text class="dg-lbl" x="36" y="64">ACTING — choose actions</text>
+        </g>
+        <g class="dg-txt-s">
+          <g class="v-in" style="--d:0.16s">
+          <text x="36"  y="94">1 agents</text>
+          </g>
+          <g class="v-in" style="--d:0.24s">
+          <text x="206" y="94">2 search</text>
+          </g>
+          <g class="v-in" style="--d:0.32s">
+          <text x="376" y="94">3 A*</text>
+          </g>
+          <g class="v-in" style="--d:0.39s">
+          <text x="546" y="94">4 CSP</text>
+          </g>
+          <g class="v-in" style="--d:0.47s">
+          <text x="716" y="94">5 games</text>
+          </g>
+          <g class="v-in" style="--d:0.55s">
+          <text x="886" y="94">6 MDP</text>
+          </g>
+          <g class="v-in" style="--d:0.63s">
+          <text x="1056" y="94">7 RL</text>
+          </g>
+        </g>
+        <g class="v-in" style="--d:0.71s">
+        <text class="dg-txt-s" x="36" y="126">objective + model given → plan exactly</text>
+        </g>
+
+        <g class="v-in" style="--d:0.79s">
+        <rect x="20" y="164" width="330" height="80" fill="#f2f7f8" stroke="#cfe0e4"/>
+        </g>
+        <g class="v-in" style="--d:0.87s">
+        <text class="dg-lbl" x="36" y="188">BELIEVING</text>
+        </g>
+        <g class="v-in" style="--d:0.95s">
+        <text class="dg-txt-s" x="36" y="212">9 probability · 10 inference</text>
+        </g>
+        <g class="v-in" style="--d:1.03s">
+        <text class="dg-txt-s" x="36" y="232">hidden state → belief</text>
+        </g>
+
+        <g class="v-in" style="--d:1.11s">
+        <rect x="366" y="164" width="754" height="80" fill="#f6f7f9" stroke="#e3e6ea"/>
+        </g>
+        <g class="v-in" style="--d:1.18s">
+        <text class="dg-lbl" x="382" y="188">LEARNING AND DEPLOYING</text>
+        </g>
+        <g class="v-in" style="--d:1.26s">
+        <text class="dg-txt-s" x="382" y="212">11 ML foundations · 12 deep learning · 13 transformers · 14 perception · 15 governance</text>
+        </g>
+        <g class="v-in" style="--d:1.34s">
+        <text class="dg-txt-s" x="382" y="232">data → model → evaluation → deployment → accountability</text>
+        </g>
+
+        <g class="v-in" style="--d:1.42s">
+        <text class="dg-txt-s" x="20" y="278">8 = midterm examination (no lecture)</text>
+        </g>
+        <g class="v-in" style="--d:1.5s">
+        <text class="dg-txt-s" x="20" y="300">Every band shares one question: what does the system assume, and what happens when that assumption fails?</text>
+        </g>
+      </svg>
+      <figcaption>
+        <strong>Figure 15.5.</strong> The three bands. Acting without believing is brittle;
+        believing without acting is inert; learning without governance is a liability.
+      </figcaption>
+    </figure>
+    <p>
+      Look at the bottom line. It is the same question in every module: <strong>what does this
+      assume, and what happens when the assumption fails?</strong> If you can ask that about a
+      system you have never seen, the course has done its job.
+    </p>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s17">
+  <h2>Ten questions to ask about any AI system</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <ol style="font-size:18px">
+          <li>What decision does it support, and what happens if it is wrong?</li>
+          <li>What was it trained on, and who is missing from that data?</li>
+          <li>What is the base rate, and what precision does that imply?</li>
+          <li>How does it perform on the worst-served subgroup?</li>
+          <li>What does it assume about the world, and has that assumption been tested?</li>
+        </ol>
+      </div>
+      <div>
+        <ol start="6" style="font-size:18px">
+          <li>How would I know it had degraded, and how fast?</li>
+          <li>Can a person contest a decision it made?</li>
+          <li>Who is accountable when it fails, by name?</li>
+          <li>What does it cost to run, in money and energy?</li>
+          <li>What would make me turn it off?</li>
+        </ol>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        Question 10 is the one that separates engineering from advocacy. <strong>If nothing
+        would make you turn it off, you are not managing a system — you are defending one.</strong>
+      </p>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s18">
+  <h2>Key takeaways</h2>
+  <div class="slide-main">
+    <ol class="steps">
+      <li><span class="n" aria-hidden="true">1</span><div><strong>Most AI harm is ordinary engineering failure with unequal distribution.</strong><p>Aggregate metrics cannot see it; per-subgroup comparisons can.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><strong>Fairness definitions are mutually incompatible.</strong><p>Choose one, state it, and let someone review the choice.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><strong>Privacy is a model property.</strong><p>Memorization and inference attacks operate on the model, not the dataset.</p></div></li>
+      <li><span class="n" aria-hidden="true">4</span><div><strong>Accountability needs a name and a document.</strong><p>Model cards and the NIST functions make risk reviewable.</p></div></li>
+      <li><span class="n" aria-hidden="true">5</span><div><strong>A control you have not tested is a hope.</strong><p>Red-team, rehearse the rollback, and know what would make you stop.</p></div></li>
+    </ol>
+  </div>
+  
+</section>
+
+<!-- 16 -->
+<section class="slide" id="s19">
+  <h2>Finals week and the end of the course</h2>
+  <div class="slide-main">
+    <div class="week-work">
+      <div>
+        <h3>Due</h3>
+        <ul>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — capstone report, 8–12 pages, conference format.</li>
+          <li><span class="due">Finals week</span> — presentation and demo, 12 minutes plus questions.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Included in the report</h3>
+        <ul>
+          <li>Problem, method, evaluation, results with intervals.</li>
+          <li>A model card: intended use, data, limits, owner.</li>
+          <li>The required one-page failure case.</li>
+          <li>Recommended: check your risks section against the ten questions on slide 17.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Presentation</h3>
+        <ul>
+          <li>Twelve minutes, then up to eight minutes of questions.</li>
+          <li>Show one failure case. It is required.</li>
+          <li>Section 01 presents in class; Section 02 live by video, same rubric.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <span class="mark" aria-hidden="true">§</span>
+      <p>
+        <strong>One last thing.</strong> You now know how these systems are built, where they
+        break, and what they cost. That knowledge makes you responsible for how they are used.
+        Take that seriously, and be useful.
+      </p>
+    </div>
+  </div>
+  
+</section>
+</main>
+</div>
+<script src="../../assets/deck.js"></script>
+</body>
+</html>

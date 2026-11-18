@@ -1,0 +1,1 @@
+{"name":"cliff","note":"A cliff of terminal states with negative reward. With slip, the cheap route along the edge becomes a bad bet.","rows":8,"cols":8,"walls":[],"start":[7,0],"terminals":{"7,7":1.0,"7,3":-1.0,"7,4":-1.0,"7,5":-1.0},"step_reward":-0.04,"slip":0.1}

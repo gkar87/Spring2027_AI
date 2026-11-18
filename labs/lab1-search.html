@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 1 — Search · CS 5700</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to lab content</a>
+
+<div class="doc">
+
+  <header class="doc-masthead">
+    <p class="inst">
+      <span>University of Central Missouri</span>
+      <span>CS 5700 Artificial Intelligence</span>
+      <span>Spring 2027</span>
+    </p>
+    <h1>Lab 1 — Search</h1>
+    <p class="tagline">
+      Four algorithms, one problem class, and the measurements that tell them apart.
+      By the end you will be able to say which search to run and why, with numbers.
+    </p>
+    <p class="instructor">
+      <strong>Dr. Gorkem Kar</strong>
+      <span>Due: end of week 4</span>
+      <span>Weight: 4% of the course grade</span>
+      <span>Individual work</span>
+    </p>
+  </header>
+
+  <main id="main">
+
+    <section>
+      <h2>What you are building</h2>
+      <p>
+        A search library and a study of it. One program, four frontier disciplines, and a
+        written comparison that a reader could use to choose between them without running
+        anything.
+      </p>
+      <p>
+        The environment is a weighted grid, released with the assignment. It has walls, a
+        start cell, a goal cell, and eight-way movement with diagonal costs that are not
+        the same as straight costs. Do not change the grid: the point is to compare
+        algorithms on identical input.
+      </p>
+    </section>
+
+    <section>
+      <h2>Before you start</h2>
+      <ul>
+        <li>Module 2 (uninformed search) and module 3 (informed search).</li>
+        <li>AIMA 3.1–3.6, at least the sections on frontier disciplines and admissibility.</li>
+        <li>The maps in <code>../data/lab1/</code>: <code>grid_a.txt</code>, <code>grid_b.txt</code>
+          and <code>grid_c.txt</code>, plus <code>trace_example.txt</code> (a worked trace
+          on grid a) and <code>reference_results.csv</code> (all four algorithms on all
+          three maps) to check your counts against. <code>../data/README.md</code> documents
+          the grid format.</li>
+        <li>Python help for this lab: <a href="https://docs.python.org/3/library/heapq.html">heapq</a> for the priority queues, <a href="https://docs.python.org/3/library/collections.html">collections.deque</a> for the FIFO queue, and <a href="https://docs.python.org/3/howto/argparse.html">argparse</a> for the command line. More on the <a href="index.html">labs page</a>.</li>
+      </ul>
+      <p>
+        Any language is acceptable, but the program must be callable from the command line
+        with the interface in <a href="#grader">what the grader runs</a> below. That
+        interface is not relaxed, because it is how the grader calls you.
+      </p>
+    </section>
+
+    <section>
+      <h2>Tasks</h2>
+
+      <h3>1. One algorithm, four disciplines</h3>
+      <p>
+        Write <code>search(problem, frontier)</code> once, following the generic graph
+        search from module 2, and implement the frontier as four interchangeable objects:
+        FIFO queue, LIFO stack, priority queue on <var>g</var>, priority queue on
+        <var>g</var> + <var>h</var>. Depth-first must use a stack; do not simulate one with
+        recursion and call it the same thing.
+      </p>
+      <p>
+        Your implementation must report, for every run: the solution path, its cost, the
+        number of nodes expanded, the number of nodes generated, and the maximum frontier
+        size.
+      </p>
+
+      <h3>2. Three heuristics</h3>
+      <p>
+        Implement Manhattan distance and Euclidean distance to the nearest goal. Then
+        implement the octile distance that matches the grid's diagonal costs. Report which
+        of the three are admissible for this problem and prove it in one paragraph each —
+        a proof, not an assertion. State clearly which one is inadmissible and what that
+        does to A*'s guarantee.
+      </p>
+
+      <h3>3. Measure</h3>
+      <p>
+        Run all four algorithms on all three grids. They are deterministic apart from
+        tie-breaking; if you break ties randomly, run three seeds and report the spread.
+        Produce one table with a row per (grid, algorithm) and
+        columns for solution cost, nodes expanded, nodes generated, and peak frontier
+        size. Then produce the figure that actually matters: nodes expanded against
+        solution depth, one line per algorithm.
+      </p>
+
+      <h3>4. Break it deliberately</h3>
+      <p>
+        Take the heuristic that is admissible but <em>inconsistent</em> on your grid, if
+        you can construct one — a heuristic that never overestimates but can drop sharply
+        between neighbours. Show A* returning a suboptimal path when the explored set is
+        kept, and the same A* returning the optimal path when stale frontier entries are
+        allowed to be re-expanded. Explain the difference.
+      </p>
+    </section>
+
+    <section>
+      <h2>Deliverables</h2>
+      <ul>
+        <li><strong>Code</strong> — the library, the four frontier implementations, the two
+          scripts that reproduce your tables and figures.</li>
+        <li><strong>Reproduction file</strong> — one command that regenerates every number
+          in your report. If it does not run, the numbers are not believed.</li>
+        <li><strong>Written report, 4–6 pages</strong> — the comparison, the three
+          admissibility proofs, and the inconsistency experiment. This is a quarter of
+          the mark and it is where the grade usually separates.</li>
+      </ul>
+      <p>
+        Submit code and report together. The report is what a colleague reads to decide
+        which algorithm to use; write it for that reader.
+      </p>
+    </section>
+
+    <section id="grader">
+      <h2>What the grader runs</h2>
+      <p>
+        One command per grid and algorithm, with a single JSON object on stdout:
+      </p>
+      <pre>python3 search.py --grid ../data/lab1/grid_a.txt --algorithm astar
+
+{"algorithm": "astar", "cost": 30.5, "expanded": 101, "generated": 161,
+ "peak": 55, "path": [[1, 1], [0, 2], [0, 3], ...]}</pre>
+      <p class="muted">
+        That is the real row for <code>grid_a</code> and A*: it matches
+        <code>reference_results.csv</code> exactly.
+      </p>
+      <p>
+        <code>--algorithm</code> is one of <code>bfs</code>, <code>dfs</code>,
+        <code>ucs</code>, <code>astar</code>. A* must <strong>default to the octile
+        heuristic</strong>: the grader does not pass <code>--heuristic</code>, so make it an
+        optional flag with octile as the default.
+        The grader runs all twelve combinations and compares <code>cost</code>,
+        <code>expanded</code>, <code>generated</code> and <code>peak</code> against
+        <code>reference_results.csv</code>. A mismatch is a bug in your search, not a
+        different convention. Print nothing else to stdout — diagnostics go to stderr.
+      </p>
+      <p>
+        The grader passes <strong>absolute paths</strong>, so do not assume your program sits
+        beside the data. To check yourself before submitting, run all twelve combinations
+        and compare your four counts with the matching row of
+        <code>reference_results.csv</code>; that is exactly the comparison the grader makes.
+      </p>
+    </section>
+
+    <section>
+      <h2>How it is graded</h2>
+      <table class="tbl tbl--compact">
+        <thead><tr><th scope="col">Component</th><th scope="col" class="num">Weight</th><th scope="col">What earns full marks</th></tr></thead>
+        <tbody>
+          <tr><td>Correctness</td><td class="num">40%</td><td>All four algorithms return optimal where they should, and the reported counts match an independent trace</td></tr>
+          <tr><td>Design</td><td class="num">20%</td><td>One search function, four frontiers; no duplicated algorithm bodies</td></tr>
+          <tr><td>Measurement</td><td class="num">15%</td><td>Tables reproduce; the figure is readable and its axes are labelled with units</td></tr>
+          <tr><td>Written analysis</td><td class="num">25%</td><td>Proofs are proofs; the inconsistency experiment is explained, not just demonstrated</td></tr>
+        </tbody>
+      </table>
+      <p>
+        A working implementation whose report says nothing earns a C. That is stated in
+        week one and it is not a surprise at grading time.
+      </p>
+    </section>
+
+    <section>
+      <h2>Rules</h2>
+      <p>
+        Individual work. You may discuss the algorithms with classmates; the code you
+        submit must be yours, and you must be able to explain any line of it in a viva if
+        asked. The syllabus late policy applies: 10% off per day for up to three days, then not accepted.
+      </p>
+      <p>
+        AI assistants: permitted for boilerplate, plotting, and debugging help, subject to
+        the course's disclosure rule — state in the report which tool you used and for
+        what. They are not permitted to write your analysis, and an undisclosed generated
+        report is an integrity matter.
+      </p>
+    </section>
+
+    <section>
+      <h2>Check yourself before submitting</h2>
+      <ul class="objectives">
+        <li>Does BFS return a costlier path than uniform cost on these grids, where steps cost different amounts, and can you say why?</li>
+        <li>Does A* expand no more nodes than uniform cost with an admissible heuristic, on every grid?</li>
+        <li>Does your peak frontier size for breadth-first exceed depth-first's on the open grid, and can you explain why from how each frontier grows?</li>
+        <li>Can you point to the line in your code where the four algorithms differ?</li>
+        <li>Does your reproduction command work from a clean checkout?</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CS 5700 · Lab 1 · University of Central Missouri · Spring 2027</p>
+  </footer>
+
+</div>
+</body>
+</html>
