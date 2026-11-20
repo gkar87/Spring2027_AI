@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 3 Playground · CS 5700</title>
+<meta name="description" content="CS 5700 week 3 playground: step through breadth-first, uniform-cost, greedy and A* search on one grid with walls and mud, and six checked exercises on expansions, path cost and admissibility.">
+<link rel="stylesheet" href="../../assets/course.css">
+<link rel="stylesheet" href="../../assets/playground.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the playground</a>
+
+<div class="doc">
+<header class="doc-masthead">
+  <p class="inst"><span>CS 5700 · Artificial Intelligence</span><span>Week 3 · Friday, January 29, 2027</span><span><a href="../../index.html">Course home</a></span></p>
+  <h1>Week 3 playground: uninformed and informed search</h1>
+  <p class="tagline">The same grid, five algorithms. Step through each one and watch what it expands, how big its frontier grows and which path it returns. Then answer six questions about them.</p>
+</header>
+
+<div class="pg-bar">
+  <p class="pg-status" data-state="ready"><span class="dot" aria-hidden="true"></span><span class="txt">Runs in your browser; nothing is sent anywhere.</span></p>
+  <p class="pg-progress" id="pg-progress">Exercises solved: <strong>0 of 6</strong></p>
+  <a class="btn" href="index.html">Week 3 slides</a>
+</div>
+
+<main id="main">
+
+<section id="how" aria-labelledby="how-h">
+  <h2 id="how-h">How to use this page</h2>
+  <ul>
+    <li>Choose an algorithm and press <strong>Step</strong> to expand one node at a time, or <strong>Run to the goal</strong>. Each square shows the order in which it was expanded; dashed squares are waiting in the frontier.</li>
+    <li>Each exercise has a <strong>Check answer</strong> button (or press <kbd>Enter</kbd> in a box). Numbers may be rounded to three decimal places or written as a fraction. Work them on paper first: the exams ask the same kind of question with no explorer to help.</li>
+    <li>Solved exercises are remembered in this browser only. Nothing here is graded.</li>
+  </ul>
+</section>
+
+<section id="explorer" aria-labelledby="explorer-h">
+  <h2 id="explorer-h">The search explorer</h2>
+  <p>A grid from start S (square A1) to goal G (square I5). Moves go up, right, down or left, one square at a time. A move into an ordinary square costs 1; a move into mud costs 3; black squares are walls. Every algorithm here is graph search: it never expands a square twice, it tests for the goal when it expands a square, it generates neighbours in the order up, right, down, left, and it breaks ties first in, first out.</p>
+  <div class="explorer" data-explorer="search" data-grid="S...#..../.##.#.##./....~~~../.#.#~~~#./.#...#..G/...#.....">
+    <h3>Pick an algorithm, then step</h3>
+  </div>
+  <ul class="legend" aria-label="Legend">
+    <li><span class="sw" style="background:var(--teal-wash);border-color:var(--teal)"></span>expanded, with its order</li>
+    <li><span class="sw" style="border:2px dashed var(--gold)"></span>in the frontier</li>
+    <li><span class="sw" style="background:var(--teal)"></span>the path found</li>
+    <li><span class="sw" style="background:#f3ead9"></span>mud, cost 3</li>
+    <li><span class="sw" style="background:var(--ink)"></span>wall</li>
+  </ul>
+</section>
+
+<section id="exercises" aria-labelledby="ex-h">
+  <h2 id="ex-h">Exercises</h2>
+  <p>Use the explorer for exercises 1, 2, 4 and 5; work exercises 3 and 6 by reasoning.</p>
+  <div class="cell cell--ex" data-ex="w3e1">
+    <div class="cell-head"><span class="cell-title">Exercise 1</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Run <strong>breadth-first search</strong> to the goal. How many nodes does it expand, counting the goal, and what is the cost of the path it returns?</p></div>
+    <div class="answers"><label>Nodes expanded <input type="text" inputmode="decimal" autocomplete="off" data-answer="40" data-tol="0"></label><label>Path cost <input type="text" inputmode="decimal" autocomplete="off" data-answer="18" data-tol="0"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Choose Breadth-first search and press Run to the goal; read the line under the grid. Then count why the cost is more than the number of moves.</p></details>
+    <details><summary>Show a solution</summary><p>40 nodes; the path has 12 moves, but four of them enter mud, which costs 3, so the cost is 8 + 4 × 3 = 18. BFS minimizes moves, not cost.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w3e2">
+    <div class="cell-head"><span class="cell-title">Exercise 2</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Now <strong>uniform-cost search</strong>. How many nodes does it expand, and what is the cost of its path?</p></div>
+    <div class="answers"><label>Nodes expanded <input type="text" inputmode="decimal" autocomplete="off" data-answer="35" data-tol="0"></label><label>Path cost <input type="text" inputmode="decimal" autocomplete="off" data-answer="14" data-tol="0"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>UCS pops the node with the lowest path cost so far, so it walks around the mud.</p></details>
+    <details><summary>Show a solution</summary><p>35 nodes, cost 14: a 14-move path with no mud. It is optimal, because step costs are positive and UCS expands nodes in order of cost.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w3e3">
+    <div class="cell-head"><span class="cell-title">Exercise 3</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>What is the Manhattan-distance heuristic h at the start square A1? The goal is I5.</p></div>
+    <div class="answers"><label>h(A1) <input type="text" inputmode="decimal" autocomplete="off" data-answer="12" data-tol="0"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Count columns from A to I and rows from 1 to 5.</p></details>
+    <details><summary>Show a solution</summary><p>8 columns + 4 rows = 12. The true cost from A1 is 14, so h does not overestimate here, as admissibility requires.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w3e4">
+    <div class="cell-head"><span class="cell-title">Exercise 4</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Run <strong>A* with Manhattan distance</strong>. How many nodes does it expand?</p></div>
+    <div class="answers"><label>Nodes expanded <input type="text" inputmode="decimal" autocomplete="off" data-answer="28" data-tol="0"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Same path as UCS; compare the number expanded.</p></details>
+    <details><summary>Show a solution</summary><p>28, against 35 for UCS: the heuristic steers the search toward the goal and it still returns the optimal cost 14, because Manhattan distance is admissible and consistent on a grid whose steps cost at least 1.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w3e5">
+    <div class="cell-head"><span class="cell-title">Exercise 5</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Run <strong>A* with twice the Manhattan distance</strong>. What path cost does it return?</p></div>
+    <div class="answers"><label>Path cost <input type="text" inputmode="decimal" autocomplete="off" data-answer="18" data-tol="0"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Doubling h makes it overestimate. Compare with exercise 2.</p></details>
+    <details><summary>Show a solution</summary><p>18, through the mud, after expanding only 19 nodes. With h multiplied by w = 2 the cost is guaranteed to be at most 2 × 14 = 28, but it is no longer optimal.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w3e6">
+    <div class="cell-head"><span class="cell-title">Exercise 6</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Which algorithms are guaranteed to return the cheapest path on every grid like this one?</p></div>
+    <div class="answers"><label>Answer <select data-answer="b"><option value="">Choose one</option><option value="a">BFS and UCS</option><option value="b">UCS and A* with Manhattan</option><option value="c">Greedy and A* with Manhattan</option><option value="d">All five</option></select></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Think about which ones look at path cost, and which heuristics never overestimate.</p></details>
+    <details><summary>Show a solution</summary><p>UCS and A* with an admissible heuristic. BFS is optimal only when every step costs the same; greedy ignores the cost so far; the doubled heuristic can overestimate.</p></details>
+  </div>
+
+</section>
+</main>
+
+<footer>
+  <p>CS 5700 · Week 3 playground · Spring 2027. Built to meet WCAG 2.1 AA; if something is hard to use, please tell me.</p>
+</footer>
+</div>
+<script src="../../assets/aiplay-core.js"></script>
+<script src="../../assets/aiplay.js"></script>
+</body>
+</html>

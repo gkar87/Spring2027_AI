@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 13 Playground · CS 5700</title>
+<meta name="description" content="CS 5700 week 13 playground: scaled dot-product attention for one query and three tokens, with editable vectors, scaling and causal masking, and six checked exercises.">
+<link rel="stylesheet" href="../../assets/course.css">
+<link rel="stylesheet" href="../../assets/playground.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the playground</a>
+
+<div class="doc">
+<header class="doc-masthead">
+  <p class="inst"><span>CS 5700 · Artificial Intelligence</span><span>Week 13 · Friday, April 16, 2027</span><span><a href="../../index.html">Course home</a></span></p>
+  <h1>Week 13 playground: attention by hand</h1>
+  <p class="tagline">Compute one attention output the way a transformer does: scores, scaling, softmax and a weighted sum of values, with a causal mask you can switch on. Then six checked exercises.</p>
+</header>
+
+<div class="pg-bar">
+  <p class="pg-status" data-state="ready"><span class="dot" aria-hidden="true"></span><span class="txt">Runs in your browser; nothing is sent anywhere.</span></p>
+  <p class="pg-progress" id="pg-progress">Exercises solved: <strong>0 of 6</strong></p>
+  <a class="btn" href="index.html">Week 13 slides</a>
+</div>
+
+<main id="main">
+
+<section id="how" aria-labelledby="how-h">
+  <h2 id="how-h">How to use this page</h2>
+  <ul>
+    <li>Change any number in the query, keys or values. Turn the √d scaling off, or set a causal mask, and watch the weights and the output change.</li>
+    <li>Each exercise has a <strong>Check answer</strong> button (or press <kbd>Enter</kbd> in a box). Numbers may be rounded to three decimal places or written as a fraction. Work them on paper first: the exams ask the same kind of question with no explorer to help.</li>
+    <li>Solved exercises are remembered in this browser only. Nothing here is graded.</li>
+  </ul>
+</section>
+
+<section id="explorer" aria-labelledby="explorer-h">
+  <h2 id="explorer-h">The attention explorer</h2>
+  <p>One attention head with dimension d = 2, one query and three tokens. The score of each key is its dot product with the query; scores are divided by √d, turned into weights by softmax, and the output is the weighted sum of the value vectors. Edit any number and the table updates.</p>
+  <div class="explorer" data-explorer="attention">
+    <h3>Edit the query, keys and values</h3>
+  </div>
+</section>
+
+<section id="exercises" aria-labelledby="ex-h">
+  <h2 id="ex-h">Exercises</h2>
+  <p>Do exercises 1 to 3 on paper first; the final exam asks for an attention output by hand.</p>
+  <div class="cell cell--ex" data-ex="w13e1">
+    <div class="cell-head"><span class="cell-title">Exercise 1</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>With the starting numbers (q = [2, 0], scaling on, no mask), what is the scaled score of key k1?</p></div>
+    <div class="answers"><label>Scaled score of k1 <input type="text" inputmode="decimal" autocomplete="off" data-answer="1.4142"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>q · k1 = 2 × 1 + 0 × 0, then divide by √2.</p></details>
+    <details><summary>Show a solution</summary><p>2 ÷ √2 = √2 ≈ 1.414.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w13e2">
+    <div class="cell-head"><span class="cell-title">Exercise 2</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>What attention weight does key k2 get?</p></div>
+    <div class="answers"><label>Weight on k2 <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.1078"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Scaled scores are √2, 0 and √2. Softmax: e<sup>s</sup> ÷ the sum.</p></details>
+    <details><summary>Show a solution</summary><p>e<sup>0</sup> ÷ (e<sup>1.414</sup> + 1 + e<sup>1.414</sup>) = 1 ÷ (4.113 + 1 + 4.113) ≈ 0.108.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w13e3">
+    <div class="cell-head"><span class="cell-title">Exercise 3</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>What is the output vector?</p></div>
+    <div class="answers"><label>Output, dim 1 <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.8922"></label><label>Output, dim 2 <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.5539"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Weights are about 0.446, 0.108 and 0.446. Multiply each value vector by its weight and add.</p></details>
+    <details><summary>Show a solution</summary><p>0.446 × [1, 0] + 0.108 × [0, 1] + 0.446 × [1, 1] ≈ [0.892, 0.554].</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w13e4">
+    <div class="cell-head"><span class="cell-title">Exercise 4</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Turn scaling off. What weight does k2 get now? Is the distribution sharper or flatter?</p></div>
+    <div class="answers"><label>Weight on k2, unscaled <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.0634"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Unscaled scores are 2, 0 and 2.</p></details>
+    <details><summary>Show a solution</summary><p>1 ÷ (2e<sup>2</sup> + 1) ≈ 0.063: sharper. Without dividing by √d, scores grow with the dimension and the softmax saturates, which shrinks its gradients; that is why the transformer scales.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w13e5">
+    <div class="cell-head"><span class="cell-title">Exercise 5</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Turn scaling back on and set the causal mask so the query is token 2. What weight does k1 get?</p></div>
+    <div class="answers"><label>Weight on k1 <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.8044"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Token 2 cannot see token 3, so only k1 and k2 compete.</p></details>
+    <details><summary>Show a solution</summary><p>e<sup>1.414</sup> ÷ (e<sup>1.414</sup> + 1) ≈ 4.113 ÷ 5.113 ≈ 0.804; k3 gets exactly 0.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w13e6">
+    <div class="cell-head"><span class="cell-title">Exercise 6</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Reset, then change the query to q = [20, 0], ten times larger. What happens to the weights?</p></div>
+    <div class="answers"><label>Answer <select data-answer="b"><option value="">Choose one</option><option value="a">They stay the same: softmax ignores scale</option><option value="b">They concentrate on the highest-scoring keys, here split evenly between k1 and k3</option><option value="c">They spread out evenly over all three keys</option><option value="d">Only k2 is attended to</option></select></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Multiplying every score by 10 widens the gaps between them before the softmax.</p></details>
+    <details><summary>Show a solution</summary><p>The weights go to about 0.5, 0, 0.5: a larger query (or a lower temperature) makes softmax approach a hard maximum, and k1 and k3 tie.</p></details>
+  </div>
+
+</section>
+</main>
+
+<footer>
+  <p>CS 5700 · Week 13 playground · Spring 2027. Built to meet WCAG 2.1 AA; if something is hard to use, please tell me.</p>
+</footer>
+</div>
+<script src="../../assets/aiplay-core.js"></script>
+<script src="../../assets/aiplay.js"></script>
+</body>
+</html>

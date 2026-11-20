@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Reading reflections — CS 5700</title>
+<meta name="description" content="CS 5700 reading reflections, Spring 2027: what to read each time, the question to answer, what to submit and how it is graded. Eight reflections, 10% of the course grade.">
 <link rel="stylesheet" href="../assets/course.css">
 </head>
 <body>
@@ -15,213 +16,163 @@
     <p class="inst">
       <span>University of Central Missouri</span>
       <span>CS 5700 Artificial Intelligence</span>
-      <span>Spring 2027</span>
+      <span><a href="../index.html">Course home</a></span>
     </p>
     <h1>Reading reflections</h1>
     <p class="tagline">
-      Eight short pieces of writing, each due the Sunday that closes its week. Twelve
-      percent of the course, and the cheapest place to find out whether you have actually
-      understood the reading.
+      Eight short essays, one for each reading below. Each answers one question about
+      the reading in 400 words. Together they are 10% of the course grade, and they are
+      the cheapest place to find out whether you have understood the reading.
     </p>
     <p class="instructor">
       <strong>Dr. Gorkem Kar</strong>
-      <span>Eight submissions · 1.5% each · 12% total</span>
-      <span>Due Sunday, 11:59 p.m. of the week named</span>
-      <span>Individual</span>
+      <span>Eight submissions · 1.25% each · 10% total</span>
+      <span>Due Sundays, 11:59 p.m. CT, on the dates below</span>
+      <span>Individual work, both sections</span>
     </p>
   </header>
 
   <main id="main">
 
-    <section>
-      <h2>What a reflection is</h2>
-      <p>
-        Four hundred words on the week's reading. Write it before the Friday class
-        if you can — that is what the discussion is for — and submit it by Sunday,
-        11:59 p.m. of the same week. Not a summary — a summary proves you opened the
-        chapter, which is not the same as reading it. A reflection does three things, in
-        this order:
-      </p>
+    <section aria-labelledby="short-h">
+      <h2 id="short-h">In short</h2>
+      <table class="tbl tbl--compact">
+        <caption>What every reflection asks of you.</caption>
+        <tbody>
+          <tr><th scope="row">Read</th><td>The reading listed for that reflection in the table below, before the Friday class of its week.</td></tr>
+          <tr><th scope="row">Write</th><td>One essay of <strong>360 to 440 words</strong> that answers that reflection's question in three parts: restate, test against a case, say what would change your mind.</td></tr>
+          <tr><th scope="row">Submit</th><td>One PDF or Word file to the Brightspace assignment <strong>Reflection N</strong>, by Sunday 11:59 p.m. CT on the date in the table.</td></tr>
+          <tr><th scope="row">Graded</th><td>Out of 20 points with the rubric below, returned with comments within seven days. Each reflection is 1.25% of the course grade.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section aria-labelledby="prompts-h">
+      <h2 id="prompts-h">The eight reflections</h2>
+      <p>AIMA is Russell and Norvig, <em>Artificial Intelligence: A Modern Approach</em>, 4th edition. Read the sections listed, not the whole chapter, unless the table says the whole chapter.</p>
+      <div class="fig-scroll" tabindex="0" role="region" aria-label="The eight reflections: due date, reading and question">
+      <table class="tbl">
+        <caption>Each reflection answers the question in its row, about the reading in its row.</caption>
+        <thead>
+          <tr><th scope="col" class="num">#</th><th scope="col">Due (11:59 p.m. CT)</th><th scope="col">What to read</th><th scope="col">The question to answer</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="num">1</td><td class="date">Sun, Jan 17 (week 1)</td>
+            <td>AIMA chapter 2, Intelligent Agents (all of it)</td>
+            <td>Is the PEAS description a neutral way to describe a system, or does it already commit you to a design? Answer for one system you know well.</td>
+          </tr>
+          <tr>
+            <td class="num">2</td><td class="date">Sun, Jan 24 (week 2)</td>
+            <td>AIMA 3.1–3.4, problem-solving agents and uninformed search</td>
+            <td>The frontier's data structure is the whole difference between these algorithms. Where does that abstraction hide an assumption about the problem?</td>
+          </tr>
+          <tr>
+            <td class="num">3</td><td class="date">Sun, Jan 31 (week 3)</td>
+            <td>AIMA 3.5–3.6, informed search and heuristic functions</td>
+            <td>Admissibility buys optimality and costs you a heuristic you can trust. Describe a situation where an inadmissible heuristic is the right choice, and what you give up.</td>
+          </tr>
+          <tr>
+            <td class="num">4</td><td class="date">Sun, Feb 14 (week 5)</td>
+            <td>AIMA 5.1–5.5, adversarial search and games</td>
+            <td>Alpha–beta prunes without changing the answer. What does that tell you about where the intelligence in a game engine actually lives?</td>
+          </tr>
+          <tr>
+            <td class="num">5</td><td class="date">Sun, Mar 21 (week 9)</td>
+            <td>AIMA 12.1–12.5 and 13.1–13.3, probability and Bayesian networks</td>
+            <td>A Bayesian network is a claim about which independence assumptions you are willing to make. Name one such claim you would refuse to make about a real dataset, and say what refusing it would cost you.</td>
+          </tr>
+          <tr>
+            <td class="num">6</td><td class="date">Sun, Apr 4 (week 11)</td>
+            <td>AIMA 19.1–19.5, learning from examples</td>
+            <td>Generalization is measured on data you did not train on. Describe the most convincing way you have seen that guarantee broken in practice.</td>
+          </tr>
+          <tr>
+            <td class="num">7</td><td class="date">Sun, Apr 18 (week 13)</td>
+            <td>Vaswani et al. (2017), “Attention Is All You Need,” sections 1–4 and 6; Ouyang et al. (2022), “Training language models to follow instructions with human feedback,” sections 1–3 and 4.1. These are the papers of the two critiques; reread them with this question in mind.</td>
+            <td>Both papers claim that one architectural or training change is responsible for a gain. Which of the two makes the stronger causal case, and what is missing from the weaker one?</td>
+          </tr>
+          <tr>
+            <td class="num">8</td><td class="date">Sun, May 2 (week 15)</td>
+            <td>AIMA chapters 27–28, philosophy, ethics and the future of AI; NIST AI Risk Management Framework 1.0 (NIST AI 100-1, 2023), parts 1 and 2</td>
+            <td>Name one thing you learned this term that a risk framework like NIST's would systematically miss, and explain why it would miss it.</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Weeks 4, 6, 7, 10, 12 and 14 have a lab instead, and week 8 is the midterm, so there is no reflection those weeks.</p>
+    </section>
+
+    <section aria-labelledby="what-h">
+      <h2 id="what-h">What to write</h2>
+      <p>Not a summary. A summary proves you opened the reading, which is not the same as understanding it. Write three parts, in this order, as three paragraphs. You may give each a short heading.</p>
       <ol>
-        <li><strong>Restate the argument.</strong> In your own words, what does the reading
-          claim, and what is it claiming <em>against</em>? Two or three sentences. If you
-          cannot name what it argues with, you have not found the argument.</li>
-        <li><strong>Test it against a case.</strong> Take one situation — from your work, a
-          system you use, a paper you have read, or a concrete example you construct — and
-          say whether the argument holds there. This is the part that earns the marks.</li>
-        <li><strong>Name what would change your mind.</strong> One sentence: what evidence,
-          result, or counterexample would make you drop the claim? "Nothing" is not an
-          answer; every claim in this course could in principle be wrong.</li>
+        <li><strong>Restate the argument (about 100 words).</strong> In your own words, what does the reading claim that bears on the question, and what is it arguing <em>against</em>? If you cannot name what it argues with, you have not found the argument yet.</li>
+        <li><strong>Test it against a case (about 200 words).</strong> Take one specific situation: from your work, a system you use, a paper you have read, or a concrete example you build yourself. Describe it concretely enough that someone could disagree with you, and say whether the argument holds there. This part carries the most points.</li>
+        <li><strong>Say what would change your mind (one to three sentences).</strong> What evidence, result or counterexample would make you drop your answer? “Nothing” is not an answer; every claim in this course could in principle be wrong.</li>
       </ol>
       <div class="note note--info">
-        <p>
-          <strong>The test of a good reflection:</strong> a classmate who read the same
-          chapter should learn something from yours. If it only restates the chapter, it
-          earns half marks however well written it is.
-        </p>
+        <p><strong>The test of a good reflection:</strong> a classmate who read the same pages should learn something from yours. One that only restates the reading earns at most half the points, however well written it is.</p>
       </div>
-    </section>
 
-    <section>
-      <h2>An example of the pattern</h2>
-      <p class="muted">
-        One paragraph of a reflection on the week-3 reading, to show the third part in
-        action. Not a model to copy — the case is the writer's, and yours should be too.
-      </p>
+      <h3>An example of the case and the last part</h3>
+      <p class="muted">Part of a reflection on reading 3. It shows the case and the last sentence at the right level of detail. Do not copy its case; yours must be your own.</p>
       <div class="note">
-        <p>
-          The chapter argues that admissibility is the property that makes A* optimal, and
-          it proves this for tree search while treating graph search as an implementation
-          detail. My case is a routing service I worked on last summer, where we kept a
-          closed set and used a heuristic fitted to historical drive times. The fitted
-          heuristic never overestimated the true drive time on any route we checked, so as
-        far as we knew it was admissible, but it violated consistency on about one edge in forty where a new bridge had opened.
-          We saw occasional routes that were worse than the previous day's, which we
-          blamed on traffic. What would change my mind here is a demonstration that
-          consistency violations are rare enough, or small enough, that the suboptimality
-          bound stays below the noise in the data — I have not seen one, and I no longer
-          believe it.
-        </p>
+        <p>My case is a routing service I worked on last summer, where we kept a closed set and used a heuristic fitted to historical drive times. The fitted heuristic never overestimated the true drive time on any route we checked, so as far as we knew it was admissible, but it violated consistency on about one edge in forty where a new bridge had opened. We saw occasional routes that were worse than the previous day's, which we blamed on traffic. What would change my mind is a demonstration that consistency violations are rare enough, or small enough, that the suboptimality stays below the noise in the data. I have not seen one.</p>
       </div>
     </section>
 
-    <section>
-      <h2>The eight prompts</h2>
+    <section aria-labelledby="submit-h">
+      <h2 id="submit-h">What to submit</h2>
+      <ul>
+        <li><strong>Where:</strong> the Brightspace assignment named <strong>Reflection 1</strong>, <strong>Reflection 2</strong> and so on. Both sections submit to the same assignment.</li>
+        <li><strong>File:</strong> one PDF (preferred) or Word file named <code>reflectionN_lastname_firstname.pdf</code>.</li>
+        <li><strong>At the top:</strong> your name, the reflection number and your word count.</li>
+        <li><strong>Length:</strong> 360 to 440 words, not counting the top lines and the references. Under 360 or over 440 loses 2 of the 20 points.</li>
+        <li><strong>References:</strong> point to the reading by section or page, for example “(AIMA 3.5.2)”. List anything else you used at the end, in any consistent style.</li>
+        <li><strong>AI use:</strong> one line at the end saying whether you used an AI assistant and for what, as the <a href="../syllabus.html#ai-use">syllabus</a> asks. AI may help you check your understanding or find a paper; it may not write the reflection or supply the case.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="mark-h">
+      <h2 id="mark-h">How reflections are graded</h2>
       <table class="tbl">
-        <caption>Due Sunday, 11:59 p.m. of the week named; that week's Friday class discusses the reading. Readings are in AIMA unless noted.</caption>
+        <caption>Each reflection is out of 20 points and worth 1.25% of the course grade. The case carries 9 of the 20.</caption>
         <thead>
-          <tr><th scope="col" class="num">#</th><th scope="col">Due</th><th scope="col">Reading</th><th scope="col">The question to answer</th></tr>
+          <tr><th scope="col">Criterion</th><th scope="col" class="num">Points</th><th scope="col">A strong submission</th><th scope="col">A weak one</th></tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="num">1</td><td class="date">Week 1</td><td>AIMA 2 — intelligent agents</td>
-            <td>Is the PEAS description a neutral way to describe a system, or does it
-              already commit you to a design? Use one system you know well.</td>
-          </tr>
-          <tr>
-            <td class="num">2</td><td class="date">Week 2</td><td>AIMA 3.1–3.4 — uninformed search</td>
-            <td>The frontier's data structure is the whole difference between these
-              algorithms. Where does that abstraction hide an assumption about the
-              problem?</td>
-          </tr>
-          <tr>
-            <td class="num">3</td><td class="date">Week 3</td><td>AIMA 3.5–3.6 — A* and heuristics</td>
-            <td>Admissibility buys optimality and costs you a heuristic you can trust.
-              Describe a situation where an inadmissible heuristic is the right choice, and
-              what you give up.</td>
-          </tr>
-          <tr>
-            <td class="num">4</td><td class="date">Week 5</td><td>AIMA 5.1–5.5 — adversarial search</td>
-            <td>Alpha–beta prunes without changing the answer. What does that tell you
-              about where the intelligence in a game engine actually lives?</td>
-          </tr>
-          <tr>
-            <td class="num">5</td><td class="date">Week 9</td><td>AIMA 12.1–12.5, 13.1–13.3 — probability and Bayesian networks</td>
-            <td>A Bayesian network is a claim about which independence assumptions you are
-              willing to make. Name one such claim you would refuse to make about a real
-              dataset, and say what it would cost you to keep it.</td>
-          </tr>
-          <tr>
-            <td class="num">6</td><td class="date">Week 11</td><td>AIMA 19.1–19.5 — machine learning foundations</td>
-            <td>Generalisation is measured on data you did not train on. Describe the most
-              convincing way you have seen that guarantee broken in practice.</td>
-          </tr>
-          <tr>
-            <td class="num">7</td><td class="date">Week 13</td><td>Vaswani et al. (2017); Ouyang et al. (2022)</td>
-            <td>Both papers claim an architectural or training change is responsible for a
-              gain. Which of the two makes the stronger causal case, and what is missing
-              from the weaker one?</td>
-          </tr>
-          <tr>
-            <td class="num">8</td><td class="date">Week 15</td><td>AIMA 27–28; NIST AI Risk Management Framework</td>
-            <td>The course ends with governance. Name one thing you learned this term that
-              you think a risk framework would systematically miss, and why.</td>
-          </tr>
+          <tr><td><strong>Restatement</strong></td><td class="num">6</td><td>The claim and what it argues against are stated in the writer's own words</td><td>Summarizes the reading section by section</td></tr>
+          <tr><td><strong>The case</strong></td><td class="num">9</td><td>A specific situation, described concretely enough to disagree with, and a verdict on whether the claim holds there</td><td>A generic example (“in self-driving cars…”)</td></tr>
+          <tr><td><strong>What would change your mind</strong></td><td class="num">3</td><td>Names evidence that would change the writer's mind</td><td>“Nothing, the reading is convincing”</td></tr>
+          <tr><td><strong>Precision</strong></td><td class="num">2</td><td>Terms used correctly; no claim stronger than the reading supports</td><td>Confuses admissibility with consistency, or optimality with completeness</td></tr>
         </tbody>
       </table>
+      <p>The difference between a strong and a full-marks reflection is almost always the case: whether the situation is specific enough that I could say “no, that is not what happens there.”</p>
     </section>
 
-    <section>
-      <h2>How reflections are marked</h2>
-      <table class="tbl">
-        <caption>Each reflection is worth 1.5%, and the case carries 45% of that.</caption>
-        <thead>
-          <tr><th scope="col">Criterion</th><th scope="col" class="num">Weight</th><th scope="col">A strong submission</th><th scope="col">A weak one</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Restatement</strong></td>
-            <td class="num">30%</td>
-            <td>The claim and its target are stated in the writer's own words, and the
-              target is named</td>
-            <td>Summarises the chapter section by section</td>
-          </tr>
-          <tr>
-            <td><strong>The case</strong></td>
-            <td class="num">45%</td>
-            <td>A specific situation, described concretely enough to disagree with, and a
-              verdict on whether the claim holds there</td>
-            <td>A generic example ("in self-driving cars…")</td>
-          </tr>
-          <tr>
-            <td><strong>Falsification</strong></td>
-            <td class="num">15%</td>
-            <td>One sentence naming evidence that would change the writer's mind</td>
-            <td>"Nothing — the chapter is convincing"</td>
-          </tr>
-          <tr>
-            <td><strong>Precision</strong></td>
-            <td class="num">10%</td>
-            <td>Terms used correctly; no claim stronger than the chapter supports</td>
-            <td>Confuses admissibility with consistency, optimality with completeness</td>
-          </tr>
-        </tbody>
-      </table>
-      <p>
-        Reflections are marked out of four levels rather than finely: full marks, strong,
-        adequate, and not yet. The difference between the top two is almost always the
-        case — whether the situation is specific enough that I could say "no, that is not
-        what happens there".
-      </p>
+    <section aria-labelledby="rules-h">
+      <h2 id="rules-h">Late work and help</h2>
+      <p>The course late policy applies: a late reflection loses 10% per day for up to three days and is not accepted after that. If something makes a deadline impossible, write to me before it passes.</p>
+      <p>You may talk about the reading with classmates before you write. The writing must be your own.</p>
     </section>
 
-    <section>
-      <h2>Rules</h2>
-      <p>
-        Four hundred words, ±40. Submit as text or PDF by 11:59 p.m. Sunday of the week;
-        late reflections lose 10% per day for up to three days,
-        after which they are not accepted at all, because their purpose is to prepare you
-        for a discussion that has already happened.
-      </p>
-      <p>
-        Discussion is welcome — talk about the reading with classmates before you write.
-        The writing must be yours. AI assistants may be used to check your understanding or
-        to find a paper you half-remember; they may not write the reflection or supply the
-        case. If a reflection reads as though no one who was in the room wrote it, we will
-        talk about it.
-      </p>
-      <p>
-        The online section submits the same reflections on the same nights and posts one
-        question about the recorded lecture on the discussion board in place of speaking. That question counts toward
-        participation, not toward the reflection.
-      </p>
-    </section>
-
-    <section>
-      <h2>Check yourself before submitting</h2>
+    <section aria-labelledby="check-h">
+      <h2 id="check-h">Check before you submit</h2>
       <ul class="objectives">
-        <li>Could a classmate who read the chapter learn something from this?</li>
-        <li>Is your case specific enough that someone could disagree with your verdict on it?</li>
+        <li>Does it answer the question in the table, about the reading in the table?</li>
+        <li>Is it 360 to 440 words, with your name, the reflection number and the word count at the top?</li>
         <li>Did you name what the reading argues against, not just what it argues?</li>
-        <li>Have you used "admissible", "consistent", "complete" and "optimal" correctly?</li>
-        <li>Is there one sentence that says what would change your mind?</li>
+        <li>Is your case specific enough that someone could disagree with your verdict on it?</li>
+        <li>Is there a sentence that says what would change your mind?</li>
+        <li>Did you add the one-line AI note?</li>
       </ul>
     </section>
 
   </main>
 
   <footer>
-    <p>CS 5700 · Reading reflections · Eight submissions, 12% of the course grade · Spring 2027</p>
+    <p>CS 5700 · Reading reflections · Eight submissions, 10% of the course grade · Spring 2027</p>
   </footer>
 
 </div>

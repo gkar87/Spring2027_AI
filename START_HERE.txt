@@ -10,9 +10,9 @@ START HERE
    the pages link to each other and to the assets folder.
 
 2. Open the course home
-   Open index.html in the extracted folder. It has the syllabus, the
-   fifteen-week schedule and a link to every module's slides, every lab, the
-   capstone, the reflections and the paper critiques.
+   Open index.html in the extracted folder. It has the schedule and a link to
+   every module's slides, playground, lab, reflection and paper critique, and
+   to both exams. syllabus.html has the grading and the course policies.
 
 3. In week 1: set up Python
    The labs need Python 3.11 or newer with NumPy, on your own computer or in a
@@ -27,22 +27,21 @@ START HERE
    save it as a PDF) and the reading on the schedule. Section 01 meets on
    Fridays, 8:30 to 11:10 a.m. CT, at the Missouri Innovation Campus (MIC);
    the room will be announced. Section 02 follows the recorded lecture posted
-   for the week. Both sections post to the week's discussion, which closes on
-   Friday.
+   for the week. There is no discussion board and no participation grade.
 
 5. Submitting work
-   Submit labs, reflections, critiques and capstone work through the course
-   management system. Each lab sheet says what to hand in and how to check
-   your own output before you submit. Read the course's policy on AI tools on
-   the course home before lab 1: use is allowed for some tasks and must always
-   be disclosed.
+   Submit labs, reflections and critiques in Brightspace. Each lab sheet says
+   what to hand in and how to check your own output, and
+   reflections/index.html says what to read and write for each reflection.
+   Read the policy on AI tools in syllabus.html before lab 1: use is allowed
+   for some tasks and must always be disclosed. Grades: reflections 10%, labs
+   30%, paper critiques 10%, midterm 20%, final exam 30%.
 
 6. Deadlines
    Sunday, 11:59 p.m. Central, unless the assignment says otherwise. Labs,
-   reflections, critiques and the capstone proposal and checkpoint lose 10%
-   per day for up to three days, then are not accepted. There are no free late
-   days. The midterm, the capstone report and the capstone presentation have
-   fixed dates: if one is impossible for you, contact Dr. Kar before it.
+   reflections and critiques lose 10% per day for up to three days, then are
+   not accepted. There are no free late days. The midterm and the final exam
+   have fixed dates: if one is impossible for you, contact Dr. Kar before it.
 
 7. Midterm
    Friday, March 5, 8:30 to 10:30 a.m. CT, on modules 1 to 7. Section 01 sits
@@ -51,11 +50,12 @@ START HERE
    out with the exam. No calculators. A practice midterm with answers is in
    weeks/week08/practice.html.
 
-8. Capstone
-   The capstone runs through the second half of the term, with a proposal, a
-   checkpoint, a report and a presentation in class during finals week, May 3
-   to 7. The capstone pages (capstone/index.html) have each milestone's
-   requirements.
+8. Final exam
+   Friday, May 7, 8:30 to 10:30 a.m. CT, in finals week, on the whole course
+   weighted to modules 9 to 15. Section 01 sits it at MIC; Section 02 takes it
+   in Brightspace at the same time, proctored. The final exam page
+   (weeks/week15/final-exam.html) has the parts, what to bring and the formula
+   sheet.
 
 Using the slides
 ----------------
@@ -68,6 +68,6 @@ double-click; nothing needs a server.
 Getting help
 ------------
 Office hours: Tuesday and Wednesday, 12:00 to 3:00 p.m., MIC room D159.
-Questions about a lab: post in the course discussion, so classmates can see
-the answer, or email kar@ucmo.edu.
+Questions about a lab or anything else: ask in class or office hours, or email
+kar@ucmo.edu.
 

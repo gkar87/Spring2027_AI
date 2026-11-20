@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 6 Playground · CS 5700</title>
+<meta name="description" content="CS 5700 week 6 playground: value iteration on a 4 by 3 grid world, one sweep at a time, with adjustable discount, noise and living reward, and six checked exercises.">
+<link rel="stylesheet" href="../../assets/course.css">
+<link rel="stylesheet" href="../../assets/playground.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the playground</a>
+
+<div class="doc">
+<header class="doc-masthead">
+  <p class="inst"><span>CS 5700 · Artificial Intelligence</span><span>Week 6 · Friday, February 19, 2027</span><span><a href="../../index.html">Course home</a></span></p>
+  <h1>Week 6 playground: value iteration</h1>
+  <p class="tagline">Watch value iteration fill in a grid world one Bellman backup at a time, then change the discount, the noise and the cost of living and see the policy change with them.</p>
+</header>
+
+<div class="pg-bar">
+  <p class="pg-status" data-state="ready"><span class="dot" aria-hidden="true"></span><span class="txt">Runs in your browser; nothing is sent anywhere.</span></p>
+  <p class="pg-progress" id="pg-progress">Exercises solved: <strong>0 of 6</strong></p>
+  <a class="btn" href="index.html">Week 6 slides</a>
+</div>
+
+<main id="main">
+
+<section id="how" aria-labelledby="how-h">
+  <h2 id="how-h">How to use this page</h2>
+  <ul>
+    <li>Set the discount, the noise and the living reward, then press <strong>One sweep</strong> to apply one round of value iteration, or run until the values stop changing. Arrows show the greedy action for the current values. Changing a parameter resets the values to 0.</li>
+    <li>Each exercise has a <strong>Check answer</strong> button (or press <kbd>Enter</kbd> in a box). Numbers may be rounded to three decimal places or written as a fraction. Work them on paper first: the exams ask the same kind of question with no explorer to help.</li>
+    <li>Solved exercises are remembered in this browser only. Nothing here is graded.</li>
+  </ul>
+</section>
+
+<section id="explorer" aria-labelledby="explorer-h">
+  <h2 id="explorer-h">The value iteration explorer</h2>
+  <p>The grid world from the week 6 slides: four columns and three rows, numbered from the bottom left, so the start square is (col 1, row 1), the +1 exit is (col 4, row 3) and the −1 exit is (col 4, row 2). Square (col 2, row 2) is a wall. A move goes where it was meant with probability 1 − noise, and to each side with probability noise ÷ 2; a move into a wall or off the grid stays put. Each move from an ordinary square earns the living reward; exits keep their value. One sweep applies the Bellman update to every square at once, using the values from the previous sweep.</p>
+  <div class="explorer" data-explorer="mdp" data-grid="...+/.#.-/....">
+    <h3>Set the parameters, then sweep</h3>
+  </div>
+</section>
+
+<section id="exercises" aria-labelledby="ex-h">
+  <h2 id="ex-h">Exercises</h2>
+  <p>Exercises 1 and 2 are worth doing by hand first, then checking with One sweep.</p>
+  <div class="cell cell--ex" data-ex="w6e1">
+    <div class="cell-head"><span class="cell-title">Exercise 1</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>With γ = 0.9, noise 0.2 and living reward 0 (the defaults), press One sweep once. What is the value of square (col 3, row 3), next to the +1 exit?</p></div>
+    <div class="answers"><label>V after one sweep <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.72"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Before the sweep every ordinary square is 0. Moving east reaches the exit with probability 0.8.</p></details>
+    <details><summary>Show a solution</summary><p>Moving east: 0.8 × 0.9 × 1 + 0.1 × 0.9 × 0 + 0.1 × 0.9 × 0 = 0.72. No other action does better.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w6e2">
+    <div class="cell-head"><span class="cell-title">Exercise 2</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>After the second sweep, what is the value of square (col 3, row 2), the one below it?</p></div>
+    <div class="answers"><label>V after two sweeps <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.4284"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Its best action is north. With noise, it slips east into the −1 exit with probability 0.1, and west into the wall with probability 0.1, which leaves it in place (value 0 after one sweep).</p></details>
+    <details><summary>Show a solution</summary><p>0.8 × 0.9 × 0.72 + 0.1 × 0.9 × (−1) + 0.1 × 0.9 × 0 = 0.5184 − 0.09 = 0.4284.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w6e3">
+    <div class="cell-head"><span class="cell-title">Exercise 3</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Press Run until change &lt; 0.001 with the defaults. What is the value of the start square (col 1, row 1)?</p></div>
+    <div class="answers"><label>V(1,1) <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.491"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Reset first, then run. Read the bottom-left square.</p></details>
+    <details><summary>Show a solution</summary><p>About 0.491. It is less than 0.9<sup>5</sup> = 0.590, the value with no noise, because slips waste moves and each move is discounted.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w6e4">
+    <div class="cell-head"><span class="cell-title">Exercise 4</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>With the defaults, how many sweeps does it take until the largest change in a sweep is below 0.001?</p></div>
+    <div class="answers"><label>Sweeps <input type="text" inputmode="decimal" autocomplete="off" data-answer="15" data-tol="0"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Read the sweep count after Run until change &lt; 0.001.</p></details>
+    <details><summary>Show a solution</summary><p>15. The error shrinks by at least a factor of γ = 0.9 each sweep, so fewer sweeps are needed with a smaller γ.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w6e5">
+    <div class="cell-head"><span class="cell-title">Exercise 5</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Set noise to 0 (γ = 0.9, living reward 0) and run to convergence. What is the value of the start square now?</p></div>
+    <div class="answers"><label>V(1,1) <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.59"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>With no noise the shortest route to +1 has 5 moves after the first; count the discounts.</p></details>
+    <details><summary>Show a solution</summary><p>0.9<sup>5</sup> ≈ 0.590: the agent reaches the exit square in five moves and then collects +1, discounted once per move.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w6e6">
+    <div class="cell-head"><span class="cell-title">Exercise 6</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Set the living reward to −2 (γ = 0.9, noise 0.2) and run to convergence. What is the best move from square (col 3, row 2)?</p></div>
+    <div class="answers"><label>Best move <select data-answer="E"><option value="">Choose one</option><option value="N">north, toward +1</option><option value="E">east, into the −1 exit</option><option value="W">west, into the wall</option><option value="S">south</option></select></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Every move now costs 2. Compare a −1 exit now with several more moves at −2 each.</p></details>
+    <details><summary>Show a solution</summary><p>East, into the −1 exit. Living is so costly that ending the episode at −1 beats the expected cost of reaching +1; the arrows show the agent heading for the nearest exit of either sign.</p></details>
+  </div>
+
+</section>
+</main>
+
+<footer>
+  <p>CS 5700 · Week 6 playground · Spring 2027. Built to meet WCAG 2.1 AA; if something is hard to use, please tell me.</p>
+</footer>
+</div>
+<script src="../../assets/aiplay-core.js"></script>
+<script src="../../assets/aiplay.js"></script>
+</body>
+</html>

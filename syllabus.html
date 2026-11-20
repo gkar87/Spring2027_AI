@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Syllabus · CS 5700 Artificial Intelligence · Spring 2027</title>
+<meta name="description" content="Syllabus for CS 5700 Artificial Intelligence, Spring 2027, University of Central Missouri: outcomes, how a week works, grading, exams, course policies, AI use and accessibility.">
+<link rel="stylesheet" href="assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the syllabus</a>
+
+<div class="doc">
+
+  <header class="doc-masthead">
+    <p class="inst">
+      <span>University of Central Missouri</span>
+      <span>School of Computer Science and Cybersecurity</span>
+      <span><a href="index.html">Course home</a></span>
+    </p>
+    <h1>CS 5700 Artificial Intelligence: syllabus</h1>
+    <p class="tagline">Everything about how the course runs. The weeks, slides and labs are on the <a href="index.html">course home</a>; the dates are in its schedule.</p>
+    <p class="instructor">
+      <strong>Dr. Gorkem Kar</strong>
+      <span>Section 01, face to face · Section 02, online</span>
+      <span>Spring 2027</span>
+    </p>
+  </header>
+
+  <nav class="toc" aria-labelledby="toc-h">
+    <h2 id="toc-h">On this page</h2>
+    <ol>
+      <li><a href="#glance">Course at a glance</a></li>
+      <li><a href="#description">Description and outcomes</a></li>
+      <li><a href="#how">How a week works</a></li>
+      <li><a href="#grading">Assessment and grading</a></li>
+      <li><a href="#exams">Examinations</a></li>
+      <li><a href="#policy">Course policies</a></li>
+      <li><a href="#ai-use">Policy on AI tools</a></li>
+      <li><a href="#access">Accessibility and accommodations</a></li>
+      <li><a href="#resources">Support resources</a></li>
+    </ol>
+  </nav>
+
+  <main id="main">
+
+    <section id="glance" aria-labelledby="glance-h">
+      <h2 id="glance-h">Course at a glance</h2>
+
+      <dl class="facts">
+        <div>
+          <dt>Course</dt>
+          <dd>CS 5700 · Sections 01 and 02</dd>
+        </div>
+        <div>
+          <dt>Title</dt>
+          <dd>Artificial Intelligence</dd>
+        </div>
+        <div>
+          <dt>Credit hours</dt>
+          <dd>3 graduate hours</dd>
+        </div>
+        <div>
+          <dt>Term</dt>
+          <dd>Spring 2027</dd>
+        </div>
+        <div>
+          <dt>Classes begin</dt>
+          <dd>Mon, Jan 11</dd>
+        </div>
+        <div>
+          <dt>Classes end</dt>
+          <dd>Fri, Apr 30</dd>
+        </div>
+        <div>
+          <dt>Final exam</dt>
+          <dd>Fri, May 7, 8:30–10:30 a.m. CT</dd>
+        </div>
+        <div>
+          <dt>Delivery</dt>
+          <dd>In person + online</dd>
+        </div>
+        <div>
+          <dt>Class</dt>
+          <dd>Fridays 8:30–11:10 a.m. CT, Missouri Innovation Campus (MIC), room to be announced</dd>
+        </div>
+        <div>
+          <dt>Office hours</dt>
+          <dd>Tue and Wed 12:00–3:00 p.m., MIC D159</dd>
+        </div>
+        <div>
+          <dt>Contact</dt>
+          <dd><a href="mailto:kar@ucmo.edu">kar@ucmo.edu</a> · (660) 543-6612</dd>
+        </div>
+      </dl>
+
+      <div class="note note--info">
+        <p>
+          <strong>Two sections, one course.</strong> Section 01 meets face to face on
+          Fridays, 8:30–11:10 a.m., at the Missouri Innovation Campus (MIC); the room
+          will be announced before classes begin. Section 02 is fully online and
+          follows a recorded lecture of the same material. Both sections use the
+          same modules, the same deadlines, the same exams, and the same grading
+          standards — the difference is where you sit, not what you learn. There is no
+          separate workshop and no discussion board.
+        </p>
+      </div>
+
+      <h3>Prerequisites</h3>
+      <p>
+        Graduate standing in computer science, data science, or a related program, or
+        consent of the instructor.         You should be able to write and debug short
+        Python programs; if your Python is rusty, the
+        <a href="labs/index.html">labs page</a> lists free tutorials to start in week 1, and you should have seen basic data structures, probability, and
+        matrix algebra before. Students who need a refresher on the mathematics will
+        find a short optional primer in Module 1; it is not graded and it is enough to
+        start the course.
+      </p>
+
+      <h3>Textbook and materials</h3>
+      <ul>
+        <li>
+          <strong>Required:</strong> Russell and Norvig,
+          <em>Artificial Intelligence: A Modern Approach</em>, 4th edition. Chapters
+          are assigned per module; the 3rd edition works for most topics with a
+          different chapter numbering, and I will flag the differences.
+        </li>
+        <li>
+          <strong>Recommended:</strong> Sutton and Barto,
+          <em>Reinforcement Learning: An Introduction</em>, 2nd edition — free from the
+          authors — for Modules 6 and 7.
+        </li>
+        <li>
+          <strong>Papers:</strong> six primary research papers, read in the original,
+          listed in the schedule. All are open access or available through the UCM
+          library.
+        </li>
+        <li>
+          <strong>Software:</strong> Python 3.11 or newer with NumPy, and a free
+          Google Colab or GitHub Codespaces account. No paid software is required
+          anywhere in this course.
+        </li>
+      </ul>
+    </section>
+
+    <section id="description" aria-labelledby="desc-h">
+      <h2 id="desc-h">Description and outcomes</h2>
+
+      <p>
+        This course covers the ideas and techniques underlying the design of
+        intelligent computer systems. We begin with the question of what makes an
+        agent rational, then build the classical toolkit — search, constraint
+        satisfaction, adversarial search, and decision processes — before turning to
+        learning: reinforcement learning, probabilistic inference, supervised and
+        deep learning, and the transformer models that now sit behind most deployed
+        AI. The final third of the course is about judgement: how to evaluate a
+        system honestly, how it fails, and what obligations follow from deploying it.
+      </p>
+
+      <p>
+        The course is graduate-level in its expectations rather than its prerequisites.
+        Where an undergraduate survey would stop at &ldquo;A* is optimal,&rdquo; we
+        prove it and then ask when the proof's assumptions break. Where a survey would
+        show a neural network training, we derive the gradient, discuss what the loss
+        function actually encodes, and examine what the reported accuracy does and does
+        not measure.
+      </p>
+
+      <p>
+        The course is assessed by reading reflections, programming labs, two paper
+        critiques, a midterm examination and a comprehensive final examination.
+      </p>
+
+      <h3>What you will be able to do</h3>
+      <ol>
+        <li>
+          Formulate a real problem as a state space, a constraint model, or a Markov
+          decision process, and justify the formulation you chose.
+        </li>
+        <li>
+          Select and analyze a search or optimization algorithm using completeness,
+          optimality, time and space complexity, and the properties of the heuristic
+          you supply.
+        </li>
+        <li>
+          Derive and implement value iteration, policy iteration, temporal-difference
+          learning, and policy-gradient methods, and explain the assumptions each one
+          makes.
+        </li>
+        <li>
+          Represent uncertain knowledge as a Bayesian network, reason about
+          conditional independence, and perform exact and approximate inference.
+        </li>
+        <li>
+          Train, regularize, and diagnose classical and deep models, and report
+          performance with uncertainty rather than a single number.
+        </li>
+        <li>
+          Explain how transformer language models are built and adapted, and design an
+          evaluation that would actually detect the failures you care about.
+        </li>
+        <li>
+          Read a research paper in the field critically: identify its claim, its
+          evidence, its baselines, and the conditions under which the claim would not
+          hold.
+        </li>
+        <li>
+          Assess an AI system for safety, fairness, privacy, and legal exposure, and
+          write a recommendation a non-technical decision maker could act on.
+        </li>
+      </ol>
+    </section>
+
+    <section id="how" aria-labelledby="how-h">
+      <h2 id="how-h">How a week works, in either section</h2>
+
+      <p>
+        The rhythm is the same every week and in both sections, so you can plan a term
+        around it. The only differences between Section 01 and Section 02 are whether you
+        attend the Friday class in person or follow the recorded lecture, and how the two
+        exams are delivered.
+      </p>
+
+      <div class="fig-scroll" tabindex="0" role="region" aria-label="What differs between the two sections">
+      <table class="tbl">
+        <caption>What differs between the two sections. Everything this table does not list is identical.</caption>
+        <thead>
+          <tr>
+            <td></td>
+            <th scope="col">Section 01, face to face</th>
+            <th scope="col">Section 02, online</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Weekly class</th>
+            <td>Fridays 8:30–11:10 a.m., MIC, room to be announced</td>
+            <td>A recorded lecture of the same material, posted for the week</td>
+          </tr>
+          <tr>
+            <th scope="row">Midterm</th>
+            <td>In person at MIC, Friday, March 5, 8:30–10:30 a.m.</td>
+            <td>Proctored online, same date, same time</td>
+          </tr>
+          <tr>
+            <th scope="row">Final exam</th>
+            <td>In person at MIC, Friday, May 7, 8:30–10:30 a.m.</td>
+            <td>Proctored in Brightspace, same date, same time</td>
+          </tr>
+          <tr>
+            <th scope="row">Office hours</th>
+            <td>Tuesday and Wednesday 12:00–3:00 p.m., MIC D159</td>
+            <td>The same hours in MIC D159, or by appointment</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        A student in either section may use the other section's format when it helps:
+        a face-to-face student who is travelling can follow the recorded lecture, and an
+        online student who happens to be near MIC can join the Friday class. Tell me in
+        advance.
+      </p>
+
+      <ol class="steps">
+        <li>
+          <span class="n" aria-hidden="true">1</span>
+          <div>
+            <strong>Monday: the week opens</strong>
+            <p>
+              The week's slides, the reading, and the week's lab or reflection appear
+              together on the <a href="index.html#weeks">course home</a>. Budget six to eight
+              hours of study across the week for a 3-credit graduate course.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">2</span>
+          <div>
+            <strong>Friday, 8:30–11:10 a.m. Central: class</strong>
+            <p>
+              The lecture, a worked problem, and open questions. Section 01 meets at MIC;
+              Section 02 watches the recorded lecture of the same material during the week.
+              Weeks 3, 6, 10 and 13 also have a playground: exercises that run in your
+              browser and check your answers.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">3</span>
+          <div>
+            <strong>Sunday, 11:59 p.m. Central: the week's work is due</strong>
+            <p>
+              A <a href="labs/index.html">lab</a> or a <a href="reflections/index.html">reading reflection</a>,
+              and twice in the term a <a href="critiques/index.html">paper critique</a>, submitted
+              in Brightspace. Written work is returned within seven days.
+            </p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="note">
+        <p>
+          <strong>Week 8 is the one exception.</strong> There is no lecture that week
+          and no new reading: the midterm examination replaces the module. The
+          <a href="weeks/week08/index.html">exam briefing</a> has the scope, format,
+          sample questions, and the arrangements for each section.
+        </p>
+      </div>
+
+      <h3>University dates that matter to you</h3>
+      <table class="tbl tbl--compact">
+        <caption>Selected Spring 2027 deadlines from the UCM academic calendar.</caption>
+        <thead>
+          <tr><th scope="col">Date</th><th scope="col">What happens</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="date">Jan 14</td><td>Last day to add or change a full-semester class; last day for a 100% refund.</td></tr>
+          <tr><td class="date">Jan 18</td><td>Martin Luther King Jr. holiday — classes dismissed, offices closed.</td></tr>
+          <tr><td class="date">Mar 8–12</td><td>Spring break.</td></tr>
+          <tr><td class="date">Mar 19</td><td><strong>Last day to drop a full-semester class.</strong></td></tr>
+          <tr><td class="date">Apr 30</td><td>Last day of spring semester classes.</td></tr>
+          <tr><td class="date">May 3–7</td><td>Final examinations.</td></tr>
+          <tr><td class="date">May 11</td><td>Final grades due at noon.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <p>
+          <strong>Time zone.</strong> All deadlines are Central Time. Missouri
+          observes daylight saving time, which begins March 14, 2027 — deadlines after
+          that date shift by one hour for anyone outside North America.
+        </p>
+      </div>
+    </section>
+
+    <section id="grading" aria-labelledby="grading-h">
+      <h2 id="grading-h">Assessment and grading</h2>
+
+      <div class="fig-scroll" tabindex="0" role="region" aria-label="Graded components">
+      <table class="tbl">
+        <caption>Graded components. Weights total 100%. There is no participation grade.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Component</th>
+            <th scope="col">Count</th>
+            <th scope="col" class="num">Weight</th>
+            <th scope="col">What it measures</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="reflections/index.html">Reading reflections</a></td>
+            <td>8, 1.25% each</td>
+            <td class="num">10%</td>
+            <td>Whether you can restate an argument and test it against a case</td>
+          </tr>
+          <tr>
+            <td><a href="labs/index.html">Programming labs</a></td>
+            <td>6, 5% each</td>
+            <td class="num">30%</td>
+            <td>Whether you can make the algorithm work and explain the result</td>
+          </tr>
+          <tr>
+            <td><a href="critiques/index.html">Paper critiques</a></td>
+            <td>2, 5% each</td>
+            <td class="num">10%</td>
+            <td>Whether you can judge evidence rather than accept a claim</td>
+          </tr>
+          <tr>
+            <td><a href="weeks/week08/index.html">Midterm examination</a> (week 8, modules 1–7)</td>
+            <td>1</td>
+            <td class="num">20%</td>
+            <td>Fluency with the first half's formal machinery</td>
+          </tr>
+          <tr>
+            <td><a href="weeks/week15/final-exam.html">Final examination</a> (finals week, comprehensive)</td>
+            <td>1</td>
+            <td class="num">30%</td>
+            <td>Whether you can use the whole course: calculate, argue, and design a system you could defend</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Grade scale</h3>
+      <p>
+        A 90–100 · B 80–89 · C 70–79 · D 60–69 · F below 60, the scale in the department's
+        master syllabus. Graduate credit in the School of Computer Science requires a grade
+        of B or better in each course counted toward the degree; a C earns credit hours but
+        may trigger a program review, and it does not satisfy a required course.
+      </p>
+
+      <h3>Late work</h3>
+      <p>
+        Late labs, reflections and critiques lose <strong>10% per day, for up to three
+        days</strong>. After three days they are not accepted. There are no free late days.
+        The two exams have fixed dates; see below.
+      </p>
+
+      <h3>Labs</h3>
+      <p>
+        Labs are individual work, except lab 6, where pairs may build the system
+        together and each partner submits an individual report. You may discuss
+        approaches with classmates, and you must cite any code, derivation, or dataset
+        you did not write yourself. Each lab includes a written report of four to seven
+        pages, worth between a fifth and a third of the lab grade, depending on the lab;
+        each lab's rubric states the split. A working implementation that never explains
+        its results tops out in the C range.
+      </p>
+    </section>
+
+    <section id="exams" aria-labelledby="exams-h">
+      <h2 id="exams-h">Examinations</h2>
+      <ul>
+        <li><strong>Midterm:</strong> Friday, March 5, 8:30–10:30 a.m. CT, modules 1–7, 100 points. The <a href="weeks/week08/index.html">week 8 briefing</a> and the <a href="weeks/week08/practice.html">practice midterm</a> show the format.</li>
+        <li><strong>Final:</strong> Friday, May 7, 8:30–10:30 a.m. CT, in finals week, the whole course weighted to modules 9–15, 100 points. The <a href="weeks/week15/final-exam.html">final exam page</a> has the parts, what to bring and the formula sheet.</li>
+        <li>Both exams are closed book, with one handwritten 8.5 × 11 in sheet of notes, both sides, and the formula sheet provided. No calculators, phones or AI assistants.</li>
+        <li>If illness or an emergency makes an exam date impossible, tell me before the exam if you possibly can. A make-up is given for a documented reason; an incomplete grade is possible where the situation warrants one.</li>
+      </ul>
+    </section>
+
+    <section id="policy" aria-labelledby="policy-h">
+      <h2 id="policy-h">Course policies</h2>
+
+      <h3>Academic integrity</h3>
+      <p>
+        Collaboration on understanding is encouraged; collaboration on submitted work
+        is not, except where an assignment says otherwise. Presenting another person's
+        code or writing as your own, reusing a submission from another course, or
+        fabricating results is a violation of the UCM academic honesty policy and will
+        be handled according to it, which can include a failing grade for the course.
+        If you are unsure whether a particular form of help is allowed, ask before you
+        submit rather than after.
+      </p>
+
+      <h3>Attendance</h3>
+      <p>
+        Section 01 is expected to attend the Friday class, and Section 02 to watch each
+        week's recorded lecture before that week's work is due. Attendance is not graded,
+        but the exams assume everything shown in class. If you miss a class, watch its
+        recording; if you will miss an exam, see <a href="#exams">Examinations</a>.
+      </p>
+
+      <h3>Communication</h3>
+      <p>
+        There is no discussion board in this course. Questions about the material are
+        best asked in class or office hours; everything else, including accommodations,
+        illness, extensions and grading questions, goes to me by email, and I reply within
+        one business day at <a href="mailto:kar@ucmo.edu">kar@ucmo.edu</a>. My office
+        phone is (660) 543-6612. Office hours are Tuesday and Wednesday, 12:00–3:00 p.m.,
+        in MIC D159, and by appointment.
+      </p>
+
+      <h3>Recording and privacy</h3>
+      <p>
+        Lecture recordings are provided for your own study and may not be redistributed.
+        The recorded lecture for Section 02 is made separately in my office, so the
+        Friday class and the questions asked in it are not recorded. Student audio and
+        video are never recorded without explicit permission.
+      </p>
+
+      <h3>Religious observance and university activities</h3>
+      <p>
+        If a religious observance or a documented university activity conflicts with a
+        deadline, tell me within the first two weeks of the term and we will arrange an
+        equivalent alternative.
+      </p>
+    </section>
+
+    <section id="ai-use" aria-labelledby="aiuse-h">
+      <h2 id="aiuse-h">Policy on AI tools</h2>
+
+      <p>
+        You are learning to build these systems, so a blanket ban would be both
+        unenforceable and intellectually dishonest. The rule is about disclosure and
+        about what you can defend, not about which tool you opened.
+      </p>
+
+      <table class="tbl">
+        <caption>What is permitted, by task type.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Work</th>
+            <th scope="col">Generative AI allowed?</th>
+            <th scope="col">What you must do</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Reading reflections and paper critiques</td>
+            <td>For brainstorming and grammar only</td>
+            <td>Disclose use in a one-line note. The argument and the judgement must be yours.</td>
+          </tr>
+          <tr>
+            <td>Programming labs</td>
+            <td>For debugging help and explaining errors</td>
+            <td>Disclose the tool and the prompt topic. You must be able to explain every line you submit.</td>
+          </tr>
+          <tr>
+            <td>Midterm and final examinations</td>
+            <td>No</td>
+            <td>Closed book, no assistants. Using one is an integrity violation.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        Two things follow, and I will hold to both. First, an unacknowledged use is an
+        integrity violation regardless of how small the use was. Second, if you cannot
+        explain your submission without the tool in front of you, you have not done the
+        assignment — and in an oral check I may ask you to do exactly that.
+      </p>
+    </section>
+
+    <section id="access" aria-labelledby="access-h">
+      <h2 id="access-h">Accessibility and accommodations</h2>
+
+      <p>
+        This course is built to meet the accessibility standard the university is
+        obligated to meet under Title II of the Americans with Disabilities Act: the
+        Web Content Accessibility Guidelines, version 2.1, level AA. The standard
+        applies to both sections, and both sections use the same material files, so an
+        accommodation arranged for one section works in the other. That is a floor,
+        not an achievement, and I would rather hear about a barrier than have you work
+        around one.
+      </p>
+
+      <h3>What is already in place</h3>
+      <ul>
+        <li>Every slide is real text, not an image of text, so it reads correctly with a screen reader and reflows at 200% zoom.</li>
+        <li>Every diagram carries a written description and a caption that states its point, not just its title.</li>
+        <li>Decks are fully keyboard operable: arrow keys move between slides, and slide changes are announced.</li>
+        <li>Colour is never the only signal; every highlighted element is also labelled.</li>
+        <li>Body text meets a 4.5:1 contrast ratio against its background, and the course uses a white background throughout.</li>
+        <li>All video is captioned and every recorded lecture has a transcript within five business days.</li>
+        <li>Documents are provided in their original formats so you can enlarge, recolour, or convert them.</li>
+      </ul>
+
+      <h3>Requesting an accommodation</h3>
+      <p>
+        Accommodations are arranged through the <strong>Office of Accessibility
+        Services</strong>, which will send me an accommodation letter. Contact them as
+        early in the term as you can; accommodations are not retroactive, but I will
+        work with you on anything that has already passed. You do not need to disclose
+        a diagnosis to me, and you never need to justify the request in class.
+      </p>
+
+      <h3>If something is not accessible</h3>
+      <p>
+        Tell me which material and what happened — a diagram a screen reader cannot
+        describe, a video without captions, a PDF that will not reflow. I will provide
+        an accessible alternative, normally within two business days, and fix the
+        source file so the next student does not hit it. You can also raise it with
+        Accessibility Services if you prefer not to come to me first.
+      </p>
+
+      <div class="note note--info">
+        <p>
+          <strong>Printing and PowerPoint.</strong> Each lecture deck prints to a
+          16:9 PDF directly from the browser: open the deck, press
+          <kbd>P</kbd> or use your browser's print command, and choose
+          &ldquo;Save as PDF.&rdquo; The page is already sized to 13.333 × 7.5 inches,
+          one slide per page, with no browser headers or footers if you turn them off
+          in the print dialog.
+        </p>
+      </div>
+    </section>
+
+    <section id="resources" aria-labelledby="res-h">
+      <h2 id="res-h">Support resources</h2>
+
+      <ul>
+        <li><strong>Office of Accessibility Services</strong> — accommodations, assistive technology, and alternative formats.</li>
+        <li><strong>James C. Kirkpatrick Library</strong> — research help, interlibrary loan, and access to the papers we read.</li>
+        <li><strong>Writing Center</strong> — feedback on the written component of labs, reflections and critiques.</li>
+        <li><strong>Student Health and Counseling</strong> — confidential support; use it before a crisis, not after one.</li>
+        <li><strong>Basic needs</strong> — if food, housing, or transportation insecurity is affecting your coursework, UCM has a food pantry and emergency funds. Tell me and I will point you to them without asking for details.</li>
+        <li><strong>Title IX</strong> — I am a responsible employee, which means I must report disclosures of sexual harassment, assault, or discrimination to the university's Title IX coordinator. Confidential support is available through Counseling Services.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CS 5700 — Artificial Intelligence · Spring 2027 · University of Central Missouri · Dr. Gorkem Kar.</p>
+  </footer>
+
+</div>
+</body>
+</html>

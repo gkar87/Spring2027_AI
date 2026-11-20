@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 10 Playground · CS 5700</title>
+<meta name="description" content="CS 5700 week 10 playground: exact inference by enumeration in the sprinkler network, explaining away and conditional independence, forward filtering in the umbrella HMM, and six checked exercises.">
+<link rel="stylesheet" href="../../assets/course.css">
+<link rel="stylesheet" href="../../assets/playground.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the playground</a>
+
+<div class="doc">
+<header class="doc-masthead">
+  <p class="inst"><span>CS 5700 · Artificial Intelligence</span><span>Week 10 · Friday, March 26, 2027</span><span><a href="../../index.html">Course home</a></span></p>
+  <h1>Week 10 playground: inference in Bayesian networks and HMMs</h1>
+  <p class="tagline">Query a four-variable Bayesian network by enumeration and see explaining away happen, then filter a hidden Markov model one day at a time. Six checked exercises.</p>
+</header>
+
+<div class="pg-bar">
+  <p class="pg-status" data-state="ready"><span class="dot" aria-hidden="true"></span><span class="txt">Runs in your browser; nothing is sent anywhere.</span></p>
+  <p class="pg-progress" id="pg-progress">Exercises solved: <strong>0 of 6</strong></p>
+  <a class="btn" href="index.html">Week 10 slides</a>
+</div>
+
+<main id="main">
+
+<section id="how" aria-labelledby="how-h">
+  <h2 id="how-h">How to use this page</h2>
+  <ul>
+    <li>In the Bayesian network, set any variable to observed true or false and read the updated probabilities of the others. In the HMM, add days with or without an umbrella and watch the belief move.</li>
+    <li>Each exercise has a <strong>Check answer</strong> button (or press <kbd>Enter</kbd> in a box). Numbers may be rounded to three decimal places or written as a fraction. Work them on paper first: the exams ask the same kind of question with no explorer to help.</li>
+    <li>Solved exercises are remembered in this browser only. Nothing here is graded.</li>
+  </ul>
+</section>
+
+<section id="bn" aria-labelledby="bn-h">
+  <h2 id="bn-h">A Bayesian network you can query</h2>
+  <p>Four binary variables. Cloudy has no parents; Sprinkler and Rain each depend on Cloudy; WetGrass depends on Sprinkler and Rain. The explorer answers every query by enumeration: it sums the rows of the full joint distribution that agree with the evidence, then normalizes.</p>
+  <div class="fig-scroll" tabindex="0" role="region" aria-label="Conditional probability tables">
+  <table class="tbl tbl--compact">
+    <caption>The network's conditional probability tables. A lower-case letter means the variable is true.</caption>
+    <thead><tr><th scope="col">Variable</th><th scope="col">Parents</th><th scope="col">Probability it is true</th></tr></thead>
+    <tbody>
+      <tr><td>Cloudy (C)</td><td>none</td><td>P(c) = 0.5</td></tr>
+      <tr><td>Sprinkler (S)</td><td>C</td><td>P(s | c) = 0.1 · P(s | ¬c) = 0.5</td></tr>
+      <tr><td>Rain (R)</td><td>C</td><td>P(r | c) = 0.8 · P(r | ¬c) = 0.2</td></tr>
+      <tr><td>WetGrass (W)</td><td>S, R</td><td>P(w | s, r) = 0.99 · P(w | s, ¬r) = 0.9 · P(w | ¬s, r) = 0.9 · P(w | ¬s, ¬r) = 0</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="explorer" data-explorer="bayes" data-net="sprinkler">
+    <h3>Set the evidence</h3>
+  </div>
+</section>
+
+<section id="hmm" aria-labelledby="hmm-h">
+  <h2 id="hmm-h">Filtering in a hidden Markov model</h2>
+  <p>The umbrella world from the reading. Each day it rains or it does not; you see only whether the director brings an umbrella. Rain persists: P(rain tomorrow | rain today) = 0.7 and P(rain tomorrow | no rain today) = 0.3. The umbrella appears with probability 0.9 on a rainy day and 0.2 on a dry one. Day 0 starts at P(rain) = 0.5. Each day the filter predicts with the transition model, then weights by the sensor model and normalizes.</p>
+  <div class="explorer" data-explorer="hmm">
+    <h3>Add days</h3>
+  </div>
+</section>
+
+<section id="exercises" aria-labelledby="ex-h">
+  <h2 id="ex-h">Exercises</h2>
+  <p>Exercises 1, 5 and 6 are good practice by hand; do them on paper first.</p>
+  <div class="cell cell--ex" data-ex="w10e1">
+    <div class="cell-head"><span class="cell-title">Exercise 1</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>With no evidence, what is P(WetGrass = true)?</p></div>
+    <div class="answers"><label>P(w) <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.6471"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Sum over Sprinkler and Rain: P(w) = Σ P(w | s, r) P(s, r), and P(s, r) needs Cloudy.</p></details>
+    <details><summary>Show a solution</summary><p>0.647. With no evidence set, the explorer shows it directly; by hand, P(s, r) = Σ<sub>c</sub> P(c) P(s | c) P(r | c), then weight by P(w | s, r).</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w10e2">
+    <div class="cell-head"><span class="cell-title">Exercise 2</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Observe WetGrass = true. What is P(Sprinkler = true | WetGrass = true)?</p></div>
+    <div class="answers"><label>P(s | w) <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.4298"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Set WetGrass to observed true and read Sprinkler.</p></details>
+    <details><summary>Show a solution</summary><p>0.430, up from the prior 0.3: wet grass is evidence for each of its causes.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w10e3">
+    <div class="cell-head"><span class="cell-title">Exercise 3</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Now also observe Rain = true. What is P(Sprinkler = true | WetGrass = true, Rain = true)?</p></div>
+    <div class="answers"><label>P(s | w, r) <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.1945"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Add the second observation. Did the sprinkler become more or less likely?</p></details>
+    <details><summary>Show a solution</summary><p>0.195, lower than 0.430: explaining away. Rain already accounts for the wet grass, so the sprinkler is less needed as an explanation. Sprinkler and Rain are dependent once their common effect is observed.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w10e4">
+    <div class="cell-head"><span class="cell-title">Exercise 4</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Observe Cloudy = true and Sprinkler = true. What is P(Rain = true)? Compare it with P(Rain = true | Cloudy = true).</p></div>
+    <div class="answers"><label>P(r | c, s) <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.8"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Try it with and without the Sprinkler observation.</p></details>
+    <details><summary>Show a solution</summary><p>0.8 both times. Given Cloudy, Rain and Sprinkler are independent: the fork Sprinkler ← Cloudy → Rain is blocked by observing Cloudy.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w10e5">
+    <div class="cell-head"><span class="cell-title">Exercise 5</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>In the umbrella HMM, start over and add one day with an umbrella. What is P(rain on day 1 | umbrella on day 1)?</p></div>
+    <div class="answers"><label>P(rain on day 1) <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.8182"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Predict: 0.5 × 0.7 + 0.5 × 0.3 = 0.5. Weight by 0.9 for rain and 0.2 for no rain, then normalize.</p></details>
+    <details><summary>Show a solution</summary><p>0.45 ÷ (0.45 + 0.10) = 9/11 ≈ 0.818.</p></details>
+  </div>
+  <div class="cell cell--ex" data-ex="w10e6">
+    <div class="cell-head"><span class="cell-title">Exercise 6</span><span class="solved-badge"></span></div>
+    <div class="cell-prompt"><p>Add a second day with an umbrella. What is P(rain on day 2 | umbrella on days 1 and 2)?</p></div>
+    <div class="answers"><label>Predicted P(rain on day 2) <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.6273"></label><label>Filtered P(rain on day 2) <input type="text" inputmode="decimal" autocomplete="off" data-answer="0.8834"></label></div>
+    <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
+    <div class="cell-out"></div>
+    <details><summary>Hint</summary><p>Predict from 0.818 with the transition model, then weight by the sensor model and normalize.</p></details>
+    <details><summary>Show a solution</summary><p>Predict: 0.818 × 0.7 + 0.182 × 0.3 ≈ 0.627. Weight: 0.627 × 0.9 = 0.565 and 0.373 × 0.2 = 0.075; normalized, 0.565 ÷ 0.640 ≈ 0.883.</p></details>
+  </div>
+
+</section>
+</main>
+
+<footer>
+  <p>CS 5700 · Week 10 playground · Spring 2027. Built to meet WCAG 2.1 AA; if something is hard to use, please tell me.</p>
+</footer>
+</div>
+<script src="../../assets/aiplay-core.js"></script>
+<script src="../../assets/aiplay.js"></script>
+</body>
+</html>

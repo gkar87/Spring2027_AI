@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Final Exam · CS 5700</title>
+<meta name="description" content="CS 5700 final examination, Spring 2027: date and time, what it covers, the four parts, what to bring, how to prepare, and the formula sheet handed out with it.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the content</a>
+<div class="doc">
+<header class="doc-masthead">
+  <p class="inst"><span>CS 5700 · Artificial Intelligence</span><span>Finals week</span><span><a href="../../index.html">Course home</a></span></p>
+  <h1>Final exam</h1>
+  <p class="tagline">One comprehensive exam in finals week, worth 30% of the course grade. It has the same four-part shape as the midterm, so the practice midterm is good practice for it.</p>
+</header>
+<dl class="facts">
+  <div><dt>When</dt><dd>Friday, May 7, 2027, 8:30–10:30 a.m. Central (finals week)</dd></div>
+  <div><dt>Length</dt><dd>120 minutes</dd></div>
+  <div><dt>Allowed</dt><dd>One handwritten 8.5 × 11 in sheet of notes, both sides, and the formula sheet handed out with the paper. No calculators, phones, books or AI assistants.</dd></div>
+  <div><dt>Covers</dt><dd>The whole course. About a fifth of the points are on modules 1–7 (search, games, MDPs, reinforcement learning); the rest are on modules 9–15.</dd></div>
+  <div><dt>Weight</dt><dd>100 points, 30% of the course grade</dd></div>
+</dl>
+<main id="main">
+<section id="where" aria-labelledby="where-h">
+<h2 id="where-h">Where and how</h2>
+<ul><li><strong>Section 01</strong> sits the exam on paper at MIC, in the Friday classroom unless I announce another room.</li><li><strong>Section 02</strong> takes the same questions in Brightspace at the same time, proctored, with the formula sheet open in another tab. You type your answers; for working that is easier by hand, you may write it on paper and type the key steps.</li><li>There is no calculator, so every number works out by hand. If the arithmetic turns ugly, check the setup first.</li><li>The points on each question are also a time budget, about 1.2 minutes a point. Leave Part D 25 minutes.</li><li>If something makes the date impossible, write to me <strong>before</strong> the exam; a make-up is arranged only for a documented reason, as the <a href="../../syllabus.html#exams">syllabus</a> says.</li></ul>
+</section>
+<section id="parts" aria-labelledby="parts-h">
+<h2 id="parts-h">The four parts</h2>
+<table class="tbl"><caption>Answer all of A, B and D, and two of the three questions in C.</caption><thead><tr><th scope="col">Part</th><th scope="col" class="num">Points</th><th scope="col">What it asks</th></tr></thead><tbody>
+<tr><td>A. Concepts</td><td class="num">24</td><td>Eight short answers, one to three sentences each, from across the course.</td></tr>
+<tr><td>B. Mechanics</td><td class="num">36</td><td>Four worked calculations: a Bayesian network query, HMM filtering, a learning or evaluation calculation, attention by hand.</td></tr>
+<tr><td>C. Arguments</td><td class="num">20</td><td>Two of three short proofs or derivations; you choose which two.</td></tr>
+<tr><td>D. Design</td><td class="num">20</td><td>One AI system to formulate, evaluate, make fair on purpose and deploy, argued in writing.</td></tr>
+</tbody></table>
+</section>
+<section id="topics" aria-labelledby="topics-h">
+<h2 id="topics-h">What it covers</h2>
+<ul>
+<li><strong>Modules 1–7 (about a fifth of the points):</strong> search and heuristics, games, MDPs, value and policy iteration, Q-learning and SARSA.</li>
+<li><strong>Modules 9–10:</strong> probability, Bayesian networks and independence, variable elimination, sampling, HMMs and particle filters.</li>
+<li><strong>Modules 11–12:</strong> generalization and evaluation, precision and recall, calibration, logistic regression, backpropagation, regularization.</li>
+<li><strong>Module 13:</strong> attention, transformers, positional information, how language models are trained and evaluated.</li>
+<li><strong>Modules 14–15:</strong> deployment and monitoring, fairness criteria and why they conflict, model cards, the NIST AI RMF.</li>
+</ul>
+</section>
+<section id="prepare" aria-labelledby="prep-h">
+<h2 id="prep-h">How to prepare</h2>
+<ol><li>Redo the <a href="../week08/practice.html">practice midterm</a> under time. Parts A to C of the final ask the same kinds of question.</li><li>Work the checked exercises in the playgrounds for <a href="../week03/playground.html">week 3</a>, <a href="../week06/playground.html">week 6</a>, <a href="../week10/playground.html">week 10</a> and <a href="../week13/playground.html">week 13</a>. Part B is calculations of exactly this kind, done by hand.</li><li>For Part D, take one system you know and answer the ten questions on the last slides of <a href="index.html">module 15</a> in writing, in about 25 minutes.</li><li>Write your note sheet yourself. Making it is most of its value.</li></ol>
+</section>
+<div id="formulas"><section class="keep" aria-labelledby="fs-h"><h2 id="fs-h">The formula sheet handed out with the exam</h2>
+<h3>Search and games</h3><ul><li>A*: f(n) = g(n) + h(n); admissible h(n) ≤ h*(n); consistent h(n) ≤ c(n, n′) + h(n′).</li><li>Alpha–beta: best case O(b<sup>d/2</sup>), worst case O(b<sup>d</sup>).</li></ul>
+<h3>Decisions and reinforcement learning</h3><ul><li>Bellman optimality: V*(s) = max<sub>a</sub> Σ<sub>s′</sub> T(s, a, s′)[R(s, a, s′) + γV*(s′)].</li><li>Q-learning: Q(s, a) ← Q(s, a) + α[r + γ max<sub>a′</sub> Q(s′, a′) − Q(s, a)].</li><li>SARSA: Q(s, a) ← Q(s, a) + α[r + γ Q(s′, a′) − Q(s, a)], with a′ the action actually taken.</li></ul>
+<h3>Probability and Bayesian networks</h3><ul><li>Product rule: P(a, b) = P(a | b) P(b). Bayes' rule: P(a | b) = P(b | a) P(a) / P(b).</li><li>Marginalization: P(a) = Σ<sub>b</sub> P(a, b). Normalization: P(X | e) = α P(X, e).</li><li>Network factorization: P(x<sub>1</sub>, …, x<sub>n</sub>) = Π<sub>i</sub> P(x<sub>i</sub> | parents(X<sub>i</sub>)). A binary node with k binary parents needs 2<sup>k</sup> numbers.</li><li>Forward filtering: f<sub>1:t+1</sub> = α P(e<sub>t+1</sub> | X<sub>t+1</sub>) Σ<sub>x<sub>t</sub></sub> P(X<sub>t+1</sub> | x<sub>t</sub>) f<sub>1:t</sub>.</li></ul>
+<h3>Learning</h3><ul><li>Precision = TP / (TP + FP). Recall (TPR) = TP / (TP + FN). FPR = FP / (FP + TN). Accuracy = (TP + TN) / N.</li><li>Sigmoid σ(z) = 1 / (1 + e<sup>−z</sup>). Log loss L = −[y log ŷ + (1 − y) log(1 − ŷ)].</li><li>Gradient descent: w ← w − η ∂L/∂w. ReLU(z) = max(0, z), with derivative 1 for z &gt; 0 and 0 for z &lt; 0.</li><li>Softmax: softmax(s)<sub>i</sub> = e<sup>s<sub>i</sub></sup> / Σ<sub>j</sub> e<sup>s<sub>j</sub></sup>.</li><li>Attention: Attention(Q, K, V) = softmax(QK<sup>⊤</sup> / √d<sub>k</sub>) V. Causal masking sets the scores of later positions to −∞.</li></ul>
+<h3>Useful numbers</h3><ul><li>√2 ≈ 1.414; 1/√2 ≈ 0.707; e<sup>0.707</sup> ≈ 2.03; e<sup>1</sup> ≈ 2.72; e<sup>1.414</sup> ≈ 4.11; e<sup>2</sup> ≈ 7.39.</li></ul>
+</section></div>
+</main>
+<footer><p>CS 5700 · Final exam · Spring 2027</p></footer>
+</div>
+</body>
+</html>
