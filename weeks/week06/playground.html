@@ -42,6 +42,18 @@
     <h3>Set the parameters, then sweep</h3>
   </div>
 </section>
+<section id="more" aria-labelledby="more-h">
+  <h2 id="more-h">More examples to try</h2>
+  <p>Two more grid worlds with the same controls. The exits are +1 and −1, as above.</p>
+  <h3>A cliff</h3>
+  <p>A five-by-three grid: the bottom row between the start corner and +1 is three −1 exits. Run until the values stop changing with noise 0, then with noise 0.2, then set the living reward to −2.</p>
+  <div class="explorer" data-explorer="mdp" data-label="Cliff grid values" data-grid="...../...../.---+" data-noise="0"></div>
+  <details><summary>What to notice</summary><p>With noise 0 the arrows in the middle row point east, along the edge of the cliff. With noise 0.2 they point north: a slip could drop the agent off the cliff, so it takes the longer route along the top. At −2 every arrow in the middle row points south, into the −1 exits, and the start corner steps east into one: ending at −1 beats paying −2 a move.</p></details>
+  <h3>A long hallway</h3>
+  <p>Ten squares and a +1 exit at the east end. Set the noise to 0 and press One sweep, a few times.</p>
+  <div class="explorer" data-explorer="mdp" data-label="Hallway values" data-grid="..........+" data-noise="0"></div>
+  <details><summary>What to notice</summary><p>Each sweep reaches one square further from the exit: after one sweep only the square next to +1 has a value (0.9), after three sweeps three squares do (0.73, 0.81, 0.9), and so on. Value iteration needs at least as many sweeps as the longest path to a reward.</p></details>
+</section>
 
 <section id="exercises" aria-labelledby="ex-h">
   <h2 id="ex-h">Exercises</h2>

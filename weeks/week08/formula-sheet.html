@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Midterm Formula Sheet · CS 5700</title>
+<meta name="description" content="The formula sheet printed as the last page of the CS 5700 midterm and attached to the online quiz.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the formulas</a>
+<div class="doc">
+<header class="doc-masthead">
+  <p class="inst"><span>CS 5700 · Artificial Intelligence</span><span>Week 8</span><span><a href="../../index.html">Course home</a></span></p>
+  <h1>Midterm formula sheet</h1>
+  <p class="tagline">What you get in the exam. Read it before the exam so you spend no time looking. The <a href="practice.html">practice midterm</a> uses the same sheet.</p>
+</header>
+<main id="main">
+<section class="formula-sheet" aria-labelledby="fs-h">
+      <h2 id="fs-h">The formulas</h2>
+      <p>This is the last page of the midterm, word for word, and the sheet attached to the Brightspace quiz. It has every formula the exam needs. Bring a pen and nothing else: no notes and no calculator.</p>
+      <ul class="formulas">
+        <li>Breadth-first: complete, optimal for unit cost, time and space O(b<sup>d</sup>).</li>
+        <li>Depth-first: complete only in finite spaces, not optimal, space O(bm).</li>
+        <li>Uniform cost: optimal, expands in order of g(n), time and space O(b<sup>1+⌊C*/ε⌋</sup>).</li>
+        <li>A*: f(n) = g(n) + h(n); admissible h ≤ h*; consistent h(n) ≤ c(n, n′) + h(n′).</li>
+        <li>Alpha–beta: best case O(b<sup>d/2</sup>), worst case O(b<sup>d</sup>).</li>
+        <li>Bellman expectation: V<sup>π</sup>(s) = Σ<sub>s′</sub> T(s, π(s), s′)[R(s, π(s), s′) + γV<sup>π</sup>(s′)].</li>
+        <li>Bellman optimality: V*(s) = max<sub>a</sub> Σ<sub>s′</sub> T(s, a, s′)[R(s, a, s′) + γV*(s′)].</li>
+        <li>Value iteration: V<sub>k+1</sub>(s) ← max<sub>a</sub> Σ<sub>s′</sub> T(s, a, s′)[R(s, a, s′) + γV<sub>k</sub>(s′)].</li>
+        <li>Q-learning: Q(s, a) ← Q(s, a) + α[r + γ max<sub>a′</sub> Q(s′, a′) − Q(s, a)].</li>
+        <li>TD(0): V(s) ← V(s) + α[r + γV(s′) − V(s)].</li>
+        <li>Effective horizon: approximately 1/(1 − γ).</li>
+      </ul>
+    </section>
+</main>
+<footer><p>CS 5700 · Midterm formula sheet · Spring 2027</p></footer>
+</div>
+</body>
+</html>

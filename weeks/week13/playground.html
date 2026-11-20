@@ -42,6 +42,22 @@
     <h3>Edit the query, keys and values</h3>
   </div>
 </section>
+<section id="more" aria-labelledby="more-h">
+  <h2 id="more-h">More examples to try</h2>
+  <p>Three more starting points for the same head. Each one changes the numbers; the controls are the same.</p>
+  <h3>The sample final's question B4</h3>
+  <p>q = [1, 0], keys [2, 0], [0, 2], [2, 2], values [1, 0], [0, 1], [1, 1]. Set the causal mask to token 2, then to token 3.</p>
+  <div class="explorer" data-explorer="attention" data-label="Sample final B4" data-q="[1, 0]" data-k="[[2, 0], [0, 2], [2, 2]]" data-v="[[1, 0], [0, 1], [1, 1]]"></div>
+  <details><summary>What to notice</summary><p>With the mask at token 2 the weights are 0.804, 0.196 and 0 and the output is [0.804, 0.196], as in the sample final's answer. Without the mask, token 3 takes a share and the output becomes [0.892, 0.554].</p></details>
+  <h3>A longer query</h3>
+  <p>The default keys and values, with q = [4, 0]. Then try q = [1, 0] and q = [2, 0].</p>
+  <div class="explorer" data-explorer="attention" data-label="Longer query" data-q="[4, 0]"></div>
+  <details><summary>What to notice</summary><p>k1 and k3 tie at every length, but k2's weight falls as the query grows: 0.198 at length 1, 0.108 at 2, 0.029 at 4. A longer query sharpens the softmax toward a hard choice.</p></details>
+  <h3>Keys that miss</h3>
+  <p>q = [0, 2]: the first two keys are perpendicular to it.</p>
+  <div class="explorer" data-explorer="attention" data-label="Keys that miss" data-q="[0, 2]" data-k="[[1, 0], [-1, 0], [0, 1]]" data-v="[[3, 0], [0, 3], [1, 1]]"></div>
+  <details><summary>What to notice</summary><p>k1 and k2 score 0, so after softmax they still get 0.164 each, not 0: softmax never gives a weight of exactly zero. Only a causal mask, which sets a score to −∞, does that.</p></details>
+</section>
 
 <section id="exercises" aria-labelledby="ex-h">
   <h2 id="ex-h">Exercises</h2>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sample Final · CS 5700</title>
+<meta name="description" content="CS 5700 sample final exam: concepts, a Bayesian network, HMM filtering, evaluation and gradient steps, masked attention, arguments and a design problem, in the format of the real final, with answers to check yourself.">
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the questions</a>
+
+<div class="doc">
+<header class="doc-masthead">
+  <p class="inst"><span>CS 5700 · Artificial Intelligence</span><span>Week 15</span><span><a href="../../index.html">Course home</a></span></p>
+  <h1>Sample final exam</h1>
+  <p class="tagline">The same four parts, the same kinds of question and the same length as the real final, with different questions. Do it on paper, in 120 minutes, with a pen, the <a href="final-exam.html#formulas">formula sheet</a> and no calculator, before you open any answer. Then mark it yourself.</p>
+</header>
+
+<dl class="facts">
+  <div><dt>Final</dt><dd>Section 01: Friday, May 7, 8:30 to 10:30 a.m. Central. Section 02: Brightspace with Honorlock, any time May 3 to 9</dd></div>
+  <div><dt>Length</dt><dd>120 minutes, 100 points</dd></div>
+  <div><dt>Allowed</dt><dd>A pen and nothing else. The formula sheet is the last page of the exam. No notes, no calculators.</dd></div>
+  <div><dt>Covers</dt><dd>The whole course, about a fifth on modules 1 to 7</dd></div>
+</dl>
+
+<nav class="toc" aria-labelledby="toc-h">
+  <h2 id="toc-h">On this page</h2>
+  <ol>
+    <li><a href="#about">About the final</a></li>
+    <li><a href="#pa">Part A: concepts (24 points)</a></li>
+    <li><a href="#pb">Part B: mechanics (36 points)</a></li>
+    <li><a href="#pc">Part C: arguments, two of three (20 points)</a></li>
+    <li><a href="#pd">Part D: design (20 points)</a></li>
+  </ol>
+</nav>
+
+<main id="main">
+
+<section id="about" aria-labelledby="about-h">
+  <h2 id="about-h">About the final</h2>
+  <ul>
+    <li>Section 01 sits the exam on paper at MIC. Section 02 takes it in Brightspace with Honorlock, once, any time from Monday, May 3, to Sunday, May 9, 11:59 p.m. CT, with the camera on, the screen recorded and the same 120-minute limit. The <a href="final-exam.html">final exam page</a> has the details.</li>
+    <li>The <a href="final-exam.html#formulas">formula sheet</a> is the last page of the exam, and it is attached to the Brightspace quiz. Bring nothing else.</li>
+    <li>There is no calculator, so every number works out by hand, as the numbers here do. If your arithmetic turns ugly, check the setup first.</li>
+    <li>The points on each question are also a time budget: about 1.2 minutes a point. Leave Part D 25 minutes.</li>
+  </ul>
+  <p>The real final asks different questions. The answers below are one correct way; in parts C and D any argument that is complete and correct earns full credit.</p>
+</section>
+
+<section id="pa" aria-labelledby="pa-h">
+  <h2 id="pa-h">Part A: concepts (24 points, 3 each)</h2>
+  <p>Answer all eight in one to three sentences each.</p>
+  <ol class="qs">
+    <li><p><strong>A1.</strong> Monte Carlo evaluation and TD(0) both estimate V<sup>π</sup> from experience. Say what target each one moves V(s) toward, and which target has more variance.</p>
+      <details><summary>Answer</summary><p>Monte Carlo moves V(s) toward the whole observed return from s to the end of the episode; TD(0) moves it toward r + γV(s′), one real reward plus its own current estimate of the next state. The Monte Carlo return sums many random rewards, so it has more variance; the TD target has less variance but is biased while V is still wrong.</p></details></li>
+    <li><p><strong>A2.</strong> Greedy best-first search and A* both use a heuristic. Say what each one orders the frontier by, and why only one of them is optimal with an admissible h.</p>
+      <details><summary>Answer</summary><p>Greedy orders by h(n) alone; A* orders by f(n) = g(n) + h(n). Greedy ignores the cost already paid, so it can reach the goal by an expensive path that looked close. A* with an admissible h never pops a goal while a node on a cheaper path still has a smaller f, because that node's f is at most the optimal cost.</p></details></li>
+    <li><p><strong>A3.</strong> Define the Markov blanket of a node in a Bayesian network, and say why Gibbs sampling needs only the blanket to resample a variable.</p>
+      <details><summary>Answer</summary><p>The blanket is the node's parents, its children and its children's other parents. Given its blanket, a node is independent of every other variable in the network, so the distribution Gibbs samples from, P(X | all other variables), equals P(X | blanket) and needs only the factors that mention X.</p></details></li>
+    <li><p><strong>A4.</strong> Rejection sampling and likelihood weighting both estimate P(X | e). Say what each does with the evidence, and why rejection sampling wastes most of its work when e is unlikely.</p>
+      <details><summary>Answer</summary><p>Rejection sampling samples every variable from the prior and throws away samples that disagree with e. Likelihood weighting fixes the evidence variables to their observed values and weights each sample by the probability of that evidence given its parents. If P(e) is 0.001, about 999 of every 1,000 rejection samples are thrown away.</p></details></li>
+    <li><p><strong>A5.</strong> A model that predicts hospital readmission scores 0.99 AUC on validation. Name the most likely cause, give one concrete example of it, and say how you would check.</p>
+      <details><summary>Answer</summary><p>Leakage: a feature carries information that is only known after the outcome, or the same patient is in both training and validation. Example: a “follow-up appointment cancelled” field recorded after readmission. Check by listing the top features and asking when each is known, and by splitting by patient and by time.</p></details></li>
+    <li><p><strong>A6.</strong> On a test set where 2% of cases are positive, a model has 98% accuracy. Explain why that number says almost nothing, and name the two numbers you would report instead.</p>
+      <details><summary>Answer</summary><p>Predicting negative for every case already gives 98% accuracy, so the model may have learned nothing. Report precision and recall (or the precision at the number of cases you can act on), which ignore the large pile of easy true negatives.</p></details></li>
+    <li><p><strong>A7.</strong> A decoder-only language model is trained on whole sentences at once. Say why its attention needs a causal mask during training, and what goes wrong without it.</p>
+      <details><summary>Answer</summary><p>Each position is trained to predict the next token, and in training the whole sentence, the answer included, is in the input. The mask sets the scores of later positions to −∞, so position t can only attend to positions up to t. Without it the model copies the next token instead of predicting it, scores a near-zero training loss, and fails at generation, where later tokens do not exist yet.</p></details></li>
+    <li><p><strong>A8.</strong> Distinguish covariate shift from label shift, with one example of each for a deployed spam filter. Which one can you detect without new labels?</p>
+      <details><summary>Answer</summary><p>Covariate shift: P(x) changes but P(y | x) does not, for example a new email client changes the formatting of every message. Label shift: P(y) changes but P(x | y) does not, for example a spam campaign doubles the share of spam. Covariate shift shows up in the inputs alone, so you can detect it by comparing feature distributions without labels; label shift shows up only indirectly, as a change in the share of predicted positives.</p></details></li>
+  </ol>
+</section>
+
+<section id="pb" aria-labelledby="pb-h">
+  <h2 id="pb-h">Part B: mechanics (36 points)</h2>
+  <p>Answer all four. Show the working.</p>
+  <ol class="qs">
+    <li><p><strong>B1. A Bayesian network (10 points).</strong> Storm (S) and Holiday (H) have no parents; Late (L), the bus is late, has parents S and H. A lower-case letter means the variable is true. P(s) = 0.2 and P(h) = 0.1.</p>
+      <table class="tbl tbl--compact">
+        <caption>P(l | S, H)</caption>
+        <thead><tr><th scope="col">S</th><th scope="col">H</th><th scope="col" class="num">P(l | S, H)</th></tr></thead>
+        <tbody>
+          <tr><td>true</td><td>true</td><td class="num">0.9</td></tr>
+          <tr><td>true</td><td>false</td><td class="num">0.6</td></tr>
+          <tr><td>false</td><td>true</td><td class="num">0.5</td></tr>
+          <tr><td>false</td><td>false</td><td class="num">0.1</td></tr>
+        </tbody>
+      </table>
+      <p>(a) How many numbers does the network need, and how many would the full joint distribution need? (2)</p>
+      <p>(b) Compute P(l). (3)</p>
+      <p>(c) The bus is late. Compute P(s | l). (3)</p>
+      <p>(d) You then learn it is a holiday. Compute P(s | l, h), and name the effect in a few words. (2)</p>
+      <details><summary>Answer</summary>
+        <p>(a) 1 + 1 + 4 = <strong>6</strong>. The full joint over three binary variables needs 2<sup>3</sup> − 1 = <strong>7</strong>.</p>
+        <p>(b) Sum the four cases P(S) P(H) P(l | S, H): 0.2 × 0.1 × 0.9 = 0.018; 0.2 × 0.9 × 0.6 = 0.108; 0.8 × 0.1 × 0.5 = 0.040; 0.8 × 0.9 × 0.1 = 0.072. P(l) = <strong>0.238</strong>.</p>
+        <p>(c) P(s, l) = 0.018 + 0.108 = 0.126, so P(s | l) = 0.126 / 0.238 = 9/17 ≈ <strong>0.529</strong>.</p>
+        <p>(d) P(s, l, h) = 0.018 and P(¬s, l, h) = 0.040, so P(s | l, h) = 0.018 / 0.058 = 9/29 ≈ <strong>0.310</strong>. Explaining away: the holiday already accounts for the late bus, so the storm becomes less likely. S and H are independent until L is observed.</p>
+      </details></li>
+
+    <li><p><strong>B2. HMM filtering (8 points).</strong> A patient is Well (W) or Sick (S) each day. A well patient stays well with probability 0.8; a sick patient stays sick with probability 0.6. A cough (c) is observed with probability 0.2 when well and 0.8 when sick. On day 0, P(S) = 0.5.</p>
+      <p>(a) Predict P(S) on day 1, before any observation. (2)</p>
+      <p>(b) On day 1 the patient coughs. Compute P(S | c). (3)</p>
+      <p>(c) On day 2 there is no cough. Predict, then update, to give P(S) on day 2. (3)</p>
+      <details><summary>Answer</summary>
+        <p>(a) 0.5 × 0.6 + 0.5 × 0.2 = <strong>0.4</strong>.</p>
+        <p>(b) Unnormalized: Sick 0.4 × 0.8 = 0.32; Well 0.6 × 0.2 = 0.12. P(S | c) = 0.32 / 0.44 = 8/11 ≈ <strong>0.727</strong>.</p>
+        <p>(c) Predict: 8/11 × 0.6 + 3/11 × 0.2 = 5.4/11 ≈ 0.491. Update with no cough (0.2 if sick, 0.8 if well): Sick 5.4 × 0.2 = 1.08; Well 5.6 × 0.8 = 4.48 (both over 11, which cancels). P(S) = 1.08 / 5.56 ≈ <strong>0.194</strong>.</p>
+      </details></li>
+
+    <li><p><strong>B3. Evaluation and a gradient step (10 points).</strong></p>
+      <p>(a) A spam filter is tested on 500 emails, 50 of them spam. It flags 40, of which 30 are spam. Compute precision, recall and the false-positive rate. Lowering the threshold, it flags 60, of which 40 are spam; give the new precision and recall and say which way each moved. (4)</p>
+      <p>(b) Logistic regression has w = [0.5, −1]. One example has x = [2, 1] and y = 1. Compute ŷ, then take one gradient step with η = 0.2, using ∂L/∂w = (ŷ − y)x. Give the new w and say whether ŷ for this example went up or down. (4)</p>
+      <p>(c) A ReLU unit in a network has z = −0.3 on every training example. What gradient reaches its incoming weights, and what does that mean for the unit? (2)</p>
+      <details><summary>Answer</summary>
+        <p>(a) TP = 30, FP = 10, FN = 20, TN = 440. Precision = 30/40 = <strong>0.75</strong>; recall = 30/50 = <strong>0.6</strong>; FPR = 10/450 ≈ <strong>0.022</strong>. At the lower threshold: precision 40/60 ≈ <strong>0.667</strong> (down), recall 40/50 = <strong>0.8</strong> (up).</p>
+        <p>(b) z = 0.5 × 2 − 1 × 1 = 0, so ŷ = σ(0) = <strong>0.5</strong>. Gradient (0.5 − 1)[2, 1] = [−1, −0.5]. New w = [0.5, −1] − 0.2 × [−1, −0.5] = <strong>[0.7, −0.9]</strong>. Now z = 1.4 − 0.9 = 0.5 &gt; 0, so ŷ went <strong>up</strong>, toward the label 1.</p>
+        <p>(c) The derivative of ReLU at z &lt; 0 is 0, so <strong>no gradient</strong> reaches its weights. The unit is dead: it outputs 0 and never learns unless something else moves its inputs.</p>
+      </details></li>
+
+    <li><p><strong>B4. Masked attention by hand (8 points).</strong> One causal attention head with d<sub>k</sub> = 2 over three tokens. You compute the output for token 2, whose query is q = [1, 0]. Keys: k<sub>1</sub> = [2, 0], k<sub>2</sub> = [0, 2], k<sub>3</sub> = [2, 2]. Values: v<sub>1</sub> = [1, 0], v<sub>2</sub> = [0, 1], v<sub>3</sub> = [1, 1]. Use the numbers on the formula sheet.</p>
+      <p>(a) Compute the three scaled scores q · k<sub>i</sub> / √d<sub>k</sub>. (2)</p>
+      <p>(b) Apply the causal mask. Which score changes, and to what? (1)</p>
+      <p>(c) Compute the attention weights and the output for token 2. (3)</p>
+      <p>(d) Compute the output without the mask, and say in one sentence why that output could not be used to train next-token prediction. (2)</p>
+      <details><summary>Answer</summary>
+        <p>(a) q · k<sub>1</sub> = 2, q · k<sub>2</sub> = 0, q · k<sub>3</sub> = 2. Divided by √2: <strong>1.414, 0, 1.414</strong>.</p>
+        <p>(b) Token 3 comes after token 2, so its score becomes <strong>−∞</strong>.</p>
+        <p>(c) e<sup>1.414</sup> ≈ 4.11, e<sup>0</sup> = 1, e<sup>−∞</sup> = 0. Weights 4.11/5.11 ≈ <strong>0.804</strong>, 1/5.11 ≈ <strong>0.196</strong>, 0. Output 0.804 × [1, 0] + 0.196 × [0, 1] = <strong>[0.804, 0.196]</strong>.</p>
+        <p>(d) Weights 4.11/9.22 ≈ 0.446, 1/9.22 ≈ 0.108, 0.446. Output [0.446 + 0.446, 0.108 + 0.446] = <strong>[0.892, 0.554]</strong>. It mixes in token 3, the token that position 2 is supposed to predict.</p>
+      </details></li>
+  </ol>
+</section>
+
+<section id="pc" aria-labelledby="pc-h">
+  <h2 id="pc-h">Part C: arguments (20 points, two of three)</h2>
+  <p>Each is worth 10 points. If you attempt all three, your best two count.</p>
+  <ol class="qs">
+    <li><p><strong>C1.</strong> Derive the forward filtering recursion f<sub>1:t+1</sub> = α P(e<sub>t+1</sub> | X<sub>t+1</sub>) Σ<sub>x<sub>t</sub></sub> P(X<sub>t+1</sub> | x<sub>t</sub>) f<sub>1:t</sub>, where f<sub>1:t</sub> = P(X<sub>t</sub> | e<sub>1:t</sub>). Name each assumption where you use it.</p>
+      <details><summary>Answer</summary>
+        <ol>
+          <li>Split off the newest evidence and apply Bayes' rule: P(X<sub>t+1</sub> | e<sub>1:t+1</sub>) = α P(e<sub>t+1</sub> | X<sub>t+1</sub>, e<sub>1:t</sub>) P(X<sub>t+1</sub> | e<sub>1:t</sub>). (3)</li>
+          <li>Sensor Markov assumption: given the current state, the observation is independent of the past evidence, so P(e<sub>t+1</sub> | X<sub>t+1</sub>, e<sub>1:t</sub>) = P(e<sub>t+1</sub> | X<sub>t+1</sub>). (2)</li>
+          <li>Marginalize over the previous state: P(X<sub>t+1</sub> | e<sub>1:t</sub>) = Σ<sub>x<sub>t</sub></sub> P(X<sub>t+1</sub> | x<sub>t</sub>, e<sub>1:t</sub>) P(x<sub>t</sub> | e<sub>1:t</sub>). (3)</li>
+          <li>Markov assumption: given x<sub>t</sub>, the next state does not depend on earlier evidence, so P(X<sub>t+1</sub> | x<sub>t</sub>, e<sub>1:t</sub>) = P(X<sub>t+1</sub> | x<sub>t</sub>), and the last factor is f<sub>1:t</sub>. Substituting gives the recursion. (2)</li>
+        </ol>
+      </details></li>
+    <li><p><strong>C2.</strong> Prove that softmax is unchanged when the same constant c is added to every score. Use it to explain why a masked score of −∞ is safe and why implementations subtract the largest score first. Then show that if the components of q and k are independent with mean 0 and variance 1, q · k has variance d<sub>k</sub>, and say what the √d<sub>k</sub> in attention is for.</p>
+      <details><summary>Answer</summary>
+        <ol>
+          <li>e<sup>s<sub>i</sub>+c</sup> / Σ<sub>j</sub> e<sup>s<sub>j</sub>+c</sup> = e<sup>c</sup>e<sup>s<sub>i</sub></sup> / (e<sup>c</sup> Σ<sub>j</sub> e<sup>s<sub>j</sub></sup>) = softmax(s)<sub>i</sub>. (3)</li>
+          <li>A score of −∞ contributes e<sup>−∞</sup> = 0 to the sum and gets weight 0, while the other weights still sum to 1. Subtracting the largest score changes nothing by the first step, but makes every exponent ≤ 0, so no e<sup>s</sup> overflows. (3)</li>
+          <li>q · k = Σ<sub>i=1</sub><sup>d<sub>k</sub></sup> q<sub>i</sub>k<sub>i</sub>. Each term has mean 0 and variance E[q<sub>i</sub><sup>2</sup>]E[k<sub>i</sub><sup>2</sup>] = 1, and the terms are independent, so the variances add to d<sub>k</sub>. Dividing by √d<sub>k</sub> brings the variance back to 1, so the softmax does not saturate onto one token, where its gradient is nearly 0. (4)</li>
+        </ol>
+      </details></li>
+    <li><p><strong>C3.</strong> Gradient descent minimizes L(w) = ½(w − 3)<sup>2</sup> from any starting w<sub>0</sub>. Show that w<sub>t</sub> − 3 = (1 − η)<sup>t</sup>(w<sub>0</sub> − 3). Find every learning rate η for which it converges, and describe what happens at η = 1, η = 2 and η = 3. Then say what changes for L(w) = ½a(w − 3)<sup>2</sup> with a &gt; 0, and what that implies for a loss that is steep in one direction and flat in another.</p>
+      <details><summary>Answer</summary>
+        <ol>
+          <li>∂L/∂w = w − 3, so w<sub>t+1</sub> = w<sub>t</sub> − η(w<sub>t</sub> − 3), and w<sub>t+1</sub> − 3 = (1 − η)(w<sub>t</sub> − 3). Applying it t times gives the formula. (3)</li>
+          <li>It converges exactly when |1 − η| &lt; 1, that is, 0 &lt; η &lt; 2. At η = 1 it lands on 3 in one step; at η = 2 it jumps between w<sub>0</sub> and 6 − w<sub>0</sub> forever; at η = 3 the distance doubles each step and it diverges. (4)</li>
+          <li>With curvature a the factor is (1 − ηa), so it needs η &lt; 2/a. One learning rate must satisfy the steepest direction, η &lt; 2/a<sub>max</sub>, which makes progress along the flat directions slow. (3)</li>
+        </ol>
+      </details></li>
+  </ol>
+</section>
+
+<section id="pd" aria-labelledby="pd-h">
+  <h2 id="pd-h">Part D: design (20 points)</h2>
+  <p>A regional hospital wants a model that, at discharge, flags patients likely to be readmitted within 30 days, so that nurses can call them in their first week home. Nurses can call about 50 of the 1,200 patients discharged each week. The hospital has three years of records: diagnoses, length of stay, prior admissions, medications, age, zip code and insurance type. About 12% of discharges are followed by a readmission, and the rate differs between patients on public and on private insurance.</p>
+  <ol class="qs">
+    <li><p><strong>D1. Formulate (5).</strong> Define the prediction target and the features you would use, and say which available data you would refuse to use and why. Name the baseline the model has to beat.</p></li>
+    <li><p><strong>D2. Evaluate (6).</strong> Describe the split and the metric you would report, given that nurses can call only 50 patients a week, and say how you would show the result is not luck.</p></li>
+    <li><p><strong>D3. Be fair on purpose (5).</strong> The base rates differ between the insurance groups. Say which fairness criterion you would aim for, what that choice gives up, and who should make it.</p></li>
+    <li><p><strong>D4. Deploy (4).</strong> Name two things you would monitor after launch and what you would do when each goes wrong, and one item the model card must say.</p>
+      <details><summary>What a full-credit answer looks like</summary>
+        <p>There is no single right answer. Here is one that would earn full marks.</p>
+        <ul>
+          <li><strong>D1</strong> Target: an unplanned readmission within 30 days of this discharge (planned returns, such as scheduled chemotherapy, excluded). Features known at discharge: diagnoses, length of stay, admissions in the past year, number of medications, age. Refuse anything recorded after discharge (leakage), and think hard about zip code, which can stand in for race and income; use it only if a test shows it adds accuracy that cannot be had another way. Baseline: the rule nurses use now, such as “two or more admissions in the past year”, and a simple logistic regression.</li>
+          <li><strong>D2</strong> Split by time: train on the first two years, test on the third, with each patient in only one side, because next year is where it will be used. Report precision at 50 a week (of the 50 called, how many would have been readmitted) and recall at 50, against the baseline. Show it is not luck with a confidence interval from bootstrapping the test weeks, and by checking that it wins in most weeks, not on average only.</li>
+          <li><strong>D3</strong> With different base rates, equal precision and equal error rates cannot all hold. One defensible choice: equal recall (true-positive rate) across insurance groups, so a patient who will be readmitted has the same chance of a call whatever their insurance. It gives up equal precision: calls in one group will more often reach patients who were fine. The hospital's clinical and patient-advocacy leaders should choose, not the modeller, because it is a decision about who gets help.</li>
+          <li><strong>D4</strong> Monitor the share of flagged patients actually readmitted, monthly: if it drops below the baseline's, retrain or fall back to the old rule. Monitor the input distribution and the share of each insurance group among the 50: if either shifts (a new coding system, a new clinic), investigate before trusting the scores. The model card must state the recall and precision for each insurance group, and that the model ranks patients for a call; it does not decide care.</li>
+        </ul>
+        <p>Marks go to the argument: a target that is stated precisely, an evaluation tied to the 50 calls, a fairness choice with its cost named, and monitoring with an action attached.</p>
+      </details></li>
+  </ol>
+</section>
+</main>
+
+<footer>
+  <p>CS 5700 · Artificial Intelligence · University of Central Missouri · Dr. Gorkem Kar · Spring 2027</p>
+</footer>
+</div>
+</body>
+</html>

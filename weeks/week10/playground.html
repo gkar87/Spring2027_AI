@@ -62,6 +62,18 @@
     <h3>Add days</h3>
   </div>
 </section>
+<section id="more" aria-labelledby="more-h">
+  <h2 id="more-h">More examples to try</h2>
+  <p>Two more networks to query. Each has four binary variables and the same controls.</p>
+  <h3>Explaining away: a burglar alarm</h3>
+  <p>Burglary (P = 0.1) and Earthquake (P = 0.2) can each set off the Alarm: P(alarm) is 0.95 with both, 0.9 with a burglary alone, 0.3 with an earthquake alone and 0.01 with neither. A neighbour Calls with probability 0.9 if the alarm rings and 0.05 if not. Observe Call = true, then also Earthquake = true.</p>
+  <div class="explorer" data-explorer="bayes" data-net="alarm" data-label="Alarm network"></div>
+  <details><summary>What to notice</summary><p>With no evidence P(burglary) is 0.1. A call raises it to 0.459. Learning there was an earthquake drops it to 0.238: the earthquake explains the alarm. Earthquake alone leaves Burglary at 0.1, because the two causes are independent until their common effect is observed.</p></details>
+  <h3>A chain: storm to alert</h3>
+  <p>Storm (P = 0.2) causes a PowerOut (0.6 with a storm, 0.05 without), which causes ServerDown (0.9 or 0.02), which sends an Alert (0.95 or 0.01). Observe ServerDown = true, then switch Storm between true and false.</p>
+  <div class="explorer" data-explorer="bayes" data-net="chain" data-label="Chain network"></div>
+  <details><summary>What to notice</summary><p>Once ServerDown is observed, P(alert) stays 0.95 whatever you say about Storm: in a chain, the middle variable blocks the path. Clear the evidence and observe Alert alone: P(storm) rises from 0.2 to 0.652, because evidence flows backwards along the chain too.</p></details>
+</section>
 
 <section id="exercises" aria-labelledby="ex-h">
   <h2 id="ex-h">Exercises</h2>

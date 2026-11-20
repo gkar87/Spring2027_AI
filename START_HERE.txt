@@ -45,17 +45,21 @@ START HERE
 
 7. Midterm
    Friday, March 5, 8:30 to 10:30 a.m. CT, on modules 1 to 7. Section 01 sits
-   it at MIC; Section 02 sits the same paper online, proctored. Allowed: one
-   handwritten 8.5 x 11 in note card, both sides, and the formula sheet handed
-   out with the exam. No calculators. A practice midterm with answers is in
-   weeks/week08/practice.html.
+   it at MIC. Section 02 takes it in Brightspace with Honorlock, camera on and
+   screen recorded, once, any time from Monday, March 1, to Sunday, March 7,
+   11:59 p.m. CT, with the same 120-minute limit. Bring a pen and nothing
+   else: no notes, other paper or calculators. The last page of the exam is a
+   formula sheet, shown in advance in weeks/week08/formula-sheet.html. A
+   practice midterm with answers is in weeks/week08/practice.html.
 
 8. Final exam
    Friday, May 7, 8:30 to 10:30 a.m. CT, in finals week, on the whole course
    weighted to modules 9 to 15. Section 01 sits it at MIC; Section 02 takes it
-   in Brightspace at the same time, proctored. The final exam page
-   (weeks/week15/final-exam.html) has the parts, what to bring and the formula
-   sheet.
+   in Brightspace with Honorlock, once, any time from Monday, May 3, to
+   Sunday, May 9, 11:59 p.m. CT. The same rules apply: a pen only, and the
+   formula sheet is the last page. The final exam page
+   (weeks/week15/final-exam.html) has the parts and the formula sheet, and a
+   sample final with answers is in weeks/week15/practice-final.html.
 
 Using the slides
 ----------------

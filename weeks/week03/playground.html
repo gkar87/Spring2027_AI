@@ -49,6 +49,22 @@
     <li><span class="sw" style="background:var(--ink)"></span>wall</li>
   </ul>
 </section>
+<section id="more" aria-labelledby="more-h">
+  <h2 id="more-h">More examples to try</h2>
+  <p>Three more grids for the same five algorithms. Run each algorithm on each grid and compare the line under the grid: nodes expanded and path cost.</p>
+  <h3>Mud between start and goal</h3>
+  <p>The straight row to G is all mud. Run breadth-first search, then uniform-cost search.</p>
+  <div class="explorer" data-explorer="search" data-label="Mud grid" data-grid="S.~~~~~~.G/..~~~~~~../..~~~~~~../.........."></div>
+  <details><summary>What to notice</summary><p>Breadth-first search takes the 9 moves straight through the mud, cost 21. Uniform-cost search and A* go around through the bottom row: 15 moves, cost 15. Greedy and the doubled heuristic take the mud, like BFS, because they ignore what the path costs.</p></details>
+  <h3>A maze that fools greedy search</h3>
+  <p>Greedy best-first heads for the square that looks closest. Compare it with A*.</p>
+  <div class="explorer" data-explorer="search" data-label="Maze grid" data-grid="S.#......./..#.####../..#.#..#../....#G.#../.####..#../........#."></div>
+  <details><summary>What to notice</summary><p>Greedy expands 36 squares and returns a path of cost 14; A* expands 21 and returns the cheapest path, cost 12. Squares that look close to G can be far from it by the corridors.</p></details>
+  <h3>An open field</h3>
+  <p>No walls, no mud. Compare uniform-cost search with A*.</p>
+  <div class="explorer" data-explorer="search" data-label="Open grid" data-grid="S........./........../........../........../........../........../.........G"></div>
+  <details><summary>What to notice</summary><p>A* expands all 70 squares, as many as uniform cost. Every square on a shortest route has the same f = g + h = 15, and ties are broken first in, first out, so the heuristic cannot single out a route. Greedy expands only 16. A good heuristic helps most when it separates promising squares from the rest.</p></details>
+</section>
 
 <section id="exercises" aria-labelledby="ex-h">
   <h2 id="ex-h">Exercises</h2>

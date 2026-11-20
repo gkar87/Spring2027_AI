@@ -113,7 +113,7 @@
     const bStep = button("Step", "btn--run"), bRun = button("Run to the goal"), bReset = button("Reset");
     ctl.append(lab, bStep, bRun, bReset);
     const say = el("p", { class: "ex-say", "aria-live": "polite" });
-    const wrap = el("div", { class: "fig-scroll", tabindex: "0", role: "region", "aria-label": "Search grid" });
+    const wrap = el("div", { class: "fig-scroll", tabindex: "0", role: "region", "aria-label": root.dataset.label || "Search grid" });
     const tbl = el("table", { class: "gridx" });
     wrap.appendChild(tbl);
     const stats = el("p", { class: "ex-stats" });
@@ -190,11 +190,12 @@
       const inp = el("input", { type: "number", value: v, step, min, max });
       l.appendChild(inp); ctl.appendChild(l); return inp;
     };
-    const gam = num("Discount γ", "0.9", "0.05", "0", "1"), noi = num("Noise", "0.2", "0.05", "0", "1"), liv = num("Living reward", "0", "0.01", "-5", "5");
+    const d = root.dataset;
+    const gam = num("Discount γ", d.gamma || "0.9", "0.05", "0", "1"), noi = num("Noise", d.noise || "0.2", "0.05", "0", "1"), liv = num("Living reward", d.living || "0", "0.01", "-5", "5");
     const bOne = button("One sweep", "btn--run"), bConv = button("Run until change < 0.001"), bReset = button("Reset values");
     ctl.append(bOne, bConv, bReset);
     const say = el("p", { class: "ex-say", "aria-live": "polite" });
-    const wrap = el("div", { class: "fig-scroll", tabindex: "0", role: "region", "aria-label": "Grid world values" });
+    const wrap = el("div", { class: "fig-scroll", tabindex: "0", role: "region", "aria-label": root.dataset.label || "Grid world values" });
     const tbl = el("table", { class: "gridx" });
     wrap.appendChild(tbl);
     const stats = el("p", { class: "ex-stats" });
@@ -254,6 +255,18 @@
       { name: "Rain", parents: ["Cloudy"], cpt: { T: 0.8, F: 0.2 } },
       { name: "WetGrass", parents: ["Sprinkler", "Rain"], cpt: { TT: 0.99, TF: 0.9, FT: 0.9, FF: 0.0 } },
     ],
+    alarm: [
+      { name: "Burglary", parents: [], cpt: { "": 0.1 } },
+      { name: "Earthquake", parents: [], cpt: { "": 0.2 } },
+      { name: "Alarm", parents: ["Burglary", "Earthquake"], cpt: { TT: 0.95, TF: 0.9, FT: 0.3, FF: 0.01 } },
+      { name: "Call", parents: ["Alarm"], cpt: { T: 0.9, F: 0.05 } },
+    ],
+    chain: [
+      { name: "Storm", parents: [], cpt: { "": 0.2 } },
+      { name: "PowerOut", parents: ["Storm"], cpt: { T: 0.6, F: 0.05 } },
+      { name: "ServerDown", parents: ["PowerOut"], cpt: { T: 0.9, F: 0.02 } },
+      { name: "Alert", parents: ["ServerDown"], cpt: { T: 0.95, F: 0.01 } },
+    ],
   };
   function bayesExplorer(root) {
     const net = NETS[root.dataset.net];
@@ -292,7 +305,7 @@
       say.textContent = r.pEvidence === 0
         ? "That evidence is impossible in this network: its probability is 0."
         : (names.length ? "Evidence: " + names.map(n => n + " = " + ev[n]).join(", ") + ". " : "No evidence. ")
-          + "Enumeration summed " + r.rows + " of the 16 rows of the joint; P(evidence) = " + fx(r.pEvidence, 4) + ".";
+          + "Enumeration summed " + r.rows + " of the " + 2 ** net.length + " rows of the joint; P(evidence) = " + fx(r.pEvidence, 4) + ".";
     }
     bReset.addEventListener("click", () => { for (const n in sels) sels[n].value = ""; draw(); });
     draw();
@@ -344,7 +357,8 @@
 
   /* -------------------------------------------------------- attention -- */
   function attentionExplorer(root) {
-    const q0 = [2, 0], K0 = [[1, 0], [0, 1], [1, 1]], V0 = [[1, 0], [0, 1], [1, 1]];
+    const js = (k, dflt) => root.dataset[k] ? JSON.parse(root.dataset[k]) : dflt;
+    const q0 = js("q", [2, 0]), K0 = js("k", [[1, 0], [0, 1], [1, 1]]), V0 = js("v", [[1, 0], [0, 1], [1, 1]]);
     const inputs = { q: [], K: [], V: [] };
     const mat = el("table", { class: "matrix" });
     mat.appendChild(el("caption", { class: "visually-hidden" }, "The query, keys and values. Edit any number."));
@@ -380,7 +394,7 @@
     [scale, mask].forEach(s => s.addEventListener("change", draw));
     const say = el("p", { class: "ex-say", "aria-live": "polite" });
     const tbl = el("table", { class: "bars" });
-    const wrap = el("div", { class: "fig-scroll", tabindex: "0", role: "region", "aria-label": "Query, keys and values" });
+    const wrap = el("div", { class: "fig-scroll", tabindex: "0", role: "region", "aria-label": root.dataset.label || "Query, keys and values" });
     wrap.appendChild(mat);
     root.append(wrap, ctl, say, tbl);
     function val(inp) { const v = parseFloat(inp.value); return isNaN(v) ? 0 : v; }
