@@ -169,7 +169,7 @@
   <div class="slide-main">
     <div class="split">
       <div>
-        <div class="eq" style="text-align:left">
+        <div class="eq eq--tight" style="text-align:left">
           V(s) = max<sub>a</sub> V(Result(s, a)) &nbsp;&nbsp; if MAX to move<br>
           V(s) = min<sub>a</sub> V(Result(s, a)) &nbsp;&nbsp; if MIN to move<br>
           V(s) = U(s) &nbsp;&nbsp; if terminal
@@ -287,13 +287,13 @@
 <title id="f5at">Powers of ten: a laptop, the atoms in the universe, and the chess game tree</title>
 <desc id="f5ad">A logarithmic number line from 1 to 10 to the 120th. A laptop&#x27;s billion or so steps a second sit near 10 to the 9th; the atoms in the observable universe near 10 to the 80th; the chess game tree at 10 to the 123rd.</desc>
 <path class="dg-line-q" d="M40 30 H960"/>
-<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M40 26 V34"/><text class="dg-xs" x="40" y="46" text-anchor="middle">10^0</text></g>
-<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M186 26 V34"/><text class="dg-xs" x="186" y="46" text-anchor="middle">10^20</text></g>
-<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M332 26 V34"/><text class="dg-xs" x="332" y="46" text-anchor="middle">10^40</text></g>
-<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M478 26 V34"/><text class="dg-xs" x="478" y="46" text-anchor="middle">10^60</text></g>
-<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M624 26 V34"/><text class="dg-xs" x="624" y="46" text-anchor="middle">10^80</text></g>
-<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M770 26 V34"/><text class="dg-xs" x="770" y="46" text-anchor="middle">10^100</text></g>
-<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M916 26 V34"/><text class="dg-xs" x="916" y="46" text-anchor="middle">10^120</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M40 26 V34"/><text class="dg-xs" x="40" y="46" text-anchor="middle">10⁰</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M186 26 V34"/><text class="dg-xs" x="186" y="46" text-anchor="middle">10²⁰</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M332 26 V34"/><text class="dg-xs" x="332" y="46" text-anchor="middle">10⁴⁰</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M478 26 V34"/><text class="dg-xs" x="478" y="46" text-anchor="middle">10⁶⁰</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M624 26 V34"/><text class="dg-xs" x="624" y="46" text-anchor="middle">10⁸⁰</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M770 26 V34"/><text class="dg-xs" x="770" y="46" text-anchor="middle">10¹⁰⁰</text></g>
+<g class="v-in" style="--d:0.10s"><path class="dg-line-q" d="M916 26 V34"/><text class="dg-xs" x="916" y="46" text-anchor="middle">10¹²⁰</text></g>
 <g class="v-in" style="--d:0.50s"><circle class="dg-box-t" cx="107.89" cy="30" r="7"/><text class="dg-xs" x="117.89" y="16">laptop: about 10⁹ steps a second</text></g>
 <g class="v-in" style="--d:1.20s"><circle class="dg-box-m" cx="624" cy="30" r="7"/><text class="dg-xs" x="614" y="16" text-anchor="end">atoms in the observable universe</text></g>
 <g class="v-in" style="--d:1.90s"><circle class="dg-box-a" cx="937.9" cy="30" r="7"/><text class="dg-xs" x="927.9" y="16" text-anchor="end">chess game tree</text></g>
@@ -553,19 +553,19 @@
           are the same idea with different bookkeeping.
         </p>
         <figure class="fig" style="margin-top:6px">
-        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 132" role="img" aria-labelledby="n5ct n5cd">
+        <svg style="--dg-k:1" class="dg-seq" viewBox="0 0 552 140" role="img" aria-labelledby="n5ct n5cd">
           <title id="n5ct">Expectimax and minimax disagree against a die</title>
           <desc id="n5cd">MAX chooses between a risky move and a safe move. The risky move leads to a chance node with outcomes 10 and 0, each with probability one half, averaging 5. The safe move leads to outcomes 4 and 4, averaging 4. Expectimax picks the risky move. Minimax, assuming the worst outcome, would pick the safe move because 4 beats 0.</desc>
           
-          <path class="dg-line-q" d="M276 31 L150 57"/><path class="dg-line-q" d="M276 31 L402 57"/><path class="dg-line-q" d="M150 83 L90 100"/><path class="dg-line-q" d="M150 83 L210 100"/><path class="dg-line-q" d="M402 83 L342 100"/><path class="dg-line-q" d="M402 83 L462 100"/>
+          <path class="dg-line-q" d="M276 31 L150 57"/><path class="dg-line-q" d="M276 31 L402 57"/><path class="dg-line-q" d="M150 85 L90 114"/><path class="dg-line-q" d="M150 85 L210 114"/><path class="dg-line-q" d="M402 85 L342 114"/><path class="dg-line-q" d="M402 85 L462 114"/>
           <g class="v-in" style="--d:1.00s"><rect class="dg-box-a" x="211" y="1" width="130" height="30" rx="3"/><text class="dg-txt-b" x="276" y="22" text-anchor="middle">MAX picks 5</text></g>
           <g class="v-in" style="--d:0.50s"><ellipse class="dg-box-t" cx="150" cy="70" rx="70" ry="15"/><text class="dg-txt-b" x="150" y="76" text-anchor="middle">risky: avg 5</text></g>
           <g class="v-in" style="--d:0.70s"><ellipse class="dg-box-t" cx="402" cy="70" rx="70" ry="15"/><text class="dg-txt-b" x="402" y="76" text-anchor="middle">safe: avg 4</text></g>
-          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="90" y="116" text-anchor="middle">10</text></g>
-          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="210" y="116" text-anchor="middle">0</text></g>
-          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="342" y="116" text-anchor="middle">4</text></g>
-          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="462" y="116" text-anchor="middle">4</text></g>
-          <g class="v-in" style="--d:0.20s"><text class="dg-txt-s" x="90" y="130" text-anchor="middle">p = ½</text><text class="dg-txt-s" x="210" y="130" text-anchor="middle">p = ½</text><text class="dg-txt-s" x="342" y="130" text-anchor="middle">p = ½</text><text class="dg-txt-s" x="462" y="130" text-anchor="middle">p = ½</text></g>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="90" y="134" text-anchor="middle">10</text></g>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="210" y="134" text-anchor="middle">0</text></g>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="342" y="134" text-anchor="middle">4</text></g>
+          <g class="v-in" style="--d:0.10s"><text class="dg-txt" x="462" y="134" text-anchor="middle">4</text></g>
+          <g class="v-in" style="--d:0.20s"><text class="dg-txt-s" x="108" y="100" text-anchor="end">p = ½</text><text class="dg-txt-s" x="192" y="100">p = ½</text><text class="dg-txt-s" x="360" y="100" text-anchor="end">p = ½</text><text class="dg-txt-s" x="444" y="100">p = ½</text></g>
         </svg>
         <figcaption>
           <strong>Figure 5.6.</strong> Expectimax picks risky (avg 5); minimax, safe (4 beats 0).

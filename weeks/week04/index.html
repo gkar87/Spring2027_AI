@@ -295,7 +295,7 @@
   <div class="slide-main">
     <div class="cols-2">
       <div>
-<pre class="code"><span class="k">function</span> BACKTRACK(assignment, csp):
+<pre class="code" style="font-size:15px"><span class="k">function</span> BACKTRACK(assignment, csp):
   <span class="k">if</span> assignment is complete:
     <span class="k">return</span> assignment          <span class="c"># solution</span>
 
@@ -455,15 +455,15 @@
     <div class="cols-2">
       <div>
 <pre class="code"><span class="k">function</span> AC-3(csp):
-  queue = all arcs in csp        <span class="c"># both directions</span>
+  queue = all arcs in csp  <span class="c"># both directions</span>
 
   <span class="k">while</span> queue not empty:
     (X, Y) = queue.pop()
-    <span class="k">if</span> REVISE(csp, X, Y):       <span class="c"># domain of X changed</span>
+    <span class="k">if</span> REVISE(csp, X, Y):  <span class="c"># domain of X changed</span>
       <span class="k">if</span> D[X] is empty:
-        <span class="k">return</span> false                <span class="c"># inconsistent</span>
+        <span class="k">return</span> false       <span class="c"># inconsistent</span>
       <span class="k">for</span> Z <span class="k">in</span> neighbours(X) − {Y}:
-        queue.push((Z, X))    <span class="c"># recheck arcs into X</span>
+        queue.push((Z, X)) <span class="c"># recheck arcs into X</span>
 
   <span class="k">return</span> true</pre>
       </div>
@@ -595,7 +595,7 @@
 <g class="v-in" style="--d:0.20s"><rect class="dg-band-a" x="456" y="6" width="176" height="86"/></g>
 <path class="dg-plot-a v-draw" pathLength="1" style="--d:0.40s" d="M60.0 90.0 L68.8 90.0 L77.6 90.0 L86.4 90.0 L95.2 90.0 L104.0 90.0 L112.8 90.0 L121.6 90.0 L130.4 90.0 L139.2 90.0 L148.0 90.0 L156.8 90.0 L165.6 90.0 L174.4 90.0 L183.2 90.0 L192.0 90.0 L200.8 90.0 L209.6 90.0 L218.4 90.0 L227.2 90.0 L236.0 90.0 L244.8 90.0 L253.6 90.0 L262.4 90.0 L271.2 90.0 L280.0 90.0 L288.8 90.0 L297.6 90.0 L306.4 90.0 L315.2 90.0 L324.0 90.0 L332.8 90.0 L341.6 90.0 L350.4 90.0 L359.2 89.9 L368.0 89.9 L376.8 89.8 L385.6 89.6 L394.4 89.4 L403.2 88.9 L412.0 88.1 L420.8 86.9 L429.6 85.2 L438.4 82.7 L447.2 79.4 L456.0 74.9 L464.8 69.3 L473.6 62.5 L482.4 54.6 L491.2 46.1 L500.0 37.3 L508.8 28.7 L517.6 21.1 L526.4 15.2 L535.2 11.3 L544.0 10.0 L552.8 11.3 L561.6 15.2 L570.4 21.1 L579.2 28.7 L588.0 37.3 L596.8 46.1 L605.6 54.6 L614.4 62.5 L623.2 69.3 L632.0 74.9 L640.8 79.4 L649.6 82.7 L658.4 85.2 L667.2 86.9 L676.0 88.1 L684.8 88.9 L693.6 89.4 L702.4 89.6 L711.2 89.8 L720.0 89.9 L728.8 89.9 L737.6 90.0 L746.4 90.0 L755.2 90.0 L764.0 90.0 L772.8 90.0 L781.6 90.0 L790.4 90.0 L799.2 90.0 L808.0 90.0 L816.8 90.0 L825.6 90.0 L834.4 90.0 L843.2 90.0 L852.0 90.0 L860.8 90.0 L869.6 90.0 L878.4 90.0 L887.2 90.0 L896.0 90.0 L904.8 90.0 L913.6 90.0 L922.4 90.0 L931.2 90.0 L940.0 90.0"/>
 <g class="v-in" style="--d:1.40s"><text class="dg-xs dg-teal" x="200" y="72" text-anchor="middle">easy: many solutions</text></g>
-<g class="v-in" style="--d:1.80s"><text class="dg-xs dg-txt-bad" x="610" y="22">hard: satisfiability flips here</text></g>
+<g class="v-in" style="--d:1.80s"><text class="dg-xs dg-txt-bad" x="642" y="22">hard: satisfiability flips here</text></g>
 <g class="v-in" style="--d:2.20s"><text class="dg-xs dg-teal" x="820" y="72" text-anchor="middle">easy: fails fast</text></g>
 </svg>
 <figcaption><strong>Figure 4.4.</strong> Benchmark instances sit under the peak.</figcaption>
@@ -680,14 +680,13 @@
         <svg style="--dg-k:1.36" viewBox="20 31.7 400 246.5" role="img" aria-labelledby="f14t f14d">
           <title id="f14t">A search landscape with a local and a global maximum</title>
           <desc id="f14d">A curve with two peaks and a flat plateau. A ball starting on the left climbs to the smaller peak and stops, never reaching the taller peak on the right.</desc>
-          <path d="M20 240 Q 70 120 120 160 T 220 130 T 320 60 T 420 220"
+          <path d="M20 240 C 50 170, 70 140, 100 140 C 130 140, 140 175, 175 175 L 225 175 C 260 175, 280 60, 320 60 C 360 60, 400 160, 420 220"
                 fill="none" stroke="#16181d" stroke-width="2"/>
-          <circle cx="120" cy="160" r="7" class="dg-card"/>
-          <text class="dg-txt-s" x="120" y="186" text-anchor="middle">local max</text>
+          <circle cx="100" cy="140" r="7" class="dg-card"/>
+          <text class="dg-txt-s" x="100" y="122" text-anchor="middle">local max</text>
           <circle cx="320" cy="60" r="7" class="dg-box-t"/>
           <text class="dg-txt-s" x="320" y="42" text-anchor="middle">global max</text>
-          <path class="dg-dash" d="M186 150 L 176 150"/>
-          <text class="dg-txt-s" x="186" y="168" text-anchor="middle">plateau</text>
+          <text class="dg-txt-s" x="200" y="164" text-anchor="middle">plateau</text>
           <text class="dg-txt-s" x="220" y="276" text-anchor="middle">state space</text>
         </svg>
         <figcaption>

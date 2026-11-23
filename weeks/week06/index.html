@@ -60,7 +60,7 @@
       <span class="mark" aria-hidden="true">§</span>
       <p>
         If you remember one equation from this course, remember
-        <strong>V(s) = max<sub>a</sub> Σ P(s′|s,a)[R + γV(s′)]</strong>. Every
+        <strong style="white-space:nowrap">V(s) = max<sub>a</sub> Σ P(s′|s,a)[R + γV(s′)]</strong>. Every
         reinforcement-learning algorithm in module 7 is an approximation of it.
       </p>
     </div>
@@ -288,7 +288,7 @@
           plus the discounted value of where you land:
         </p>
         <div class="eq">
-          V<sup>π</sup>(s) = Σ<sub>s′</sub> T(s′|s, π(s)) · [ R(s, π(s), s′) + γV<sup>π</sup>(s′) ]
+          V<sup>π</sup>(s) = Σ<sub>s′</sub> T(s′|s, π(s)) ·<br>[ R(s, π(s), s′) + γV<sup>π</sup>(s′) ]
         </div>
         <p style="margin-top:16px">
           This is a <strong>linear system</strong> in |<var>S</var>| unknowns. For a fixed
@@ -341,7 +341,7 @@
   <div class="slide-main">
     <div class="cols-2">
       <div>
-        <div class="eq">
+        <div class="eq eq--tight">
           V*(s) = max<sub>a</sub> Σ<sub>s′</sub> T(s′|s,a) · [ R(s,a,s′) + γV*(s′) ]
         </div>
         <p style="margin-top:16px">

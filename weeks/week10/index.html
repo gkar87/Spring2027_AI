@@ -693,7 +693,7 @@ result = PRODUCT(factors)</pre>
   <h2>Key takeaways</h2>
   <div class="slide-main">
     <ol class="steps">
-      <li><span class="n" aria-hidden="true">1</span><div><strong>Inference is summation, and summation is expensive.</strong><p>2^|H| terms if you enumerate naively.</p></div></li>
+      <li><span class="n" aria-hidden="true">1</span><div><strong>Inference is summation, and summation is expensive.</strong><p>2<sup>|H|</sup> terms if you enumerate naively.</p></div></li>
       <li><span class="n" aria-hidden="true">2</span><div><strong>Elimination reorders the sum to keep factors small.</strong><p>Cost is exponential in treewidth, not in node count.</p></div></li>
       <li><span class="n" aria-hidden="true">3</span><div><strong>Sampling trades exactness for scale.</strong><p>Report the error; 1/√N is slow but honest.</p></div></li>
       <li><span class="n" aria-hidden="true">4</span><div><strong>Time is just another variable.</strong><p>Filtering, smoothing, and Viterbi are the same recursion with sum or max.</p></div></li>
