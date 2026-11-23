@@ -215,12 +215,12 @@
   background: var(--panel); border: 1px solid var(--rule-strong); border-radius: 4px;
   padding: 8px 10px; min-height: 40px; width: 9em; max-width: 100%;
 }
-.cell select { width: auto; font-family: var(--sans); }
+.cell select { width: auto; contain: paint; font-family: var(--sans); }
 .cell input:focus-visible, .cell select:focus-visible, .explorer input:focus-visible, .explorer select:focus-visible {
   outline: 3px solid var(--cardinal); outline-offset: 1px;
 }
 .answers { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 10px 16px 0; align-items: end; }
-.answers label { display: flex; flex-direction: column; gap: 4px; font: 600 14px var(--sans); color: var(--ink); }
+.answers label { display: flex; flex-direction: column; gap: 4px; min-width: 0; max-width: 100%; font: 600 14px var(--sans); color: var(--ink); }
 
 .explorer { border: 1px solid var(--rule-strong); border-left: 4px solid var(--teal); border-radius: 4px; padding: 14px 16px; margin: var(--s5) 0 var(--s6); background: #fff; max-width: 980px; }
 .explorer h3 { margin-top: 0; }
@@ -257,6 +257,7 @@
 
 @media (prefers-reduced-motion: reduce) { .bars .bar { transition: none; } }
 @media (max-width: 640px) {
+  .bars { --bar-max: 96px; }
   .gridx td { width: 40px; height: 44px; min-width: 34px; font-size: 11px; }
   .gridx td .big { font-size: 12px; }
 }

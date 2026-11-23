@@ -117,8 +117,8 @@
       <p class="muted">
         Those are the real numbers for <code>open6</code> at γ = 0.9 with a 1e-6
         threshold: 24 sweeps, a residual of 6.7 × 10⁻⁷, and the first row of the value
-        table above. A sweep count near 130 is what you would get if the threshold were
-        much tighter — report what you measured, not what you expected.
+        table above. The worst-case bound, 0.9<sup>k</sup> &lt; 10⁻⁶, predicts about 130
+        sweeps; the measured count is far lower, so report what you measured, not what you expected.
       </p>
       <p>
         <code>--method</code> is <code>vi</code> or <code>pi</code>. Rather than compare
@@ -144,6 +144,7 @@
 
     <section>
       <h2>How it is graded</h2>
+      <div class="fig-scroll" tabindex="0" role="region" aria-label="Lab 2 grading">
       <table class="tbl tbl--compact">
         <thead><tr><th scope="col">Component</th><th scope="col" class="num">Weight</th><th scope="col">What earns full marks</th></tr></thead>
         <tbody>
@@ -153,6 +154,7 @@
           <tr><td>Reproducibility</td><td class="num">15%</td><td>One command regenerates the report's numbers</td></tr>
         </tbody>
       </table>
+      </div>
     </section>
 
     <section>

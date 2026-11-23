@@ -1296,7 +1296,7 @@ hr { border: 0; border-top: 1px solid var(--rule); margin: var(--s6) 0; }
 .title-art { position: absolute; right: 72px; top: 300px; width: 340px; pointer-events: none; }
 .title-art svg { width: 100%; height: auto; display: block; }
 
-.fig-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+.fig-scroll { position: relative; overflow-x: auto; overscroll-behavior-x: contain; }
 .fig-scroll:focus-visible { outline: 3px solid var(--cardinal); outline-offset: 2px; }
 .swipe-hint { font-size: 14px; color: var(--muted); margin: 6px 0 0; }
 .swipe-hint::before { content: "↔ "; }

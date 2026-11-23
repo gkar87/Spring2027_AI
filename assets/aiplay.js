@@ -298,7 +298,7 @@
         tr.appendChild(el("th", { scope: "row" }, v.name + (v.name in ev ? " (observed)" : "")));
         tr.appendChild(el("td", { class: "num" }, isNaN(pv) ? "–" : fx(pv)));
         const td = el("td"), bar = el("span", { class: "bar", "aria-hidden": "true" });
-        bar.style.width = (isNaN(pv) ? 0 : Math.round(pv * 240)) + "px";
+        bar.style.width = "calc(" + (isNaN(pv) ? 0 : pv) + " * var(--bar-max, 240px))";
         td.appendChild(bar); tr.appendChild(td); tbl.appendChild(tr);
       });
       const names = Object.keys(ev);
@@ -319,7 +319,9 @@
     ctl.append(bU, bN, bUndo, bReset);
     const say = el("p", { class: "ex-say", "aria-live": "polite" });
     const tbl = el("table", { class: "bars" });
-    root.append(ctl, say, tbl);
+    const wrap = el("div", { class: "fig-scroll", tabindex: "0", role: "region", "aria-label": "Belief by day" });
+    wrap.appendChild(tbl);
+    root.append(ctl, say, wrap);
     let obs = [];
     function draw() {
       const r = C.hmmFilter(prior, T, E, obs);
@@ -339,7 +341,7 @@
         tr.appendChild(el("td", { class: "num" }, fx(d.pred[0])));
         tr.appendChild(el("td", { class: "num" }, fx(d.filtered[0])));
         const td = el("td"), bar = el("span", { class: "bar", "aria-hidden": "true" });
-        bar.style.width = Math.round(d.filtered[0] * 240) + "px";
+        bar.style.width = "calc(" + d.filtered[0] + " * var(--bar-max, 240px))";
         td.appendChild(bar); tr.appendChild(td); tbl.appendChild(tr);
       });
       const last = r[r.length - 1];
@@ -413,7 +415,7 @@
         tr.appendChild(el("td", { class: "num" }, masked ? "masked (−∞)" : fx(r.scaled[i])));
         tr.appendChild(el("td", { class: "num" }, fx(r.weights[i])));
         const td = el("td"), bar = el("span", { class: "bar", "aria-hidden": "true" });
-        bar.style.width = Math.round(r.weights[i] * 240) + "px";
+        bar.style.width = "calc(" + r.weights[i] + " * var(--bar-max, 240px))";
         td.appendChild(bar); tr.appendChild(td); tbl.appendChild(tr);
       });
       say.textContent = "Output = Σ weight × value = [" + r.out.map(v => fx(v)).join(", ") + "].";
