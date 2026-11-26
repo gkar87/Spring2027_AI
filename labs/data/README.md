@@ -77,7 +77,15 @@ a debuggable question rather than an argument.
 }
 ```
 
-A terminal entry maps a cell to the reward for entering it, and ends the episode.
+A terminal entry maps a cell to its reward, and ends the episode.
+
+**Terminal reward convention (lab 2).** Every move earns `step_reward`, including
+the move into a terminal. A terminal is a state whose value is fixed at its reward
+`R`, so entering it is worth `step_reward + γ·R`: the terminal reward is discounted
+once, as in the week 6 playground and the midterm. The lab 2 grader uses this
+convention. `qenv.py` (lab 3) instead returns `R` as the reward of the step that
+enters the terminal; on these four worlds at γ = 0.9 the two conventions give the
+same optimal policy, so the lab 3 comparison is unaffected.
 `slip` is the probability that a move goes perpendicular to the intended
 direction, split evenly between the two perpendicular directions.
 
@@ -140,8 +148,8 @@ train/validation/test split as indices into the flat dataset.
 Classes are stroke patterns (circle, ring, square, triangle, cross, diagonal, bar,
 ell, tee, dots) drawn with random rotation, scale, offset, line weight, background
 brightness, occlusion and Gaussian noise. Two reference points measured on the
-test split: majority class 9.2%, nearest centroid 52.2%. A network that cannot
-beat 52% has a bug, not a hard problem.
+test split: majority class 9.5%, nearest centroid 53.3%. A network that cannot
+beat 53% has a bug, not a hard problem.
 
 Respect the split. Tuning against test makes the test set stop measuring anything.
 

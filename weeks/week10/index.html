@@ -362,8 +362,48 @@ result = PRODUCT(factors)</pre>
   
 </section>
 
-<!-- 9 -->
 <section class="slide" id="s11">
+  <h2>Two tools Lab 4 asks for: rejection sampling and min-fill</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <h3>Rejection sampling</h3>
+        <p>
+          Sample every variable from its CPT in topological order, ignoring the evidence.
+          Throw away each sample that disagrees with the evidence; among the rest, the
+          fraction with <var>Q</var> = <var>q</var> estimates P(<var>q</var> | <var>e</var>).
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          kept ≈ N · P(e), standard error ≈ √(p(1 − p) / kept)
+        </div>
+        <p style="margin-top:10px">
+          On the alarm network with John and Mary both calling, P(<var>e</var>) ≈ 0.002: of
+          20,000 samples about 42 survive. Likelihood weighting keeps every sample, weighted.
+        </p>
+      </div>
+      <div>
+        <h3>Choosing an order: min-fill</h3>
+        <p>
+          Eliminating a variable puts all its neighbours into one new factor, which links
+          any two of them that were not already linked: a <em>fill</em> edge. Greedy
+          min-fill eliminates next the variable that adds the fewest fill edges; a common
+          tie-break is fewest neighbours.
+        </p>
+        <div class="panel panel--key" style="margin-top:12px">
+          <h3>Cheap, not optimal</h3>
+          <p>
+            Finding the best order is NP-hard. Min-fill is a fast greedy guess that is
+            usually good; Lab 4 compares it with the order you give on the command line.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s12">
   <h2>Exact versus approximate, honestly compared</h2>
   <div class="slide-main">
     <table class="tbl">
@@ -391,14 +431,14 @@ result = PRODUCT(factors)</pre>
   
 </section>
 
-<section class="slide slide--section" id="s12">
+<section class="slide slide--section" id="s13">
   <h2>Reasoning over time</h2>
   <p>The same network, unrolled, and the filters that run on it.</p>
   
 </section>
 
 <!-- 10 -->
-<section class="slide" id="s13">
+<section class="slide" id="s14">
   <h2>Reasoning over time: the same network, unrolled</h2>
   <div class="slide-main">
     <div class="split">
@@ -482,7 +522,7 @@ result = PRODUCT(factors)</pre>
 </section>
 
 <!-- 11 -->
-<section class="slide" id="s14">
+<section class="slide" id="s15">
   <h2>Four questions, four algorithms</h2>
   <div class="slide-main">
     <table class="tbl">
@@ -526,7 +566,7 @@ result = PRODUCT(factors)</pre>
 </section>
 
 <!-- 12 -->
-<section class="slide" id="s15">
+<section class="slide" id="s16">
   <h2>The forward recursion, in one line of algebra</h2>
   <div class="slide-main">
     <div class="cols-2">
@@ -599,7 +639,7 @@ result = PRODUCT(factors)</pre>
 </section>
 
 <!-- 13 -->
-<section class="slide" id="s16">
+<section class="slide" id="s17">
   <h2>Particle filtering: represent the belief with samples</h2>
   <div class="slide-main">
     <div class="cols-2">
@@ -654,7 +694,7 @@ result = PRODUCT(factors)</pre>
 </section>
 
 <!-- 14 -->
-<section class="slide" id="s17">
+<section class="slide" id="s18">
   <h2>Where this is used, and what it costs</h2>
   <div class="slide-main">
     <div class="cols-3">
@@ -689,7 +729,7 @@ result = PRODUCT(factors)</pre>
 </section>
 
 <!-- 15 -->
-<section class="slide" id="s18">
+<section class="slide" id="s19">
   <h2>Key takeaways</h2>
   <div class="slide-main">
     <ol class="steps">
@@ -704,14 +744,14 @@ result = PRODUCT(factors)</pre>
 </section>
 
 <!-- 16 -->
-<section class="slide" id="s19">
+<section class="slide" id="s20">
   <h2>This week's work</h2>
   <div class="slide-main">
     <div class="week-work">
       <div>
         <h3>Read</h3>
         <ul>
-          <li>AIMA §13.3–13.4 and §14.3–14.5.</li>
+          <li>AIMA §13.3–13.4, §14.1–14.3 and §14.5.</li>
           <li>Trace the forward recursion for two steps on the worked example.</li>
         </ul>
       </div>
@@ -725,7 +765,8 @@ result = PRODUCT(factors)</pre>
       <div>
         <h3>Due</h3>
         <ul>
-          <li><span class="due">Sunday, 11:59 p.m. CT</span> — Lab 4.</li>
+          <li><span class="due">Sunday, March 28, 11:59 p.m. CT</span> — Lab 3.</li>
+          <li><span class="due">Sunday, April 11</span> — Lab 4.</li>
           <li>Friday class, 8:30–11:10 a.m. CT, MIC: elimination traces; online students watch the recorded lecture.</li>
         </ul>
       </div>
@@ -742,7 +783,7 @@ result = PRODUCT(factors)</pre>
 </section>
 
 <!-- 17 ─────────────────────────────── Python learning resources -->
-<section class="slide" id="s20">
+<section class="slide" id="s21">
   <h2>Python help for Lab 4</h2>
   <div class="slide-main">
     <p style="margin-bottom:14px">Lab 4 asks you to build the factors yourself. Arrays and plotting libraries are allowed.</p>

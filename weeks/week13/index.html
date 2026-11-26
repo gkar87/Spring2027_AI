@@ -660,8 +660,49 @@
   
 </section>
 
-<!-- 14 -->
 <section class="slide" id="s17">
+  <h2>Scoring a retriever: recall@k and MRR</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <p>
+          Score the retriever before the generator. For each answerable question, find the
+          rank of its gold passage in the retriever's list.
+        </p>
+        <div class="eq eq--tight" style="text-align:left">
+          recall@k = share of questions whose gold passage is in the top k<br>
+          MRR = mean of 1 / rank, counting 0 when it is not retrieved
+        </div>
+        <div class="worked" style="margin-top:12px">
+          <span class="worked-label">Three questions</span>
+          <p>
+            Gold passages at ranks 1 and 3, and one not retrieved: recall@1 = 1/3,
+            recall@5 = 2/3, MRR = (1 + 1/3 + 0) / 3 ≈ 0.44.
+          </p>
+        </div>
+      </div>
+      <div>
+        <div class="panel panel--key">
+          <h3>What each one tells you</h3>
+          <p>
+            Recall@k asks whether the evidence reaches the context at all, which is all the
+            generator can use. MRR also rewards ranking it first, which matters when the
+            context holds only a few passages.
+          </p>
+        </div>
+        <p style="margin-top:14px">
+          Questions the corpus cannot answer have no gold passage: leave them out of both
+          numbers and score abstention separately. Lab 6 reports recall@1, recall@5 and MRR
+          for both retrievers.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s18">
   <h2>Evaluation is the open problem</h2>
   <div class="slide-main">
     <div class="cols-2">
@@ -698,7 +739,7 @@
 </section>
 
 <!-- 15 -->
-<section class="slide" id="s18">
+<section class="slide" id="s19">
   <h2>Failure modes you will meet in practice</h2>
   <div class="slide-main">
     <table class="tbl tbl--compact">
@@ -723,7 +764,7 @@
 </section>
 
 <!-- 16 -->
-<section class="slide" id="s19">
+<section class="slide" id="s20">
   <h2>Key takeaways</h2>
   <div class="slide-main">
     <ol class="steps">
@@ -738,7 +779,7 @@
 </section>
 
 <!-- 17 -->
-<section class="slide" id="s20">
+<section class="slide" id="s21">
   <h2>This week's work</h2>
   <div class="slide-main">
     <div class="week-work">
@@ -746,7 +787,7 @@
         <h3>Read</h3>
         <ul>
           <li>AIMA chapters 23–24.</li>
-          <li>Vaswani et al. (2017), sections 1–3 only.</li>
+          <li>Vaswani et al. (2017), sections 1–4 and 6.</li>
           <li>Ouyang et al. (2022), the RLHF pipeline section.</li>
         </ul>
       </div>
@@ -760,7 +801,7 @@
       <div>
         <h3>Due</h3>
         <ul>
-          <li><span class="due">Sunday, 11:59 p.m. CT</span> — reflection 7.</li>
+          <li><span class="due">Sunday, 11:59 p.m. CT</span> — reflection 7 and Lab 5.</li>
           <li>Friday class, 8:30–11:10 a.m. CT, MIC: attention by hand, then failure modes; online students watch the recorded lecture.</li>
         </ul>
       </div>
@@ -777,7 +818,7 @@
 </section>
 
 <!-- 18 ─────────────────────────────── Python learning resources -->
-<section class="slide" id="s21">
+<section class="slide" id="s22">
   <h2>Python help for Lab 6</h2>
   <div class="slide-main">
     <p style="margin-bottom:14px">Lab 6 is a retriever, an answering stage and an evaluation harness. These cover the parts that are new.</p>

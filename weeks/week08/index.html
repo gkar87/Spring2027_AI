@@ -23,7 +23,7 @@
   </p>
   <p class="byline">
     Dr. Gorkem Kar
-    <span>Section 01 in the classroom · Section 02 in Brightspace with Honorlock, March 1–7</span>
+    <span>Section 01 in the classroom · Section 02 in Brightspace with Honorlock, March 5–7, after Section 01's sitting</span>
     <span>University of Central Missouri</span>
   </p>
   <div class="title-art">
@@ -109,7 +109,7 @@
         <tr>
           <th scope="row">When</th>
           <td>Friday, March 5, 8:30–10:30 a.m. CT</td>
-          <td>Once, any time from Monday, March 1, to Sunday, March 7, 11:59 p.m. CT; 120 minutes from when you start</td>
+          <td>Once, any time from Friday, March 5, at 10:30 a.m., when Section 01's sitting ends, to Sunday, March 7, 11:59 p.m. CT; 120 minutes from when you start</td>
         </tr>
         <tr>
           <th scope="row">Check-in</th>
@@ -318,25 +318,26 @@
       <div class="worked">
         <span class="worked-label">Question (10 points)</span>
         <p>
-          Let <var>h</var> be admissible. Prove that A* using tree search returns an
-          optimal solution.
+          All step costs are at least some ε &gt; 0. Prove that uniform-cost search, using
+          graph search and testing for the goal when a node is expanded, returns an optimal
+          solution.
         </p>
         <p style="margin-top:8px"><strong>Expected structure:</strong></p>
         <ol style="font-size:17px; padding-left:1.2em">
-          <li>Suppose A* returns goal <var>G₂</var> with cost <var>g</var>(<var>G₂</var>).</li>
-          <li>Let <var>C*</var> be the optimal cost, and suppose for contradiction <var>g</var>(<var>G₂</var>) &gt; <var>C*</var>.</li>
-          <li>There is an optimal goal <var>G₁</var> with a frontier ancestor <var>n</var> on an optimal path. Show <var>f</var>(<var>n</var>) ≤ <var>C*</var>.</li>
-          <li>Since A* selected <var>G₂</var>, <var>f</var>(<var>G₂</var>) ≤ <var>f</var>(<var>n</var>).</li>
-          <li>But <var>f</var>(<var>G₂</var>) = <var>g</var>(<var>G₂</var>) &gt; <var>C*</var>, a contradiction.</li>
+          <li>Costs are positive, so a child's <var>g</var> is larger than its parent's: no path gets cheaper by growing.</li>
+          <li>Claim: when a node <var>n</var> is expanded, <var>g</var>(<var>n</var>) is the cheapest cost of reaching its state.</li>
+          <li>Suppose not. Some node <var>m</var> on a cheaper path to that state is on the frontier, with <var>g</var>(<var>m</var>) &lt; <var>g</var>(<var>n</var>).</li>
+          <li>The frontier is ordered by <var>g</var>, so <var>m</var> would have been expanded before <var>n</var>: a contradiction.</li>
+          <li>The goal is tested at expansion, so the first goal expanded is reached at its cheapest cost, and no goal is cheaper.</li>
         </ol>
       </div>
       <div>
         <div class="panel panel--accent">
           <h3>Where marks are lost</h3>
           <ul>
-            <li>Assuming the heuristic is consistent — it is only admissible here.</li>
-            <li>Asserting <var>f</var>(<var>n</var>) ≤ <var>C*</var> without using admissibility explicitly.</li>
-            <li>Forgetting that the argument is for <em>tree</em> search, and claiming it covers graph search too.</li>
+            <li>Testing for the goal when a node is generated: that can return a dearer path found first.</li>
+            <li>Using the claim in step 2 without proving it from the frontier order.</li>
+            <li>Dropping ε: with zero-cost steps the argument still needs care, and with negative costs it fails.</li>
           </ul>
         </div>
         <div class="callout" style="margin-top:14px">
@@ -446,7 +447,7 @@
         <ol class="steps">
           <li><span class="n" aria-hidden="true">1</span><div><strong>Monday — reconstruct, don't reread</strong><p>From memory, write the frontier discipline, complexity, and optimality condition for all six search algorithms. Check against your notes; mark what you missed.</p></div></li>
           <li><span class="n" aria-hidden="true">2</span><div><strong>Tuesday — traces</strong><p>Run one UCS, one A*, one minimax with pruning, one value-iteration sweep by hand on small graphs. Bring questions to office hours, 12:00–3:00 p.m., MIC D159.</p></div></li>
-          <li><span class="n" aria-hidden="true">3</span><div><strong>Wednesday — proofs and design, then rest Thursday</strong><p>Write the admissibility proof twice without looking. Then sit the <a href="practice.html">practice midterm</a>, timed, and mark it.</p></div></li>
+          <li><span class="n" aria-hidden="true">3</span><div><strong>Wednesday — proofs and design, then rest Thursday</strong><p>Write the sample proof twice without looking. Then sit the <a href="practice.html">practice midterm</a>, timed, and mark it.</p></div></li>
         </ol>
       </div>
       <div>

@@ -432,7 +432,7 @@
         <tr><td>Loss decreases then plateaus high</td><td>Rate too low, or model too small</td><td>Raise the rate; check capacity</td></tr>
         <tr><td>Loss oscillates with large amplitude</td><td>Batch too small, rate too high</td><td>Increase batch or lower rate</td></tr>
         <tr><td>Training loss falls, validation rises</td><td>Overfitting, not a rate problem</td><td>Regularize, augment, or stop earlier</td></tr>
-        <tr><td>Loss barely moves from the start</td><td>Bug in data, labels, or gradient flow</td><td>Overfit one batch — see slide 15</td></tr>
+        <tr><td>Loss barely moves from the start</td><td>Bug in data, labels, or gradient flow</td><td>Overfit one batch — see slide 16</td></tr>
       </tbody>
     </table>
     <p style="margin-top:16px">
@@ -444,14 +444,56 @@
   
 </section>
 
-<section class="slide slide--section" id="s11">
+<section class="slide" id="s11">
+  <h2>Dying ReLU: a unit that stops learning</h2>
+  <div class="slide-main">
+    <div class="cols-2">
+      <div>
+        <div class="eq eq--tight" style="text-align:left">
+          a = max(0, z), ∂a/∂z = 1 if z &gt; 0, else 0
+        </div>
+        <p style="margin-top:10px">
+          If an update pushes a unit's <var>z</var> below zero for every input, the unit
+          outputs 0 everywhere and its gradient is 0 everywhere. No later step can move its
+          weights back: the unit is dead.
+        </p>
+        <div class="worked" style="margin-top:12px">
+          <span class="worked-label">One unit</span>
+          <p>
+            <var>z</var> = <var>w</var>·<var>x</var> with <var>x</var> = 1.5. A large step
+            takes <var>w</var> from 0.5 to −0.4, so <var>z</var> = −0.6, <var>a</var> = 0
+            and ∂<var>L</var>/∂<var>w</var> = 0 for this input from then on.
+          </p>
+        </div>
+      </div>
+      <div>
+        <div class="panel panel--accent">
+          <h3>Causes and remedies</h3>
+          <ul>
+            <li>A learning rate that is too large, or a large negative bias.</li>
+            <li>Lower the learning rate, or warm it up.</li>
+            <li>Leaky ReLU keeps a small slope, such as 0.01, below zero.</li>
+            <li>He initialization keeps early <var>z</var> values in a sensible range.</li>
+          </ul>
+        </div>
+        <p style="margin-top:14px">
+          To detect it, log the share of hidden units that are zero for a whole batch. A
+          share that climbs during training is the symptom.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+<section class="slide slide--section" id="s12">
   <h2>Architectures, regularization and debugging</h2>
   <p>Convolutions, residuals, and a debugging order that works.</p>
   
 </section>
 
 <!-- 9 -->
-<section class="slide" id="s12">
+<section class="slide" id="s13">
   <h2>Convolutions: share weights, preserve locality</h2>
   <div class="slide-main">
     <div class="split">
@@ -509,7 +551,7 @@
 </section>
 
 <!-- 10 -->
-<section class="slide" id="s13">
+<section class="slide" id="s14">
   <h2>Depth needs help: residuals and normalization</h2>
   <div class="slide-main">
     <div class="cols-2">
@@ -570,7 +612,7 @@
 </section>
 
 <!-- 11 -->
-<section class="slide" id="s14">
+<section class="slide" id="s15">
   <h2>Regularizing a large network</h2>
   <div class="slide-main">
     <div class="cols-3">
@@ -604,7 +646,7 @@
 </section>
 
 <!-- 12 -->
-<section class="slide" id="s15">
+<section class="slide" id="s16">
   <h2>The debugging sequence that actually works</h2>
   <div class="slide-main">
     <ol class="steps">
@@ -626,7 +668,7 @@
 </section>
 
 <!-- 13 -->
-<section class="slide" id="s16">
+<section class="slide" id="s17">
   <h2>Evaluation in deep learning has its own traps</h2>
   <div class="slide-main">
     <div class="cols-2">
@@ -661,7 +703,7 @@
 </section>
 
 <!-- 14 -->
-<section class="slide" id="s17">
+<section class="slide" id="s18">
   <h2>Key takeaways</h2>
   <div class="slide-main">
     <ol class="steps">
@@ -676,7 +718,7 @@
 </section>
 
 <!-- 15 -->
-<section class="slide" id="s18">
+<section class="slide" id="s19">
   <h2>This week's work</h2>
   <div class="slide-main">
     <div class="week-work">
@@ -697,7 +739,8 @@
       <div>
         <h3>Due</h3>
         <ul>
-          <li><span class="due">Sunday, 11:59 p.m. CT</span> — Lab 5.</li>
+          <li><span class="due">Sunday, April 11, 11:59 p.m. CT</span> — Lab 4.</li>
+          <li><span class="due">Sunday, April 18</span> — Lab 5, with reflection 7.</li>
           <li>Friday class, 8:30–11:10 a.m. CT, MIC: debugging clinic, bring a failing run; online students watch the recorded lecture.</li>
         </ul>
       </div>
@@ -714,7 +757,7 @@
 </section>
 
 <!-- 16 ─────────────────────────────── Python learning resources -->
-<section class="slide" id="s19">
+<section class="slide" id="s20">
   <h2>Python help for Lab 5</h2>
   <div class="slide-main">
     <p style="margin-bottom:14px">Lab 5 lets you use any framework's layers and optimizers. If you have not chosen one, PyTorch's beginner series is a good start.</p>

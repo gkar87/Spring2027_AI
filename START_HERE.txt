@@ -38,28 +38,31 @@ START HERE
    30%, paper critiques 10%, midterm 20%, final exam 30%.
 
 6. Deadlines
-   Sunday, 11:59 p.m. Central, unless the assignment says otherwise. Labs,
-   reflections and critiques lose 10% per day for up to three days, then are
-   not accepted. There are no free late days. The midterm and the final exam
-   have fixed dates: if one is impossible for you, contact Dr. Kar before it.
+   Sunday, 11:59 p.m. Central, unless the assignment says otherwise;
+   index.html's schedule gives every lab's date. Labs, reflections and
+   critiques lose 10% per day for up to three days, then are not accepted.
+   There are no free late days. The midterm and the final exam have fixed
+   dates: if one is impossible for you, contact Dr. Kar before it.
 
 7. Midterm
    Friday, March 5, 8:30 to 10:30 a.m. CT, on modules 1 to 7. Section 01 sits
    it at MIC. Section 02 takes it in Brightspace with Honorlock, camera on and
-   screen recorded, once, any time from Monday, March 1, to Sunday, March 7,
-   11:59 p.m. CT, with the same 120-minute limit. Bring a pen and nothing
-   else: no notes, other paper or calculators. The last page of the exam is a
-   formula sheet, shown in advance in weeks/week08/formula-sheet.html. A
-   practice midterm with answers is in weeks/week08/practice.html.
+   screen recorded, once, any time from Friday, March 5, at 10:30 a.m., when
+   Section 01's sitting ends, to Sunday, March 7, 11:59 p.m. CT, with the same
+   120-minute limit. Bring a pen and nothing else: no notes, other paper or
+   calculators. The last page of the exam is a formula sheet, shown in advance
+   in weeks/week08/formula-sheet.html. A practice midterm with answers is in
+   weeks/week08/practice.html.
 
 8. Final exam
    Friday, May 7, 8:30 to 10:30 a.m. CT, in finals week, on the whole course
    weighted to modules 9 to 15. Section 01 sits it at MIC; Section 02 takes it
-   in Brightspace with Honorlock, once, any time from Monday, May 3, to
-   Sunday, May 9, 11:59 p.m. CT. The same rules apply: a pen only, and the
-   formula sheet is the last page. The final exam page
-   (weeks/week15/final-exam.html) has the parts and the formula sheet, and a
-   sample final with answers is in weeks/week15/practice-final.html.
+   in Brightspace with Honorlock, once, any time from Friday, May 7, at 10:30
+   a.m., when Section 01's sitting ends, to Sunday, May 9, 11:59 p.m. CT. The
+   same rules apply: a pen only, and the formula sheet is the last page. The
+   final exam page (weeks/week15/final-exam.html) has the parts and the
+   formula sheet, and a sample final with answers is in
+   weeks/week15/practice-final.html.
 
 Using the slides
 ----------------

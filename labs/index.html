@@ -56,28 +56,28 @@
           <tr>
             <td><a href="lab2-mdp.html">Lab 2 — Planning under uncertainty</a></td>
             <td>Value iteration and policy iteration on a stochastic grid</td>
-            <td>End of week 6</td>
+            <td>End of week 7 (Sunday, Feb 28)</td>
             <td class="num">5%</td>
             <td>Individual</td>
           </tr>
           <tr>
             <td><a href="lab3-qlearning.html">Lab 3 — Learning from experience</a></td>
             <td>Q-learning, exploration schedules, and the cost of learning</td>
-            <td>End of week 7</td>
+            <td>End of week 10 (Sunday, Mar 28)</td>
             <td class="num">5%</td>
             <td>Individual</td>
           </tr>
           <tr>
             <td><a href="lab4-inference.html">Lab 4 — Inference</a></td>
             <td>Enumeration, elimination, sampling, and filtering</td>
-            <td>End of week 10</td>
+            <td>End of week 12 (Sunday, Apr 11)</td>
             <td class="num">5%</td>
             <td>Individual</td>
           </tr>
           <tr>
             <td><a href="lab5-deep-learning.html">Lab 5 — Deep learning</a></td>
             <td>A small CNN, baselines, ablations, and calibration</td>
-            <td>End of week 12</td>
+            <td>End of week 13 (Sunday, Apr 18)</td>
             <td class="num">5%</td>
             <td>Individual</td>
           </tr>
@@ -140,6 +140,44 @@
       </p>
     </section>
 
+
+    <section>
+      <h2>What to install</h2>
+      <p>
+        Python 3.11 or newer. Labs 1 to 4 need only the standard library, NumPy and
+        matplotlib for the report figures. Lab 5 uses a deep-learning framework (the
+        course examples use PyTorch) and scikit-learn for the reliability diagram; lab 6
+        adds sentence-transformers for the dense retriever. BM25 you write yourself, so
+        it needs no package. One command installs everything the labs use:
+      </p>
+      <pre><code>python -m pip install numpy matplotlib torch scikit-learn sentence-transformers</code></pre>
+      <p>
+        These are the packages, not pinned versions: the current release of each is
+        fine.
+      </p>
+    </section>
+
+    <section id="layout">
+      <h2>Folder layout</h2>
+      <p>
+        The lab sheets and their data sit side by side. Make one working folder per lab
+        beside <code>data</code>, as below, and run your code from it: the commands in
+        each sheet, such as <code>--grid ../data/lab1/grid_a.txt</code>, then work as
+        written. <a href="data/README.md"><code>data/README.md</code></a> documents every file.
+      </p>
+      <pre><code>labs/
+  lab1-search.html … lab6-rag.html   the six sheets
+  data/
+    README.md                        every file format
+    lab1/  grid_a.txt grid_b.txt grid_c.txt trace_example.txt reference_results.csv
+    lab2/  worlds/open6.json corridor.json cliff.json wall_adjacent.json
+    lab3/  qenv.py
+    lab4/  alarm.json chain20.json dense.json hmm_params.json hmm_observations.txt
+           hmm_first_step.json make_networks.py
+    lab5/  dataset.bin dataset_meta.json make_dataset.py
+    lab6/  corpus.jsonl questions.jsonl answers.json make_corpus.py
+  lab1/ … lab6/                      your own working folders</code></pre>
+    </section>
 
     <section>
       <h2>New to Python? Start here</h2>

@@ -38,6 +38,7 @@
 <section id="explorer" aria-labelledby="explorer-h">
   <h2 id="explorer-h">The search explorer</h2>
   <p>A grid from start S (square A1) to goal G (square I5). Moves go up, right, down or left, one square at a time. A move into an ordinary square costs 1; a move into mud costs 3; black squares are walls. Every algorithm here is graph search: it never expands a square twice, it tests for the goal when it expands a square, it generates neighbours in the order up, right, down, left, and it breaks ties first in, first out.</p>
+  <p><strong>Note for Lab 1:</strong> Manhattan distance is admissible here because moves are four-way. Lab 1's grid is eight-way, with diagonal moves costing 1.5, and there Manhattan can overestimate, so it is not admissible; octile distance is.</p>
   <div class="explorer" data-explorer="search" data-grid="S...#..../.##.#.##./....~~~../.#.#~~~#./.#...#..G/...#.....">
     <h3>Pick an algorithm, then step</h3>
   </div>
@@ -103,7 +104,7 @@
     <div class="cell-actions"><button type="button" class="btn btn--check">Check answer</button></div>
     <div class="cell-out"></div>
     <details><summary>Hint</summary><p>Same path as UCS; compare the number expanded.</p></details>
-    <details><summary>Show a solution</summary><p>28, against 35 for UCS: the heuristic steers the search toward the goal and it still returns the optimal cost 14, because Manhattan distance is admissible and consistent on a grid whose steps cost at least 1.</p></details>
+    <details><summary>Show a solution</summary><p>28, against 35 for UCS: the heuristic steers the search toward the goal and it still returns the optimal cost 14, because Manhattan distance is admissible and consistent on a four-way grid whose steps cost at least 1.</p></details>
   </div>
   <div class="cell cell--ex" data-ex="w3e5">
     <div class="cell-head"><span class="cell-title">Exercise 5</span><span class="solved-badge"></span></div>

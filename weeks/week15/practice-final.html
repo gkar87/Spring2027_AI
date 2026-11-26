@@ -18,10 +18,10 @@
 </header>
 
 <dl class="facts">
-  <div><dt>Final</dt><dd>Section 01: Friday, May 7, 8:30 to 10:30 a.m. Central. Section 02: Brightspace with Honorlock, any time May 3 to 9</dd></div>
+  <div><dt>Final</dt><dd>Section 01: Friday, May 7, 8:30 to 10:30 a.m. Central. Section 02: Brightspace with Honorlock, from Friday, May 7, 10:30 a.m., to Sunday, May 9</dd></div>
   <div><dt>Length</dt><dd>120 minutes, 100 points</dd></div>
   <div><dt>Allowed</dt><dd>A pen and nothing else. The formula sheet is the last page of the exam. No notes, no calculators.</dd></div>
-  <div><dt>Covers</dt><dd>The whole course, about a fifth on modules 1 to 7</dd></div>
+  <div><dt>Covers</dt><dd>The whole course, about 6% on modules 1 to 7</dd></div>
 </dl>
 
 <nav class="toc" aria-labelledby="toc-h">
@@ -40,7 +40,7 @@
 <section id="about" aria-labelledby="about-h">
   <h2 id="about-h">About the final</h2>
   <ul>
-    <li>Section 01 sits the exam on paper at MIC. Section 02 takes it in Brightspace with Honorlock, once, any time from Monday, May 3, to Sunday, May 9, 11:59 p.m. CT, with the camera on, the screen recorded and the same 120-minute limit. The <a href="final-exam.html">final exam page</a> has the details.</li>
+    <li>Section 01 sits the exam on paper at MIC. Section 02 takes it in Brightspace with Honorlock, once, any time from Friday, May 7, at 10:30 a.m., when Section 01's sitting ends, to Sunday, May 9, 11:59 p.m. CT, with the camera on, the screen recorded and the same 120-minute limit. The <a href="final-exam.html">final exam page</a> has the details.</li>
     <li>The <a href="final-exam.html#formulas">formula sheet</a> is the last page of the exam, and it is attached to the Brightspace quiz. Bring nothing else.</li>
     <li>There is no calculator, so every number works out by hand, as the numbers here do. If your arithmetic turns ugly, check the setup first.</li>
     <li>The points on each question are also a time budget: about 1.2 minutes a point. Leave Part D 25 minutes.</li>
@@ -167,19 +167,19 @@
   <h2 id="pd-h">Part D: design (20 points)</h2>
   <p>A regional hospital wants a model that, at discharge, flags patients likely to be readmitted within 30 days, so that nurses can call them in their first week home. Nurses can call about 50 of the 1,200 patients discharged each week. The hospital has three years of records: diagnoses, length of stay, prior admissions, medications, age, zip code and insurance type. About 12% of discharges are followed by a readmission, and the rate differs between patients on public and on private insurance.</p>
   <ol class="qs">
-    <li><p><strong>D1. Formulate (5).</strong> Define the prediction target and the features you would use, and say which available data you would refuse to use and why. Name the baseline the model has to beat.</p></li>
-    <li><p><strong>D2. Evaluate (6).</strong> Describe the split and the metric you would report, given that nurses can call only 50 patients a week, and say how you would show the result is not luck.</p></li>
-    <li><p><strong>D3. Be fair on purpose (5).</strong> The base rates differ between the insurance groups. Say which fairness criterion you would aim for, what that choice gives up, and who should make it.</p></li>
-    <li><p><strong>D4. Deploy (4).</strong> Name two things you would monitor after launch and what you would do when each goes wrong, and one item the model card must say.</p>
+    <li><p><strong>D1. The label and the data (5).</strong> Write down the exact label you would train on: what counts as a readmission, and when the 30 days start. Name two available fields that would leak the label if you used them as features, and one you would hesitate over for another reason. Say what the model has to be compared against.</p></li>
+    <li><p><strong>D2. The evidence (6).</strong> A first model is reported at 89% accuracy on a random 20% of the records. Say why that number tells the nurses almost nothing, what you would report instead given that they call 50 patients a week, and how you would test the model so the result says something about next year.</p></li>
+    <li><p><strong>D3. Who gets a call (5).</strong> Patients on public insurance are readmitted more often. An advocacy group asks that each insurance group's share of the 50 calls equal its share of discharges. Say what that rule does, in each group, to the chance that a patient who will be readmitted gets a call. Then say what you would put to the hospital's leaders instead, and why the choice is theirs.</p></li>
+    <li><p><strong>D4. Six months later (4).</strong> Nurses report that most of the patients they call turn out fine. Name two checks you would run to find out why, and one thing the model card should have said that would have prepared them for this.</p>
       <details><summary>What a full-credit answer looks like</summary>
         <p>There is no single right answer. Here is one that would earn full marks.</p>
         <ul>
-          <li><strong>D1</strong> Target: an unplanned readmission within 30 days of this discharge (planned returns, such as scheduled chemotherapy, excluded). Features known at discharge: diagnoses, length of stay, admissions in the past year, number of medications, age. Refuse anything recorded after discharge (leakage), and think hard about zip code, which can stand in for race and income; use it only if a test shows it adds accuracy that cannot be had another way. Baseline: the rule nurses use now, such as “two or more admissions in the past year”, and a simple logistic regression.</li>
-          <li><strong>D2</strong> Split by time: train on the first two years, test on the third, with each patient in only one side, because next year is where it will be used. Report precision at 50 a week (of the 50 called, how many would have been readmitted) and recall at 50, against the baseline. Show it is not luck with a confidence interval from bootstrapping the test weeks, and by checking that it wins in most weeks, not on average only.</li>
-          <li><strong>D3</strong> With different base rates, equal precision and equal error rates cannot all hold. One defensible choice: equal recall (true-positive rate) across insurance groups, so a patient who will be readmitted has the same chance of a call whatever their insurance. It gives up equal precision: calls in one group will more often reach patients who were fine. The hospital's clinical and patient-advocacy leaders should choose, not the modeller, because it is a decision about who gets help.</li>
-          <li><strong>D4</strong> Monitor the share of flagged patients actually readmitted, monthly: if it drops below the baseline's, retrain or fall back to the old rule. Monitor the input distribution and the share of each insurance group among the 50: if either shifts (a new coding system, a new clinic), investigate before trusting the scores. The model card must state the recall and precision for each insurance group, and that the model ranks patients for a call; it does not decide care.</li>
+          <li><strong>D1</strong> Label: an unplanned admission to any of the hospital's sites within 30 days of this discharge date, with planned returns (scheduled chemotherapy, staged surgery) excluded. Leaking fields: anything recorded after discharge, such as a follow-up visit's diagnosis or the date of the next admission. Hesitate over zip code and insurance type, which can stand in for race and income; use them only if a test shows they add something that cannot be had another way. Compare against the rule nurses use now, such as “two or more admissions in the past year”, and a simple logistic regression.</li>
+          <li><strong>D2</strong> Only about 12% of discharges are readmitted, so predicting “no” for everyone scores 88%: 89% accuracy is barely better than doing nothing, and accuracy says nothing about the 50 calls. Report precision at 50 a week (of the 50 called, how many would have been readmitted) and recall at 50, against the nurses' rule. Test by time: train on the first two years, test on the third, with each patient on one side only, and give a bootstrap interval over the test weeks.</li>
+          <li><strong>D3</strong> The higher-rate group would get fewer calls than its share of readmissions, so a public-insurance patient who will be readmitted becomes less likely to get a call than a private-insurance one. Put the alternative to the leaders: aim for an equal chance of a call for patients who will be readmitted (equal recall), which means the public-insurance group gets more than its share of calls. Which kind of equality matters is a decision about who gets help, so clinical and patient-advocacy leaders make it, with the numbers for each option in front of them.</li>
+          <li><strong>D4</strong> Check whether the inputs or the patient mix have drifted since the test year (a new coding system, a new clinic) and whether precision at 50 has fallen below the baseline's. Check whether the calls themselves work: a called patient who stays home may be a success, not a false alarm, so compare with a group the model flagged but nobody called, or with the old rule's weeks. The model card should have said what precision to expect at launch, for each insurance group, and that outcomes after a call no longer measure the model alone.</li>
         </ul>
-        <p>Marks go to the argument: a target that is stated precisely, an evaluation tied to the 50 calls, a fairness choice with its cost named, and monitoring with an action attached.</p>
+        <p>Marks go to the argument: a label stated precisely, evidence tied to the 50 calls, a fairness choice whose effect on each group is named, and checks that could tell the explanations apart.</p>
       </details></li>
   </ol>
 </section>

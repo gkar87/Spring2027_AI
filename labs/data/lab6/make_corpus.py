@@ -136,8 +136,9 @@ def build():
     questions, answers = [], {}
     kinds = ["overview", "pitfall", "practice"]
     frames = {
-        "overview": "What does {name} do, and why is it used?",
-        "pitfall": "What is a common mistake when using {name}?",
+        # worded to fit every topic: a method, a concept (overfitting) or a field (fairness)
+        "overview": "What {be} {name}, and why {does} {it} matter?",
+        "pitfall": "What is a common mistake with {name}?",
         "practice": "Give an example of {name} in practice.",
     }
     n = 0
@@ -145,7 +146,10 @@ def build():
         kind = kinds[i % len(kinds)]
         qid = f"q{n + 1:03d}"
         n += 1
-        questions.append({"id": qid, "question": frames[kind].format(name=mid(name))})
+        plural = name.endswith("methods")  # shortcut: the one plural overview name; extend if FACTS gains another
+        questions.append({"id": qid, "question": frames[kind].format(
+            name=mid(name), be="are" if plural else "is", does="do" if plural else "does",
+            it="they" if plural else "it")})
         doc_id = f"{slug}-{kind}"
         if kind == "overview":
             answer = f"{name} is {what}; it is used because {why}."

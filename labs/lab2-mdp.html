@@ -24,7 +24,7 @@
     </p>
     <p class="instructor">
       <strong>Dr. Gorkem Kar</strong>
-      <span>Due: end of week 6</span>
+      <span>Due: Sunday, February 28 (end of week 7)</span>
       <span>Weight: 5% of the course grade</span>
       <span>Individual work</span>
     </p>
@@ -51,10 +51,10 @@
       <ul>
         <li>Module 6, especially the Bellman equations and the policy improvement theorem.</li>
         <li>AIMA 17.1–17.2.</li>
-        <li>The four maps in <code>../data/lab2/worlds/</code> — <code>open6</code>,
-          <code>corridor</code>, <code>cliff</code> and <code>wall_adjacent</code>, the last
-          with its terminal in a walled corner. <code>../data/README.md</code> documents the
-          world format.</li>
+        <li>The four maps in <code>../data/lab2/worlds/</code> — <a href="data/lab2/worlds/open6.json"><code>open6</code></a>,
+          <a href="data/lab2/worlds/corridor.json"><code>corridor</code></a>, <a href="data/lab2/worlds/cliff.json"><code>cliff</code></a> and <a href="data/lab2/worlds/wall_adjacent.json"><code>wall_adjacent</code></a>, the last
+          with its terminal in a walled corner. <a href="data/README.md"><code>../data/README.md</code></a> documents the
+          world format. Paths in this sheet are written from a folder of your own beside <code>data</code>, such as <code>labs/lab2/</code>; the <a href="index.html#layout">labs page</a> shows the layout.</li>
         <li>Python help for this lab: <a href="https://docs.python.org/3/library/json.html">json</a> to read the worlds, and <a href="https://numpy.org/doc/stable/user/absolute_beginners.html">NumPy for absolute beginners</a> if you solve the linear system with arrays. More on the <a href="index.html">labs page</a>.</li>
       </ul>
     </section>
@@ -111,22 +111,37 @@
       <pre>python3 plan.py --world ../data/lab2/worlds/open6.json --method vi \
     --gamma 0.9 --slip 0.1 --threshold 1e-6
 
-{"method": "vi", "sweeps": 24, "residual": 6.7e-07,
- "values": [[0.45, 0.56, 0.68, 0.82, 0.98, 1.0], ...],
+{"method": "vi", "sweeps": 23, "residual": 9.9e-07,
+ "values": [[0.36, 0.46, 0.57, 0.70, 0.84, 1.0], ...],
  "policy": [["E", "E", "E", "E", "E", null], ...]}</pre>
       <p class="muted">
         Those are the real numbers for <code>open6</code> at γ = 0.9 with a 1e-6
-        threshold: 24 sweeps, a residual of 6.7 × 10⁻⁷, and the first row of the value
+        threshold: 23 sweeps, a residual of 9.9 × 10⁻⁷, and the first row of the value
         table above. The worst-case bound, 0.9<sup>k</sup> &lt; 10⁻⁶, predicts about 130
-        sweeps; the measured count is far lower, so report what you measured, not what you expected.
+        sweeps; measured counts are far lower. The grader's own reference, run to 10⁻⁹,
+        takes 31 to 38 sweeps on <code>open6</code>, <code>cliff</code> and
+        <code>wall_adjacent</code> (12 on the slip-free <code>corridor</code>). Report what
+        you measured, not what you expected.
       </p>
       <p>
-        <code>--method</code> is <code>vi</code> or <code>pi</code>. Rather than compare
-        against one stored policy, the grader checks three properties on every map: both
-        methods return the same value function, your values satisfy the Bellman equation
-        to within 1e-4 when substituted back, and your policy is greedy with respect to
-        those values. A planner that passes all three is correct whatever its internals
-        look like — which also means you may choose how to solve the linear system.
+        <code>--method</code> is <code>vi</code> or <code>pi</code>. The grader runs both
+        methods on every map at γ = 0.9 with the map's own slip and checks three things
+        about your <code>values</code>: substituted back into the Bellman optimality
+        equation they leave a residual of at most 1e-4; they are within 1e-3 of the
+        reference planner's values; and value iteration and policy iteration agree to
+        within 1e-4. It does not check your <code>policy</code>, so check that yourself: it
+        should be greedy with respect to your values. A planner that passes is correct
+        whatever its internals look like — which also means you may choose how to solve
+        the linear system.
+      </p>
+      <p>
+        <strong>Terminal convention.</strong> Every move earns the map's
+        <code>step_reward</code>, including the move into a terminal. A terminal is a state
+        whose value is fixed at its reward <var>R</var>, so entering it is worth
+        <code>step_reward</code> + γ<var>R</var>: the terminal reward is discounted once,
+        exactly as in the <a href="../weeks/week06/playground.html">week 6 playground</a>
+        and the midterm. The grader uses this convention; paying <var>R</var> undiscounted
+        on entry gives different values and fails the reference check.
       </p>
       <p>
         <strong>Array convention.</strong> <code>values</code> is a

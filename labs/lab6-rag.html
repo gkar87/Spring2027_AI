@@ -36,7 +36,7 @@
       <h2>What you are building</h2>
       <p>
         A grounded question-answering pipeline over the course's own reading notes — 252
-        short passages in <code>../data/lab6/corpus.jsonl</code>. Two stages: retrieve the
+        short passages in <a href="data/lab6/corpus.jsonl"><code>../data/lab6/corpus.jsonl</code></a>. Two stages: retrieve the
         passages that could answer the question, then answer using only those passages and
         cite them.
       </p>
@@ -53,8 +53,9 @@
         <li>Module 13 (transformers and language models) and module 14 (perception, robotics, and systems that hold up).</li>
         <li>AIMA 23–24 for the language-model background, and the evaluation slides from module 11 and module 13.</li>
         <li>The provided corpus, the 73-question evaluation set (63 answerable, 10
-          deliberately not), and the answer key that ships with them — all documented in
-          <code>../data/README.md</code>.</li>
+          deliberately not), and the answer key that ships with them — <a href="data/lab6/questions.jsonl"><code>questions.jsonl</code></a> and
+          <a href="data/lab6/answers.json"><code>answers.json</code></a>, documented in
+          <a href="data/README.md"><code>../data/README.md</code></a>. Paths in this sheet are written from a folder of your own beside <code>data</code>, such as <code>labs/lab6/</code>; the <a href="index.html#layout">labs page</a> shows the layout.</li>
         <li>Python help for this lab: <a href="https://huggingface.co/learn/llm-course/chapter1/1">Hugging Face LLM course</a> and the <a href="https://sbert.net/docs/quickstart.html">Sentence Transformers quickstart</a> for the dense retriever. More on the <a href="index.html">labs page</a>.</li>
       </ul>
     </section>
@@ -111,8 +112,8 @@
       <h2>What the grader runs</h2>
       <pre>python3 qa.py --questions ../data/lab6/questions.jsonl --out results.jsonl
 
-{"id": "q007", "answer": "A common mistake with breadth-first search: ...",
- "citations": ["bfs-pitfall"], "refused": false}</pre>
+{"id": "q007", "answer": "A consistent heuristic satisfies the triangle inequality on every edge, ...",
+ "citations": ["consistent-overview"], "refused": false}</pre>
       <p>
         One JSON object per line, in the order of the questions file. The grader scores
         your file against <code>answers.json</code> on three axes:

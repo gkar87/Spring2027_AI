@@ -24,7 +24,7 @@
     </p>
     <p class="instructor">
       <strong>Dr. Gorkem Kar</strong>
-      <span>Due: end of week 12</span>
+      <span>Due: Sunday, April 18 (end of week 13)</span>
       <span>Weight: 5% of the course grade</span>
       <span>Individual work</span>
     </p>
@@ -37,7 +37,7 @@
       <p>
         An image classifier on <code>../data/lab5/dataset.bin</code> — ten thousand 28 × 28
         images in ten classes, with the fixed train/validation/test split recorded in
-        <code>dataset_meta.json</code>. The split is fixed because the moment you tune
+        <a href="data/lab5/dataset_meta.json"><code>dataset_meta.json</code></a>. The split is fixed because the moment you tune
         against the test set, the test set stops measuring anything.
       </p>
       <p>
@@ -63,9 +63,9 @@
         <li>Python help for this lab: <a href="https://docs.pytorch.org/tutorials/beginner/basics/intro.html">Learn the basics (PyTorch)</a>, and <a href="https://scikit-learn.org/stable/modules/calibration.html">probability calibration (scikit-learn)</a> for the reliability diagram. More on the <a href="index.html">labs page</a>.</li>
       </ul>
       <p>
-        The binary layout and the split file are documented in <code>../data/README.md</code>,
+        The binary layout and the split file are documented in <a href="data/README.md"><code>../data/README.md</code></a>,
         and the generator that produced the images ships beside the data, so you can check
-        that you are reading the format the way it was written.
+        that you are reading the format the way it was written. Paths in this sheet are written from a folder of your own beside <code>data</code>, such as <code>labs/lab5/</code>; the <a href="index.html#layout">labs page</a> shows the layout.
       </p>
     </section>
 
@@ -78,7 +78,8 @@
         and a nearest-centroid classifier. Everything you build afterwards must be
         compared against these, and the report must show them on the same axes as your
         network. Beating chance is not a result; beating both baselines by a stated margin
-        is.
+        is. On the test split they score 9.5% (the training split's majority class) and
+        53.3% (nearest centroid); if yours differ, check them before going on.
       </p>
 
       <h3>2. Overfit a single batch</h3>
@@ -132,7 +133,7 @@ python3 train.py --data ../data/lab5 --epochs 20 --seed 0
         itself, so the reported accuracy is checked against your model rather than trusted.
       </p>
       <p>
-        The pass mark is 0.78 test accuracy on that file, set above the 0.52
+        The pass mark is 0.78 test accuracy on that file, set above the 0.53
         nearest-centroid baseline rather than at it, since beating a trivial predictor is
         the minimum a network must earn. Your reported figure must match the file within
         0.01. Below the baseline is not partial credit: it is a bug somewhere.
